@@ -1,0 +1,58 @@
+name: 'Packages Split'
+
+on:
+  push:
+    branches:
+      - split_test
+    tags:
+      - '*'
+
+env:
+  GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
+
+jobs:
+  packages_split:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        package: # define package to repository map
+          -
+            local_path: 'src/Server'
+            split_repository: 'phpstreamserver'
+
+    steps:
+      -   uses: actions/checkout@v2
+
+      - # no tag
+        if: "!startsWith(github.ref, 'refs/tags/')"
+        uses: "symplify/monorepo-split-github-action@2.1"
+        with:
+          # ↓ split "packages/easy-coding-standard" directory
+          package_directory: '${{ matrix.package.local_path }}'
+
+          # ↓ into https://github.com/symplify/easy-coding-standard repository
+          repository_organization: 'phpstreamserver'
+          repository_name: '${{ matrix.package.split_repository }}'
+
+          # ↓ the user signed under the split commit
+          user_name: "Anton"
+          user_email: "anton.z@live.com"
+
+      - # with tag
+        if: "startsWith(github.ref, 'refs/tags/')"
+        uses: "symplify/monorepo-split-github-action@2.1"
+        with:
+          tag: ${GITHUB_REF#refs/tags/}
+
+          # ↓ split "packages/easy-coding-standard" directory
+          package_directory: '${{ matrix.package.local_path }}'
+
+          # ↓ into https://github.com/symplify/easy-coding-standard repository
+          repository_organization: 'phpstreamserver'
+          repository_name: '${{ matrix.package.split_repository }}'
+
+          # ↓ the user signed under the split commit
+          user_name: "Anton"
+          user_email: "anton.z@live.com"
