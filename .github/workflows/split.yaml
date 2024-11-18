@@ -7,6 +7,7 @@ on:
     tags:
       - '*'
 
+
 env:
   GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
 
