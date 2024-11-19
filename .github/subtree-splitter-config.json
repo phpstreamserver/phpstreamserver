@@ -1,0 +1,9 @@
+{
+  "subtree-splits": [
+    {
+      "name": "Server",
+      "directory": "src/Server",
+      "target": "git@github.com:phpstreamserver/phpstreamserver.git"
+    }
+  ]
+}
