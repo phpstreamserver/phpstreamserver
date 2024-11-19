@@ -2,18 +2,8 @@ name: 'Packages Split'
 
 on:
   push:
-    # Only trigger for specific branches or changes in specific paths.
     branches:
-      - 'split_test'
-    paths:
-      - src/**
-    # Tag push events should be ignored, they will be handled with the create event below.
-    tags-ignore:
-      - '*'
-  create:
-    tags:
-      - '*'
-  delete:
+      - split_test
     tags:
       - '*'
 
