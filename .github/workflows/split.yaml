@@ -25,4 +25,4 @@ jobs:
           echo "$(pwd)" >> $GITHUB_PATH
       - name: 'Split to manyrepo'
         #run: find src -maxdepth 3 -name composer.json -print0 | xargs -I '{}' -n 1 -0 bash .github/subtree.sh {} ${{ github.ref }}
-        run: .github/subtree.sh src/Server/composer.json ${{ github.ref }}
+        run: bash .github/subtree.sh src/Server/composer.json ${{ github.ref }}
