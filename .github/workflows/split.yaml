@@ -20,8 +20,8 @@ jobs:
       - name: 'Install splitsh'
         run: |
           curl -L https://github.com/splitsh/lite/releases/download/v1.0.1/lite_linux_amd64.tar.gz > lite_linux_amd64.tar.gz
-          tar -zxpf lite_linux_amd64.tar.gz
-          chmod +x splitsh-lite
+          tar -zxpf lite_linux_amd64.tar.gz --directory /usr/local/bin
+          chmod +x /usr/local/bin/splitsh-lite
       - name: 'Split to manyrepo'
         #run: find src -maxdepth 3 -name composer.json -print0 | xargs -I '{}' -n 1 -0 bash .github/subtree.sh {} ${{ github.ref }}
         run: bash .github/subtree.sh src/Server/composer.json ${{ github.ref }}
