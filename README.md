@@ -28,3 +28,4 @@ Please read the official documentation: https://phpstreamserver.dev/
 | [Logger](https://github.com/phpstreamserver/logger)             | Plugin that implements a powerful PSR-compatible logger that can be used by workers.              |
 | [File Monitor](https://github.com/phpstreamserver/file-monitor) | Plugin to monitor files and reload server when files are changed. Useful for development.         |
 | [Metrics](https://github.com/phpstreamserver/metrics)           | Plugin that exposes an endpoint with Prometheus metrics. Custom metrics can be sent from workers. |
+| [Symfony](https://github.com/phpstreamserver/symfony)           | Symfony bundle to integrate PHPStreamServer with a symfony application.                           |

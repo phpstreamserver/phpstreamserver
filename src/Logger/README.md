@@ -7,7 +7,7 @@
 
 ## Logger Plugin for PHPStreamServer
 ![PHP >=8.2](https://img.shields.io/badge/PHP->=8.2-777bb3.svg)
-![Version](https://img.shields.io/github/v/tag/phpstreamserver/phpstreamserver?label=Version&filter=v*.*.*&sort=semver&color=374151)
+![Version](https://img.shields.io/github/v/tag/phpstreamserver/logger?label=Version&filter=v*.*.*&sort=semver&color=374151)
 ![Downloads](https://img.shields.io/packagist/dt/phpstreamserver/logger?label=Downloads&color=f28d1a)
 
 The Logger Plugin for **PHPStreamServer** extends the core functionality by providing a configurable PSR-compatible logger.

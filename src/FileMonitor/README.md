@@ -7,7 +7,7 @@
 
 ## File Monitor Plugin for PHPStreamServer
 ![PHP >=8.2](https://img.shields.io/badge/PHP->=8.2-777bb3.svg)
-![Version](https://img.shields.io/github/v/tag/phpstreamserver/phpstreamserver?label=Version&filter=v*.*.*&sort=semver&color=374151)
+![Version](https://img.shields.io/github/v/tag/phpstreamserver/file-monitor?label=Version&filter=v*.*.*&sort=semver&color=374151)
 ![Downloads](https://img.shields.io/packagist/dt/phpstreamserver/file-monitor?label=Downloads&color=f28d1a)
 
 The File Monitor Plugin for **PHPStreamServer** extends the core functionality by automatically monitoring file changes within specified directories.

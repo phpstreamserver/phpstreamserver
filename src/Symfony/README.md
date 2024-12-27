@@ -7,7 +7,10 @@
 
 ## Symfony Bundle for PHPStreamServer
 ![PHP >=8.2](https://img.shields.io/badge/PHP->=8.2-777bb3.svg)
-![Version](https://img.shields.io/github/v/tag/phpstreamserver/phpstreamserver?label=Version&filter=v*.*.*&sort=semver&color=374151)
+![Version](https://img.shields.io/github/v/tag/phpstreamserver/symfony?label=Version&filter=v*.*.*&sort=semver&color=374151)
 ![Downloads](https://img.shields.io/packagist/dt/phpstreamserver/symfony?label=Downloads&color=f28d1a)
 
 This bundle provides a PHPStreamServer integration with Symfony framework to run your application in a highly efficient event-loop based runtime.
+
+> [!NOTE]  
+> This package is under development now
