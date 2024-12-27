@@ -1,12 +1,12 @@
 {
     "name": "phpstreamserver/phpstreamserver",
     "description": "The PHPStreamServer application server",
-    "type": "library",
-    "minimum-stability": "dev",
-    "keywords": [
-        "phpstreamserver", "dev"
-    ],
     "license": "MIT",
+    "type": "library",
+    "keywords": [
+        "phpstreamserver",
+        "dev"
+    ],
     "authors": [
         {
             "name": "Anton Zenkov",
@@ -27,9 +27,16 @@
         "luzrain/polyfill-inotify": "^1.0",
         "promphp/prometheus_client_php": "^2.12",
         "psr/container": "^2.0",
+        "psr/http-factory": "^1.0",
         "psr/http-message": "^2.0",
         "psr/log": "^3.0",
-        "revolt/event-loop": "^1.0.6"
+        "revolt/event-loop": "^1.0.6",
+        "symfony/config": "^7.0",
+        "symfony/dependency-injection": "^7.0",
+        "symfony/error-handler": "^7.0",
+        "symfony/http-kernel": "^7.0",
+        "symfony/psr-http-message-bridge": "^7.0",
+        "symfony/runtime": "^7.0"
     },
     "require-dev": {
         "amphp/http-client": "^5.1",
@@ -45,8 +52,10 @@
         "phpstreamserver/http-server": "self.version",
         "phpstreamserver/logger": "self.version",
         "phpstreamserver/metrics": "self.version",
-        "phpstreamserver/scheduler": "self.version"
+        "phpstreamserver/scheduler": "self.version",
+        "phpstreamserver/symfony": "self.version"
     },
+    "minimum-stability": "dev",
     "autoload": {
         "psr-4": {
             "PHPStreamServer\\Core\\": "src/Core/src/",
@@ -54,7 +63,8 @@
             "PHPStreamServer\\Plugin\\HttpServer\\": "src/HttpServer/src/",
             "PHPStreamServer\\Plugin\\Logger\\": "src/Logger/src/",
             "PHPStreamServer\\Plugin\\Metrics\\": "src/Metrics/src/",
-            "PHPStreamServer\\Plugin\\Scheduler\\": "src/Scheduler/src/"
+            "PHPStreamServer\\Plugin\\Scheduler\\": "src/Scheduler/src/",
+            "PHPStreamServer\\Symfony\\": "src/Symfony/src/"
         },
         "files": [
             "src/Core/src/functions.php"
