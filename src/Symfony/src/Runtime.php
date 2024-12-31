@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\PHPStreamServerBundle;
+namespace PHPStreamServer\Symfony;
 
 use Symfony\Component\Runtime\ResolverInterface;
 use Symfony\Component\Runtime\RunnerInterface;

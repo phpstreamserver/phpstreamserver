@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\PHPStreamServerBundle\Internal;
+namespace PHPStreamServer\Symfony\Internal;
 
 /**
  * @internal

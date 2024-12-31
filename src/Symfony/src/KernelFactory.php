@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Luzrain\PHPStreamServerBundle;
+namespace PHPStreamServer\Symfony;
 
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final readonly class KernelFactory
 {
-    private string $environment;
-    private bool $isDebug;
-    private string $projectDir;
+    public string $projectDir;
+    public string $environment;
+    public bool $isDebug;
 
     /** @psalm-suppress InvalidPropertyAssignmentValue */
     public function __construct(private \Closure $app, private array $args, array $options)
@@ -23,25 +23,5 @@ final readonly class KernelFactory
     public function createKernel(): KernelInterface
     {
         return ($this->app)(...$this->args);
-    }
-
-    public function getEnvironment(): string
-    {
-        return $this->environment;
-    }
-
-    public function isDebug(): bool
-    {
-        return $this->isDebug;
-    }
-
-    public function getProjectDir(): string
-    {
-        return $this->projectDir;
-    }
-
-    public function getCacheDir(): string
-    {
-        return $this->getProjectDir() . '/var/cache/' . $this->getEnvironment();
     }
 }
