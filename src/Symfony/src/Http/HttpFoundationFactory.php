@@ -54,8 +54,6 @@ final class HttpFoundationFactory
 
         $symfonyRequest->headers->add($ampRequest->getHeaders());
 
-        dump($symfonyRequest);
-
         return $symfonyRequest;
     }
 }

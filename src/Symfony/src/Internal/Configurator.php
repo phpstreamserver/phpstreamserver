@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
+use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
 use Symfony\Component\ErrorHandler\ErrorHandler;
@@ -18,6 +19,17 @@ final readonly class Configurator
     public function __invoke(HttpServerStartedEvent $event): void
     {
         $worker = $event->worker;
+        $kernelContainer = $this->kernel->getContainer();
+
+        $worker->container->setService('http_handler', $kernelContainer->get('phpss.http_handler'));
+
+        $kernelContainer->set('phpss.container', $worker->container);
+        $kernelContainer->set('phpss.bus', $worker->bus);
+        $kernelContainer->set('phpss.logger', $worker->logger);
+
+
+
+
 
 //        /**
 //         * @psalm-suppress UndefinedClass
@@ -35,10 +47,5 @@ final readonly class Configurator
 //
 //        $worker->setLogger($this->logger);
 //        $worker->setErrorHandler($errorHandlerClosure);
-
-
-        $kernelContainer = $this->kernel->getContainer();
-        $kernelContainer->set('phpss.worker', $worker);
-        $worker->container->setService('http_handler', $kernelContainer->get('phpss.http_handler'));
     }
 }

@@ -2,27 +2,52 @@
 
 declare(strict_types=1);
 
+use PHPStreamServer\Core\MessageBus\MessageBusInterface;
+use PHPStreamServer\Core\Worker\ContainerInterface;
+use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
-use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return static function (array $config, ContainerBuilder $container) {
-    $container
-        ->register('phpss.http_handler', HttpRequestHandler::class)
-        ->setArguments([new Reference('kernel')])
-        ->setPublic(true)
+return static function (array $config, ContainerConfigurator $container) {
+    $services = $container->services();
+
+    $services
+        ->set('phpss.http_handler', HttpRequestHandler::class)
+        ->args([service('kernel')])
+        ->public()
     ;
 
-    $container
-        ->register('phpss.configurator', Configurator::class)
-        ->setArguments([new Reference('kernel'), new Reference('logger')])
-        ->addTag('kernel.event_listener', [
+    $services
+        ->set('phpss.configurator', Configurator::class)
+        ->args([service('kernel')])
+        ->tag('kernel.event_listener', [
             'event' => HttpServerStartedEvent::class,
-            'priority' => 1024,
+            'priority' => 8192,
         ])
     ;
+
+    $services
+        ->set('phpss.container', ContainerInterface::class)
+        ->synthetic()
+    ;
+
+    $services
+        ->set('phpss.bus', MessageBusInterface::class)
+        ->synthetic()
+    ;
+
+    $services
+        ->set('phpss.logger', LoggerInterface::class)
+        ->synthetic()
+    ;
+
+    $services->alias(ContainerInterface::class, 'phpss.container');
+    $services->alias(MessageBusInterface::class, 'phpss.bus');
+    $services->alias(LoggerInterface::class, 'phpss.logger');
+
 //
 //    $container
 //        ->register('phpstreamserver.delete_uploaded_files_listener', DeleteUploadedFilesListener::class)
