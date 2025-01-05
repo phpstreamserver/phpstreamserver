@@ -6,9 +6,11 @@ use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Worker\ContainerInterface;
 use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
+use PHPStreamServer\Symfony\Http\DeleteUploadedFilesListener;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\HttpKernel\Event\TerminateEvent;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (array $config, ContainerConfigurator $container) {
@@ -48,15 +50,14 @@ return static function (array $config, ContainerConfigurator $container) {
     $services->alias(MessageBusInterface::class, 'phpss.bus');
     $services->alias(LoggerInterface::class, 'phpss.logger');
 
-//
-//    $container
-//        ->register('phpstreamserver.delete_uploaded_files_listener', DeleteUploadedFilesListener::class)
-//        ->addTag('kernel.event_listener', [
-//            'event' => TerminateEvent::class,
-//            'priority' => -1024,
-//        ])
-//    ;
-//
+    $services
+        ->set('phpss.delete_uploaded_files_listener', DeleteUploadedFilesListener::class)
+        ->tag('kernel.event_listener', [
+            'event' => TerminateEvent::class,
+            'priority' => -2048,
+        ])
+    ;
+
 //    if ($config['reload_strategy']['on_exception']['active']) {
 //        $container
 //            ->register('phpstreamserver.on_exception_reload_strategy', OnException::class)
