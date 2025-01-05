@@ -23,7 +23,10 @@ final readonly class Runner implements RunnerInterface
     {
         $server = new Server();
 
-        $server->addPlugin(new HttpServerPlugin());
+        $server->addPlugin(new HttpServerPlugin(
+            httpHeaderSizeLimit: 32768,
+            httpBodySizeLimit: 157286400,
+        ));
 
         $server->addWorker(
             new HttpServerProcess(

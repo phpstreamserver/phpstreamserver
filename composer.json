@@ -22,6 +22,7 @@
         "amphp/amp": "^3.0.2",
         "amphp/byte-stream": "^2.1.1",
         "amphp/http-server": "^3.3.1",
+        "amphp/http-server-form-parser": "^2.0",
         "amphp/socket": "^2.3.1",
         "dragonmantank/cron-expression": "^3.4",
         "luzrain/polyfill-inotify": "^1.0",

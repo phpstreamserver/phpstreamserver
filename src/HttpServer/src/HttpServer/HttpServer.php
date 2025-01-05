@@ -28,6 +28,7 @@ use PHPStreamServer\Plugin\HttpServer\Listen;
 final readonly class HttpServer
 {
     private const DEFAULT_TCP_BACKLOG = 65536;
+    private const DEFAULT_CHUNK_SIZE = 16384;
 
     /**
      * @param array<Listen> $listen
@@ -62,7 +63,7 @@ final readonly class HttpServer
     {
         $middleware = [];
         $errorHandler = new HttpErrorHandler($this->logger);
-        $serverSocketFactory = new ResourceServerSocketFactory();
+        $serverSocketFactory = new ResourceServerSocketFactory(self::DEFAULT_CHUNK_SIZE);
         $clientSocketFactory = new ClientSocketFactory($this->logger);
 
         if ($this->connectionLimitPerIp !== null) {
