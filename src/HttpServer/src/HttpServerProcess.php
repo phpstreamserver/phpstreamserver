@@ -18,6 +18,7 @@ use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
+use function PHPStreamServer\Core\getCpuCount;
 
 class HttpServerProcess extends WorkerProcess
 {
@@ -36,7 +37,7 @@ class HttpServerProcess extends WorkerProcess
     public function __construct(
         private Listen|string|array $listen,
         string $name = 'HTTP Server',
-        int $count = 1,
+        int|null $count = null,
         bool $reloadable = true,
         string|null $user = null,
         string|null $group = null,
@@ -55,7 +56,7 @@ class HttpServerProcess extends WorkerProcess
     ) {
         parent::__construct(
             name: $name,
-            count: $count,
+            count: $count ?? getCpuCount(),
             reloadable: $reloadable,
             user: $user,
             group: $group,
