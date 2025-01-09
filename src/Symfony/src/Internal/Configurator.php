@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
+use Amp\Http\Server\Request;
+use Amp\Http\Server\Response;
 use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
+use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpKernel\KernelInterface;
 
+/**
+ * @internal
+ */
 final readonly class Configurator
 {
     public function __construct(private KernelInterface $kernel)
@@ -18,15 +24,21 @@ final readonly class Configurator
 
     public function __invoke(HttpServerStartedEvent $event): void
     {
-        $worker = $event->worker;
         $kernelContainer = $this->kernel->getContainer();
+        $workerContainer = $event->worker->container;
 
-        $worker->container->setService('http_handler', $kernelContainer->get('phpss.http_handler'));
+        $kernelContainer->set('phpss.container', $workerContainer);
+        $kernelContainer->set('phpss.bus', $event->worker->bus);
+        $kernelContainer->set('phpss.logger', $event->worker->logger);
 
-        $kernelContainer->set('phpss.container', $worker->container);
-        $kernelContainer->set('phpss.bus', $worker->bus);
-        $kernelContainer->set('phpss.logger', $worker->logger);
+        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
 
+        /** @var HttpRequestHandler $symfonyHttpRequestHandler */
+        $symfonyHttpRequestHandler = $kernelContainer->get('phpss.http_handler');
+
+        $workerContainer->setService('request_handler', static function(Request $request) use ($symfonyHttpRequestHandler): Response {
+            return $symfonyHttpRequestHandler($request);
+        });
 
 
 
