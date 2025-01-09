@@ -19,7 +19,7 @@ use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 
-final class HttpServerProcess extends WorkerProcess
+class HttpServerProcess extends WorkerProcess
 {
     /**
      * @param Listen|string|array<Listen> $listen
@@ -40,7 +40,7 @@ final class HttpServerProcess extends WorkerProcess
         bool $reloadable = true,
         string|null $user = null,
         string|null $group = null,
-        private \Closure|null $onStart = null,
+        \Closure|null $onStart = null,
         private \Closure|null $onRequest = null,
         \Closure|null $onStop = null,
         \Closure|null $onReload = null,
@@ -59,11 +59,13 @@ final class HttpServerProcess extends WorkerProcess
             reloadable: $reloadable,
             user: $user,
             group: $group,
-            onStart: $this->onStart(...),
+            onStart: $onStart,
             onStop: $onStop,
             onReload: $onReload,
             reloadStrategies: $reloadStrategies,
         );
+
+        $this->onStart($this->startServer(...));
     }
 
     public static function handleBy(): array
@@ -71,14 +73,18 @@ final class HttpServerProcess extends WorkerProcess
         return [...parent::handleBy(), HttpServerPlugin::class];
     }
 
-    private function onStart(): void
+    private function startServer(): void
     {
-        if ($this->onStart !== null) {
-            ($this->onStart)($this);
+        if ($this->onRequest !== null) {
+            $requestHandler = $this->onRequest;
+        } elseif ($this->container->has('request_handler')) {
+            $requestHandler = $this->container->get('request_handler');
+        } else {
+            $requestHandler = new ClosureRequestHandler(static fn(): never => throw new HttpErrorException(404));
         }
 
-        if ($this->onRequest !== null) {
-            $requestHandler = new class ($this->onRequest, $this) implements RequestHandler {
+        if ($requestHandler instanceof \Closure) {
+            $requestHandler = new class ($requestHandler, $this) implements RequestHandler {
                 public function __construct(private readonly \Closure $handler, private WorkerProcess $worker)
                 {
                 }
@@ -88,12 +94,6 @@ final class HttpServerProcess extends WorkerProcess
                     return ($this->handler)($request, $this->worker);
                 }
             };
-            $this->container->setService(RequestHandler::class, $requestHandler);
-        } elseif ($this->container->has(RequestHandler::class)) {
-            $requestHandler = $this->container->get(RequestHandler::class);
-        } else {
-            $requestHandler = new ClosureRequestHandler(static fn(): never => throw new HttpErrorException(404));
-            $this->container->setService(RequestHandler::class, $requestHandler);
         }
 
         $middleware = [];
@@ -117,6 +117,14 @@ final class HttpServerProcess extends WorkerProcess
 
         $networkTrafficCounter = new NetworkTrafficCounter($this->container->getService(MessageBusInterface::class));
 
+        if ($this->serverDir !== null) {
+            $serverDir = $this->serverDir;
+        } elseif($this->container->hasParameter('server_dir')) {
+            $serverDir = $this->container->getParameter('server_dir');
+        } else {
+            $serverDir = null;
+        }
+
         /**
          * @psalm-suppress InvalidArgument
          */
@@ -135,7 +143,7 @@ final class HttpServerProcess extends WorkerProcess
             networkTrafficCounter: $networkTrafficCounter,
             reloadStrategyTrigger: $this->reloadStrategyTrigger,
             accessLog: $this->accessLog,
-            serveDir: $this->serverDir,
+            serveDir: $serverDir,
         );
 
         $httpServer->start();
