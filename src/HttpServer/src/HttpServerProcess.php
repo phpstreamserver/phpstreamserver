@@ -126,6 +126,8 @@ class HttpServerProcess extends WorkerProcess
             $serverDir = null;
         }
 
+        $reloadStrategyEmitter = $this->container->getService('reload_strategy_emitter');
+
         /**
          * @psalm-suppress InvalidArgument
          */
@@ -142,7 +144,7 @@ class HttpServerProcess extends WorkerProcess
             bodySizeLimit: $this->container->getParameter('httpServerPlugin.httpBodySizeLimit'),
             logger: $this->logger->withChannel('http'),
             networkTrafficCounter: $networkTrafficCounter,
-            reloadStrategyTrigger: $this->reloadStrategyTrigger,
+            reloadStrategyTrigger: $reloadStrategyEmitter,
             accessLog: $this->accessLog,
             serveDir: $serverDir,
         );
