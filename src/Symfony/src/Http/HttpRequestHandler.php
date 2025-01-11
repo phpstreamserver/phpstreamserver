@@ -25,7 +25,6 @@ final readonly class HttpRequestHandler
      */
     public function __invoke(Request $request): Response
     {
-        \memory_reset_peak_usage();
         $kernel = $this->kernel;
         $kernel->boot();
 
