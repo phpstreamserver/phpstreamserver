@@ -18,10 +18,13 @@ use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
+
 use function PHPStreamServer\Core\getCpuCount;
 
 class HttpServerProcess extends WorkerProcess
 {
+    private HttpServer $httpServer;
+
     /**
      * @param Listen|string|array<Listen> $listen
      * @param null|\Closure(self):void $onStart
@@ -67,6 +70,8 @@ class HttpServerProcess extends WorkerProcess
         );
 
         $this->onStart($this->startServer(...));
+        $this->onStop($this->stopServer(...));
+        $this->onReload($this->stopServer(...));
     }
 
     public static function handleBy(): array
@@ -131,7 +136,7 @@ class HttpServerProcess extends WorkerProcess
         /**
          * @psalm-suppress InvalidArgument
          */
-        $httpServer = new HttpServer(
+        $this->httpServer = new HttpServer(
             listen: self::normalizeListenList($this->listen),
             requestHandler: $requestHandler,
             middleware: [...$middleware, ...$this->middleware],
@@ -149,7 +154,14 @@ class HttpServerProcess extends WorkerProcess
             serveDir: $serverDir,
         );
 
-        $httpServer->start();
+        $this->httpServer->start();
+    }
+
+    private function stopServer(): void
+    {
+        if (isset($this->httpServer)) {
+            $this->httpServer->stop();
+        }
     }
 
     /**

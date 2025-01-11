@@ -30,6 +30,9 @@ final readonly class HttpServer
     private const DEFAULT_TCP_BACKLOG = 65536;
     private const DEFAULT_CHUNK_SIZE = 16384;
 
+    private SocketHttpServer $socketHttpServer;
+    private HttpErrorHandler $errorHandler;
+
     /**
      * @param array<Listen> $listen
      * @param array<Middleware> $middleware
@@ -57,12 +60,8 @@ final readonly class HttpServer
         private bool $accessLog,
         private string|null $serveDir,
     ) {
-    }
-
-    public function start(): void
-    {
         $middleware = [];
-        $errorHandler = new HttpErrorHandler($this->logger);
+        $this->errorHandler = new HttpErrorHandler($this->logger);
         $serverSocketFactory = new ResourceServerSocketFactory(self::DEFAULT_CHUNK_SIZE);
         $clientSocketFactory = new ClientSocketFactory($this->logger);
 
@@ -86,14 +85,14 @@ final readonly class HttpServer
 
         $middleware = [...$middleware, ...$this->middleware];
 
-        $middleware[] = new PhpSSMiddleware($errorHandler, $this->networkTrafficCounter, $this->reloadStrategyTrigger);
+        $middleware[] = new PhpSSMiddleware($this->errorHandler, $this->networkTrafficCounter, $this->reloadStrategyTrigger);
 
         // StaticMiddleware must be at the end of the chain.
         if ($this->serveDir !== null) {
             $middleware[] = new StaticMiddleware($this->serveDir);
         }
 
-        $socketHttpServer = new SocketHttpServer(
+        $this->socketHttpServer = new SocketHttpServer(
             logger: $this->logger,
             serverSocketFactory: $serverSocketFactory,
             clientFactory: $clientSocketFactory,
@@ -111,13 +110,19 @@ final readonly class HttpServer
         );
 
         foreach ($this->listen as $listen) {
-            /**
-             * @psalm-suppress TooFewArguments
-             */
-            $socketHttpServer->expose(...self::createInternetAddressAndContext($listen, true, self::DEFAULT_TCP_BACKLOG));
+            /** @psalm-suppress TooFewArguments */
+            $this->socketHttpServer->expose(...self::createInternetAddressAndContext($listen, true, self::DEFAULT_TCP_BACKLOG));
         }
+    }
 
-        $socketHttpServer->start($this->requestHandler, $errorHandler);
+    public function start(): void
+    {
+        $this->socketHttpServer->start($this->requestHandler, $this->errorHandler);
+    }
+
+    public function stop(): void
+    {
+        $this->socketHttpServer->stop();
     }
 
     /**
