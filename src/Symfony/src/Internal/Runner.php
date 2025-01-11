@@ -16,17 +16,17 @@ use Symfony\Component\Runtime\RunnerInterface;
  */
 final readonly class Runner implements RunnerInterface
 {
-    public function __construct(private KernelLoader $kernelLoader)
+    public function __construct(private AppLoader $appLoader)
     {
     }
 
     public function run(): int
     {
-        $options = $this->kernelLoader->options;
+        $options = $this->appLoader->options;
 
         $server = new Server(
-            pidFile: $options['pid_file'] ?? $this->kernelLoader->projectDir . '/var/run/phpss.pid',
-            socketFile: $options['socket_file'] ?? $this->kernelLoader->projectDir . '/var/run/phpss.socket',
+            pidFile: $options['pid_file'] ?? $this->appLoader->projectDir . '/var/run/phpss.pid',
+            socketFile: $options['socket_file'] ?? $this->appLoader->projectDir . '/var/run/phpss.socket',
             stopTimeout: isset($options['stop_timeout']) ? (int) $options['stop_timeout'] : null,
             restartDelay: isset($options['restart_delay']) ? (int) $options['restart_delay'] : null,
         );
@@ -41,10 +41,10 @@ final readonly class Runner implements RunnerInterface
         ));
 
         $server->addPlugin(new SymfonyPlugin(
-            kernelLoader: $this->kernelLoader,
+            appLoader: $this->appLoader,
         ));
 
-        $configFile = $this->kernelLoader->options['config_file'] ?? ($this->kernelLoader->projectDir . '/phpss.config.php');
+        $configFile = $options['config_file'] ?? ($this->appLoader->projectDir . '/phpss.config.php');
 
         if (!\is_file($configFile)) {
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));

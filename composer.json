@@ -34,6 +34,7 @@
         "revolt/event-loop": "^1.0.6",
         "symfony/config": "^7.0",
         "symfony/dependency-injection": "^7.0",
+        "symfony/dotenv": "^7.0",
         "symfony/error-handler": "^7.0",
         "symfony/http-kernel": "^7.0",
         "symfony/psr-http-message-bridge": "^7.0",

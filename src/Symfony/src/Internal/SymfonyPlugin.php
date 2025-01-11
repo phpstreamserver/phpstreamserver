@@ -15,7 +15,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final class SymfonyPlugin extends Plugin
 {
-    public function __construct(private KernelLoader $kernelLoader)
+    public function __construct(private AppLoader $appLoader)
     {
     }
 
@@ -23,15 +23,20 @@ final class SymfonyPlugin extends Plugin
     {
         \assert($worker instanceof SymfonyServerProcess);
 
-        $kernelLoader = $this->kernelLoader;
+        $appLoader = $this->appLoader;
 
-        $worker->onStart(priority: -1, onStart: static function (SymfonyServerProcess $worker) use ($kernelLoader): void {
-            $kernel = $kernelLoader->createKernel();
+        $worker->onStart(priority: -1, onStart: static function (SymfonyServerProcess $worker) use ($appLoader): void {
+            $kernel = $appLoader->createKernel();
             $kernel->boot();
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
             $eventDispatcher->dispatch(new HttpServerStartedEvent($worker));
         });
+    }
+
+    public function onReload(): void
+    {
+        $this->appLoader->loadEnv();
     }
 }
