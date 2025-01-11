@@ -39,4 +39,9 @@ final class SymfonyPlugin extends Plugin
     {
         $this->appLoader->loadEnv();
     }
+
+    public function registerCommands(): iterable
+    {
+        return [new StartCommand($this->appLoader)];
+    }
 }

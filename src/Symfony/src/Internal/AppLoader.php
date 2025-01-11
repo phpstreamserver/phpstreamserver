@@ -20,7 +20,6 @@ final readonly class AppLoader
     {
         $this->options = $options;
         $this->projectDir = $this->options['project_dir'];
-        $this->loadEnv();
     }
 
     public function createKernel(): KernelInterface
