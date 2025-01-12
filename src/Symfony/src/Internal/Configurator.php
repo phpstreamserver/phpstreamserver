@@ -8,7 +8,7 @@ use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
 use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
-use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
+use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -22,7 +22,7 @@ final readonly class Configurator
     {
     }
 
-    public function __invoke(HttpServerStartedEvent $event): void
+    public function __invoke(HttpServerStartEvent $event): void
     {
         $kernelContainer = $this->kernel->getContainer();
         $workerContainer = $event->worker->container;
@@ -31,17 +31,16 @@ final readonly class Configurator
         $kernelContainer->set('phpss.bus', $event->worker->bus);
         $kernelContainer->set('phpss.logger', $event->worker->logger);
 
-        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
-
         /** @var HttpRequestHandler $symfonyHttpRequestHandler */
         $symfonyHttpRequestHandler = $kernelContainer->get('phpss.http_handler');
+
+        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
 
         $workerContainer->setService('request_handler', static function(Request $request) use ($symfonyHttpRequestHandler): Response {
             return $symfonyHttpRequestHandler($request);
         });
 
-
-
+        $workerContainer->setService('kernel', $this->kernel);
 
 //        /**
 //         * @psalm-suppress UndefinedClass

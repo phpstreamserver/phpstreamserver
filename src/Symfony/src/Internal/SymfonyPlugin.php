@@ -6,8 +6,11 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\Process;
-use PHPStreamServer\Symfony\Event\HttpServerStartedEvent;
+use PHPStreamServer\Symfony\Event\HttpServerReloadEvent;
+use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
+use PHPStreamServer\Symfony\Event\HttpServerStopEvent;
 use PHPStreamServer\Symfony\Worker\SymfonyServerProcess;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -31,7 +34,25 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new HttpServerStartedEvent($worker));
+            $eventDispatcher->dispatch(new HttpServerStartEvent($worker));
+        });
+
+        $worker->onStop(priority: 1000, onStop: static function (SymfonyServerProcess $worker): void {
+            /** @var KernelInterface $kernel */
+            $kernel = $worker->container->getService('kernel');
+
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+            $eventDispatcher->dispatch(new HttpServerStopEvent($worker));
+        });
+
+        $worker->onReload(priority: 1000, onReload: static function (SymfonyServerProcess $worker): void {
+            /** @var KernelInterface $kernel */
+            $kernel = $worker->container->getService('kernel');
+
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+            $eventDispatcher->dispatch(new HttpServerReloadEvent($worker));
         });
     }
 
