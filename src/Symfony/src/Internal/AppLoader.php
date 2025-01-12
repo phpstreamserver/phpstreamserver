@@ -53,12 +53,36 @@ final readonly class AppLoader
         $_SERVER = $server;
         $_ENV = $env;
 
-        (new Dotenv($this->options['env_var_name'] ?? 'APP_ENV', $this->options['debug_var_name'] ?? 'APP_DEBUG'))
-            ->setProdEnvs(
-                prodEnvs: (array) ($this->options['prod_envs'] ?? ['prod']),
-            )->bootEnv(
-                path: $this->options['project_dir'].'/'.($this->options['dotenv_path'] ?? '.env'),
-                testEnvs: (array) ($this->options['test_envs'] ?? ['test']),
-            );
+        $envKey = $this->options['env_var_name'];
+        $debugKey = $this->options['debug_var_name'];
+
+        if (isset($this->options['env'])) {
+            $_SERVER[$envKey] = $this->options['env'];
+        }
+
+        if (!($options['disable_dotenv'] ?? false) && \class_exists(Dotenv::class)) {
+            (new Dotenv($envKey, $debugKey))
+                ->setProdEnvs(
+                    prodEnvs: (array) ($this->options['prod_envs'] ?? ['prod']),
+                )->bootEnv(
+                    path: $this->options['project_dir'].'/'.($this->options['dotenv_path'] ?? '.env'),
+                    testEnvs: (array) ($this->options['test_envs'] ?? ['test']),
+                );
+        } else {
+            $_SERVER[$envKey] ??= $_ENV[$envKey] ?? 'dev';
+            $_SERVER[$debugKey] ??= $_ENV[$debugKey] ?? !\in_array($_SERVER[$envKey], (array) ($options['prod_envs'] ?? ['prod']), true);
+        }
+
+        $debug = $options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true;
+        if (!\is_bool($debug)) {
+            $debug = filter_var($debug, \FILTER_VALIDATE_BOOL);
+        }
+
+        if ($debug) {
+            \umask(0000);
+            $_SERVER[$debugKey] = $_ENV[$debugKey] = '1';
+        } else {
+            $_SERVER[$debugKey] = $_ENV[$debugKey] = '0';
+        }
     }
 }
