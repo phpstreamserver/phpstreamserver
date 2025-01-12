@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony;
 
 use Psr\Log\NullLogger;
-use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -14,12 +13,6 @@ use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 final class PHPStreamServerBundle extends AbstractBundle implements CompilerPassInterface
 {
     protected string $extensionAlias = 'phpstreamserver';
-
-    public function configure(DefinitionConfigurator $definition): void
-    {
-        $configurator = require __DIR__ . '/config/configuration.php';
-        $configurator($definition);
-    }
 
     public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
     {

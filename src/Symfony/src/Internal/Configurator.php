@@ -6,11 +6,8 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
-use PHPStreamServer\Core\Worker\LoggerInterface;
-use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
-use Symfony\Component\ErrorHandler\ErrorHandler;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
@@ -41,22 +38,5 @@ final readonly class Configurator
         });
 
         $workerContainer->setService('kernel', $this->kernel);
-
-//        /**
-//         * @psalm-suppress UndefinedClass
-//         * @psalm-suppress UndefinedInterfaceMethod
-//         */
-//        if ($this->logger instanceof \Monolog\Logger) {
-//            $this->logger = $this->logger->withName('phpstreamserver');
-//        }
-//        $errorHandler = ErrorHandler::register(null, false);
-//        $errorHandlerClosure = static function (\Throwable $e) use ($errorHandler): void {
-//            $errorHandler->setExceptionHandler(static function (\Throwable $e): void {});
-//            /** @psalm-suppress InternalMethod */
-//            $errorHandler->handleException($e);
-//        };
-//
-//        $worker->setLogger($this->logger);
-//        $worker->setErrorHandler($errorHandlerClosure);
     }
 }
