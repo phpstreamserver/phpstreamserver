@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger;
 
 use PHPStreamServer\Core\Internal\Container;
+use PHPStreamServer\Core\Logger\LoggerInterface as CoreLoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Worker\LoggerInterface as CoreLoggerInterface;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 use PHPStreamServer\Plugin\Logger\Internal\MasterLogger;
 use PHPStreamServer\Plugin\Logger\Internal\WorkerLogger;

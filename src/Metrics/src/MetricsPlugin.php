@@ -13,17 +13,17 @@ use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Socket\ResourceServerSocketFactory;
 use PHPStreamServer\Core\Internal\Container;
+use PHPStreamServer\Core\Logger\LoggerInterface;
+use PHPStreamServer\Core\Logger\NullLogger;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpErrorHandler;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Listen;
 use PHPStreamServer\Plugin\Metrics\Internal\MessageBusRegistry;
 use PHPStreamServer\Plugin\Metrics\Internal\MessageBusRegistryHandler;
 use PHPStreamServer\Plugin\Metrics\Internal\NotFoundPage;
-use Psr\Log\NullLogger;
 use Revolt\EventLoop;
 
 final class MetricsPlugin extends Plugin
@@ -46,8 +46,8 @@ final class MetricsPlugin extends Plugin
             return new MessageBusRegistry($container->getService(MessageBusInterface::class));
         });
 
-        $logger = $this->masterContainer->getService(LoggerInterface::class);
-        $handler = $this->masterContainer->getService(MessageHandlerInterface::class);
+        $logger = &$this->masterContainer->getService(LoggerInterface::class);
+        $handler = &$this->masterContainer->getService(MessageHandlerInterface::class);
 
         $nullLogger = new NullLogger();
         $serverSocketFactory = new ResourceServerSocketFactory();
@@ -68,7 +68,7 @@ final class MetricsPlugin extends Plugin
 
         $messageBusRegistryHandler = new MessageBusRegistryHandler($handler);
 
-        EventLoop::defer(function () use ($logger, $socketHttpServer, $messageBusRegistryHandler, $errorHandler, $listen) {
+        EventLoop::defer(function () use (&$logger, $socketHttpServer, $messageBusRegistryHandler, $errorHandler, $listen) {
             $requestHandler = $this->createRequestHandler($messageBusRegistryHandler);
             $socketHttpServer->start($requestHandler, $errorHandler);
             $logger->info(\sprintf('Prometheus metrics available on %s/metrics', $listen->getAddress()));

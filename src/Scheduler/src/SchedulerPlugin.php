@@ -6,11 +6,11 @@ namespace PHPStreamServer\Plugin\Scheduler;
 
 use Amp\Future;
 use PHPStreamServer\Core\Exception\ServiceNotFoundException;
+use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\Process;
-use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Scheduler\Command\SchedulerCommand;
 use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
@@ -48,9 +48,9 @@ final class SchedulerPlugin extends Plugin
 
         /** @var Suspension $suspension */
         $suspension = $this->masterContainer->getService('main_suspension');
-        $logger = $this->masterContainer->getService(LoggerInterface::class);
-        $bus = $this->masterContainer->getService(MessageBusInterface::class);
-        $this->handler = $this->masterContainer->getService(MessageHandlerInterface::class);
+        $logger = &$this->masterContainer->getService(LoggerInterface::class);
+        $bus = &$this->masterContainer->getService(MessageBusInterface::class);
+        $this->handler = &$this->masterContainer->getService(MessageHandlerInterface::class);
 
         $this->schedulerStatus->subscribeToWorkerMessages($this->handler);
         $this->scheduler->start($suspension, $logger, $bus);

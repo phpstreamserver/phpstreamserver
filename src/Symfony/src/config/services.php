@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
+use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Worker\ContainerInterface;
-use PHPStreamServer\Core\Worker\LoggerInterface;
 use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
 use PHPStreamServer\Symfony\Http\DeleteUploadedFilesListener;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
