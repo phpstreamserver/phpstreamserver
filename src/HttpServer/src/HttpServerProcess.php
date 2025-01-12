@@ -70,8 +70,8 @@ class HttpServerProcess extends WorkerProcess
         );
 
         $this->onStart($this->startServer(...));
-        $this->onStop($this->stopServer(...));
-        $this->onReload($this->stopServer(...));
+        $this->onStop($this->stopServer(...), -1000);
+        $this->onReload($this->stopServer(...), -1000);
     }
 
     public static function handleBy(): array
