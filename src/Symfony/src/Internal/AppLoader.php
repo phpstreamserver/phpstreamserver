@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\KernelInterface;
 final readonly class AppLoader
 {
     public array $options;
-    public string $projectDir;
+    private string $projectDir;
 
     /** @psalm-suppress InvalidPropertyAssignmentValue */
     public function __construct(private \Closure $app, array $options)
@@ -25,6 +25,21 @@ final readonly class AppLoader
     public function createKernel(): KernelInterface
     {
         return ($this->app)(...\array_map($this->resolveArgument(...), (new \ReflectionFunction($this->app))->getParameters()));
+    }
+
+    public function getEnvironment(): string
+    {
+        return $_SERVER[$this->options['env_var_name']] ?? throw new \RuntimeException(\sprintf('Environment is not set yet. Run %s::loadEnv() to set the environment', self::class));
+    }
+
+    public function getProjectDir(): string
+    {
+        return $this->projectDir;
+    }
+
+    public function getCacheDir(): string
+    {
+        return $this->projectDir . '/var/cache/' . $this->getEnvironment();
     }
 
     private function resolveArgument(\ReflectionParameter $parameter): mixed
