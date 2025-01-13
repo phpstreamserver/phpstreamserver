@@ -12,13 +12,12 @@ use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
 use PHPStreamServer\Core\Exception\ServiceNotFoundException;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Core\Plugin\Supervisor\ReloadStrategy\ReloadStrategy;
-use PHPStreamServer\Core\Plugin\Supervisor\WorkerProcess;
 use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
+use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
+use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
-
 use function PHPStreamServer\Core\getCpuCount;
 
 class HttpServerProcess extends WorkerProcess

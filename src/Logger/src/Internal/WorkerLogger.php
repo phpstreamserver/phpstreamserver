@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger\Internal;
 
 use PHPStreamServer\Core\Logger\LoggerInterface;
-use PHPStreamServer\Core\MessageBus\Message\CompositeMessage;
+use PHPStreamServer\Core\Message\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\ContextFlattenNormalizer;
 use PHPStreamServer\Plugin\Logger\LogLevel;

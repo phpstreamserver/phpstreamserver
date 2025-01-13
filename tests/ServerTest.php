@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Core\Plugin\System\Message\GetServerStatusCommand;
+use PHPStreamServer\Core\Message\GetServerStatusCommand;
 use PHPStreamServer\Core\Plugin\System\Status\ServerStatus;
 use PHPStreamServer\Test\data\PHPSSTestCase;
 

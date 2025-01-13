@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Core\MessageBus\Message\ReloadServerCommand;
-use PHPStreamServer\Core\Plugin\Supervisor\Message\GetSupervisorStatusCommand;
+use PHPStreamServer\Core\Message\GetSupervisorStatusCommand;
+use PHPStreamServer\Core\Message\ReloadServerCommand;
 use PHPStreamServer\Core\Plugin\Supervisor\Status\ProcessInfo;
 use PHPStreamServer\Core\Plugin\Supervisor\Status\WorkerInfo;
 use PHPStreamServer\Test\data\PHPSSTestCase;

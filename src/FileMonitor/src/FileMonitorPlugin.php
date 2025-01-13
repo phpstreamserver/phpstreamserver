@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\FileMonitor;
 
-use PHPStreamServer\Core\MessageBus\Message\ReloadServerCommand;
+use PHPStreamServer\Core\Message\ReloadServerCommand;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Plugin\FileMonitor\Internal\InotifyMonitorWatcher;

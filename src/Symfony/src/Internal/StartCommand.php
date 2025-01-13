@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
-use PHPStreamServer\Core\Plugin\System\Command\StartCommand as BaseStartCommand;
+use PHPStreamServer\Core\Command\StartCommand as BaseStartCommand;
 
 final class StartCommand extends BaseStartCommand
 {

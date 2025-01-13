@@ -11,7 +11,6 @@ use PHPStreamServer\Plugin\Metrics\Gauge;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
 use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
-
 use function Amp\weakClosure;
 
 final readonly class MetricsHandler
