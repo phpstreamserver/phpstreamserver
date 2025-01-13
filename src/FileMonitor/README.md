@@ -31,7 +31,7 @@ Each time the files in the directory change, the server is reloaded.
 // server.php
 
 use PHPStreamServer\Core\Server;
-use PHPStreamServer\Core\Worker\WorkerProcess;
+use PHPStreamServer\Core\WorkerProcess;
 use PHPStreamServer\Plugin\FileMonitor\FileMonitorPlugin;
 use PHPStreamServer\Plugin\FileMonitor\WatchDir;
 

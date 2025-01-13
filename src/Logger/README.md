@@ -33,7 +33,7 @@ Here is an example of a simple server configuration with logger.
 // server.php
 
 use PHPStreamServer\Core\Server;
-use PHPStreamServer\Core\Worker\WorkerProcess;
+use PHPStreamServer\Core\WorkerProcess;
 use PHPStreamServer\Plugin\Logger\Handler\ConsoleHandler;
 use PHPStreamServer\Plugin\Logger\Handler\FileHandler;
 use PHPStreamServer\Plugin\Logger\LoggerInterface;
