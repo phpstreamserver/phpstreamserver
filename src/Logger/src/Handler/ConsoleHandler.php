@@ -11,8 +11,7 @@ use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\ConsoleFormatter;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
-use PHPStreamServer\Plugin\Logger\Internal\LogLevel;
-
+use PHPStreamServer\Plugin\Logger\LogLevel;
 use function PHPStreamServer\Core\getStderr;
 use function PHPStreamServer\Core\getStdout;
 

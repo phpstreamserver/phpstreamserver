@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger;
 
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
-use PHPStreamServer\Plugin\Logger\Internal\LogLevel;
 
 abstract class AbstractHandler implements Handler
 {

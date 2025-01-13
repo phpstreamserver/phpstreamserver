@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger\Internal;
 
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Plugin\Logger\LogLevel;
 
 /**
  * @internal

@@ -11,7 +11,7 @@ use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenException;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenObject;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
-use PHPStreamServer\Plugin\Logger\Internal\LogLevel;
+use PHPStreamServer\Plugin\Logger\LogLevel;
 
 final readonly class ConsoleFormatter implements Formatter
 {

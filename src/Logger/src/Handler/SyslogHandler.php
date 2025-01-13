@@ -10,8 +10,7 @@ use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\StringFormatter;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
-use PHPStreamServer\Plugin\Logger\Internal\LogLevel;
-
+use PHPStreamServer\Plugin\Logger\LogLevel;
 use function Amp\async;
 
 final class SyslogHandler extends AbstractHandler

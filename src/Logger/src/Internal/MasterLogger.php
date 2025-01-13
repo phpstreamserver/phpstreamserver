@@ -7,6 +7,7 @@ namespace PHPStreamServer\Plugin\Logger\Internal;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Plugin\Logger\Handler;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\ContextFlattenNormalizer;
+use PHPStreamServer\Plugin\Logger\LogLevel;
 use Psr\Log\LoggerTrait;
 
 /**

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Plugin\Logger\Internal;
+namespace PHPStreamServer\Plugin\Logger;
 
 use Psr\Log\LogLevel as PsrLogLevel;
 
