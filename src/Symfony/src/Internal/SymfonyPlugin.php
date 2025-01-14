@@ -29,6 +29,7 @@ final class SymfonyPlugin extends Plugin
         $appLoader = $this->appLoader;
 
         $worker->onStart(priority: -1, onStart: static function (SymfonyServerProcess $worker) use ($appLoader): void {
+            $_SERVER['APP_RUNTIME_MODE'] = 'web=1';
             $kernel = $appLoader->createKernel();
             $kernel->boot();
 
