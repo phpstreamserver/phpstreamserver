@@ -10,13 +10,19 @@ use PHPStreamServer\Symfony\Http\DeleteUploadedFilesListener;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
 use PHPStreamServer\Symfony\Internal\ExceptionListener;
+use PHPStreamServer\Symfony\Internal\MessageBusFactory;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
+use Symfony\Component\DependencyInjection\Loader\Configurator\EnvConfigurator;
+use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return static function (array $config, ContainerConfigurator $container) {
     $services = $container->services();
+    $parameters = $container->parameters();
 
     $services
         ->set('phpss.http_handler', HttpRequestHandler::class)
@@ -55,7 +61,15 @@ return static function (array $config, ContainerConfigurator $container) {
 
     $services
         ->set('phpss.bus', MessageBusInterface::class)
-        ->synthetic()
+        ->factory([
+            inline_service(MessageBusFactory::class)
+                ->args([
+                    param('phpss.loaded'),
+                    param('phpss.cache_file'),
+                    (new ReferenceConfigurator('phpss.container'))->nullOnInvalid()
+                ]),
+            'create',
+        ])
     ;
 
     $services
@@ -74,4 +88,7 @@ return static function (array $config, ContainerConfigurator $container) {
             'priority' => -2048,
         ])
     ;
+
+    $parameters->set('phpss.cache_file', param('kernel.cache_dir') . '/phpss_cache.php');
+    $parameters->set('phpss.loaded', (new EnvConfigurator('APP_RUNTIME_PHPSS'))->default('')->bool());
 };

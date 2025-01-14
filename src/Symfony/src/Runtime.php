@@ -41,6 +41,7 @@ final class Runtime implements RuntimeInterface
 
     public function __construct(array $options = [])
     {
+        $_SERVER['APP_RUNTIME_PHPSS'] = '1';
         $options['env_var_name'] ??= 'APP_ENV';
         $options['debug_var_name'] ??= 'APP_DEBUG';
         $this->options = $options;

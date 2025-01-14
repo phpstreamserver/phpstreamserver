@@ -25,8 +25,8 @@ final readonly class Runner implements RunnerInterface
         $options = $this->appLoader->options;
 
         $server = new Server(
-            pidFile: $options['pid_file'] ?? $this->appLoader->projectDir . '/var/run/phpss.pid',
-            socketFile: $options['socket_file'] ?? $this->appLoader->projectDir . '/var/run/phpss.socket',
+            pidFile: $options['pid_file'] ?? $this->appLoader->getProjectDir() . '/var/run/phpss.pid',
+            socketFile: $options['socket_file'] ?? $this->appLoader->getProjectDir() . '/var/run/phpss.socket',
             stopTimeout: isset($options['stop_timeout']) ? (int) $options['stop_timeout'] : null,
             restartDelay: isset($options['restart_delay']) ? (int) $options['restart_delay'] : null,
         );
@@ -44,7 +44,7 @@ final readonly class Runner implements RunnerInterface
             appLoader: $this->appLoader,
         ));
 
-        $configFile = $options['config_file'] ?? ($this->appLoader->projectDir . '/phpss.config.php');
+        $configFile = $options['config_file'] ?? ($this->appLoader->getProjectDir() . '/phpss.config.php');
 
         if (!\is_file($configFile)) {
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));

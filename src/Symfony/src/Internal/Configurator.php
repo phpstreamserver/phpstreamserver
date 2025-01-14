@@ -25,18 +25,16 @@ final readonly class Configurator
         $workerContainer = $event->worker->container;
 
         $kernelContainer->set('phpss.container', $workerContainer);
-        $kernelContainer->set('phpss.bus', $event->worker->bus);
         $kernelContainer->set('phpss.logger', $event->worker->logger);
 
         /** @var HttpRequestHandler $symfonyHttpRequestHandler */
         $symfonyHttpRequestHandler = $kernelContainer->get('phpss.http_handler');
-
-        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
 
         $workerContainer->setService('request_handler', static function(Request $request) use ($symfonyHttpRequestHandler): Response {
             return $symfonyHttpRequestHandler($request);
         });
 
         $workerContainer->setService('kernel', $this->kernel);
+        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
     }
 }
