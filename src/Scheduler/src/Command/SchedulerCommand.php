@@ -6,7 +6,7 @@ namespace PHPStreamServer\Plugin\Scheduler\Command;
 
 use PHPStreamServer\Core\Console\Command;
 use PHPStreamServer\Core\Console\Table;
-use PHPStreamServer\Core\MessageBus\SocketFileMessageBus;
+use PHPStreamServer\Core\MessageBus\ExternalProcessMessageBus;
 use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
 use PHPStreamServer\Plugin\Scheduler\Status\PeriodicWorkerInfo;
 use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
@@ -25,11 +25,10 @@ final class SchedulerCommand extends Command
          * @var array{pidFile: string, socketFile: string} $args
          */
 
-        $this->assertServerIsRunning($args['pidFile']);
+        $bus = new ExternalProcessMessageBus($args['pidFile'], $args['socketFile']);
 
         echo "❯ Scheduler\n";
 
-        $bus = new SocketFileMessageBus($args['socketFile']);
         $status = $bus->dispatch(new GetSchedulerStatusCommand())->await();
         \assert($status instanceof SchedulerStatus);
 
