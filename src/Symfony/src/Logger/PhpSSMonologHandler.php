@@ -6,6 +6,7 @@ namespace PHPStreamServer\Symfony\Logger;
 
 use Monolog\Handler\AbstractHandler;
 use Monolog\LogRecord;
+use PHPStreamServer\Core\Exception\ServerIsNotRunning;
 use PHPStreamServer\Core\Message\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\ContextFlattenNormalizer;
@@ -37,10 +38,14 @@ final class PhpSSMonologHandler extends AbstractHandler
             );
         }
 
-        $promise = $this->bus->dispatch(new CompositeMessage($buffer));
+        try {
+            $promise = $this->bus->dispatch(new CompositeMessage($buffer));
 
-        if (!$this->isPhpSSRuntimeLoaded) {
-            $promise->await();
+            if (!$this->isPhpSSRuntimeLoaded) {
+                $promise->await();
+            }
+        } catch (ServerIsNotRunning) {
+            // noop
         }
     }
 
