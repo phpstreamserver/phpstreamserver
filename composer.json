@@ -43,6 +43,7 @@
     "require-dev": {
         "amphp/http-client": "^5.1",
         "friendsofphp/php-cs-fixer": "^3.65",
+        "monolog/monolog": "^3.8",
         "phpunit/phpunit": "^11.4.3",
         "psalm/phar": "^5.26.1",
         "symfony/var-dumper": "^6.4.15",

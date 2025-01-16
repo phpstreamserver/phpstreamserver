@@ -35,5 +35,8 @@
         "psr-4": {
             "PHPStreamServer\\Symfony\\": "src/"
         }
+    },
+    "require-dev": {
+        "monolog/monolog": "^3.8"
     }
 }

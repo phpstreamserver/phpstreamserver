@@ -25,6 +25,10 @@ final class PHPStreamServerBundle extends AbstractBundle implements CompilerPass
         if (!$container->has('logger')) {
             $container->setAlias('logger', 'phpss.logger');
         }
+
+        if (!$container->has('monolog.logger')) {
+            $container->removeDefinition('phpss.monolog_handler');
+        }
     }
 
     public function build(ContainerBuilder $container): void

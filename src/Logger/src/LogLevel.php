@@ -32,6 +32,20 @@ enum LogLevel: int
         };
     }
 
+    public static function fromRFC5424(int $level): self
+    {
+        return match ($level) {
+            7 => self::DEBUG,
+            6 => self::INFO,
+            5 => self::NOTICE,
+            4 => self::WARNING,
+            3 => self::ERROR,
+            2 => self::CRITICAL,
+            1 => self::ALERT,
+            0 => self::EMERGENCY,
+        };
+    }
+
     public function toString(): string
     {
         return match ($this) {

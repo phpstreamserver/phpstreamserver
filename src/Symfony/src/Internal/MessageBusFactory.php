@@ -10,13 +10,13 @@ use PHPStreamServer\Core\Worker\ContainerInterface;
 
 final class MessageBusFactory
 {
-    public function __construct(private bool $isPhpSSLoaded, private string $phpSSCacheFile, private ContainerInterface|null $workerContainer)
+    public function __construct(private bool $isPhpSSRuntimeLoaded, private string $phpSSCacheFile, private ContainerInterface|null $workerContainer)
     {
     }
 
     public function create(): MessageBusInterface
     {
-        if ($this->isPhpSSLoaded && $this->workerContainer instanceof ContainerInterface) {
+        if ($this->isPhpSSRuntimeLoaded && $this->workerContainer instanceof ContainerInterface) {
             return $this->workerContainer->getService(MessageBusInterface::class);
         }
 
