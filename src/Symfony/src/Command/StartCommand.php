@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Symfony\Internal;
+namespace PHPStreamServer\Symfony\Command;
 
 use PHPStreamServer\Core\Command\StartCommand as BaseStartCommand;
+use PHPStreamServer\Symfony\Internal\AppLoader;
 
 final class StartCommand extends BaseStartCommand
 {

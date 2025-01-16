@@ -6,9 +6,11 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\Process;
-use PHPStreamServer\Symfony\Event\HttpServerReloadEvent;
-use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
-use PHPStreamServer\Symfony\Event\HttpServerStopEvent;
+use PHPStreamServer\Symfony\Command\StartCommand;
+use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
+use PHPStreamServer\Symfony\Event\ProcessStartEvent;
+use PHPStreamServer\Symfony\Event\ProcessStopEvent;
+use PHPStreamServer\Symfony\Worker\SymfonyPeriodicProcess;
 use PHPStreamServer\Symfony\Worker\SymfonyServerProcess;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
