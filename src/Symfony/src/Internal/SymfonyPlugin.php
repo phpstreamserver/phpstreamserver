@@ -11,6 +11,7 @@ use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
 use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Event\ProcessStopEvent;
 use PHPStreamServer\Symfony\Worker\SymfonyCommandPeriodicProcess;
+use PHPStreamServer\Symfony\Worker\SymfonyCommandWorkerProcess;
 use PHPStreamServer\Symfony\Worker\SymfonyServerProcess;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
@@ -33,6 +34,8 @@ final class SymfonyPlugin extends Plugin
             $this->initializeSymfonyServerProcess($worker);
         } elseif ($worker instanceof SymfonyCommandPeriodicProcess) {
             $this->initializeSymfonyPeriodicProcess($worker);
+        } elseif ($worker instanceof SymfonyCommandWorkerProcess) {
+            $this->initializeSymfonyWorkerProcess($worker);
         }
     }
 
@@ -94,6 +97,34 @@ final class SymfonyPlugin extends Plugin
             $output = new NullOutput();
             $exitCode = $application->run($input, $output);
             $worker->setExitCode($exitCode);
+        });
+    }
+
+    private function initializeSymfonyWorkerProcess(SymfonyCommandWorkerProcess $worker): void
+    {
+        $appLoader = $this->appLoader;
+
+        $worker->onStart(priority: -1, onStart: static function (SymfonyCommandWorkerProcess $worker) use ($appLoader): void {
+            $kernel = $appLoader->createKernel();
+            $kernel->boot();
+
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+
+            $application = new Application($kernel);
+            $application->setAutoExit(false);
+
+            if (!$application->has($worker->commandWithoutArguments)) {
+                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandWithoutArguments));
+                $worker->stop(1);
+                return;
+            }
+
+            $input = new StringInput($worker->command);
+            $output = new NullOutput();
+            $exitCode = $application->run($input, $output);
+            $worker->stop($exitCode);
         });
     }
 
