@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Core\WorkerProcess;
+use PHPStreamServer\Plugin\Scheduler\PeriodicProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
-final class SymfonyCommandWorkerProcess extends WorkerProcess
+if (!\class_exists(PeriodicProcess::class)) {
+    throw new \RuntimeException(\sprintf('You cannot use "%s\SymfonyCommandPeriodicProcess" as the "scheduler" package is not installed. Try running "composer require phpstreamserver/scheduler"', __NAMESPACE__));
+}
+
+final class SymfonyPeriodicProcess extends PeriodicProcess
 {
     public readonly string $command;
     public readonly string $commandWithoutArguments;
@@ -16,24 +20,22 @@ final class SymfonyCommandWorkerProcess extends WorkerProcess
      * @param string $command Symfony console command name with optinal parameters
      */
     public function __construct(
-        string $name = '',
-        int $count = 1,
-        bool $reloadable = true,
+        string $command,
+        string $schedule = '1 minute',
+        int $jitter = 0,
         string|null $user = null,
         string|null $group = null,
-        string $command = '',
     ) {
         $this->command = $command;
         $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
 
-        parent::__construct(name: $name, count: $count, reloadable: $reloadable, user: $user, group: $group);
-
-        $this->onStart($this->startProcess(...));
-    }
-
-    private function startProcess(): void
-    {
-        $this->stop();
+        parent::__construct(
+            name: $this->commandWithoutArguments,
+            schedule: $schedule,
+            jitter: $jitter,
+            user: $user,
+            group: $group,
+        );
     }
 
     public static function handleBy(): array

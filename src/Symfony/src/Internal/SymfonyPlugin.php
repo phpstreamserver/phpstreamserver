@@ -10,9 +10,9 @@ use PHPStreamServer\Symfony\Command\StartCommand;
 use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
 use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Event\ProcessStopEvent;
-use PHPStreamServer\Symfony\Worker\SymfonyCommandPeriodicProcess;
-use PHPStreamServer\Symfony\Worker\SymfonyCommandWorkerProcess;
-use PHPStreamServer\Symfony\Worker\SymfonyServerProcess;
+use PHPStreamServer\Symfony\Worker\SymfonyPeriodicProcess;
+use PHPStreamServer\Symfony\Worker\SymfonyWorkerProcess;
+use PHPStreamServer\Symfony\Worker\SymfonyHttpServerProcess;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -30,20 +30,20 @@ final class SymfonyPlugin extends Plugin
 
     public function addWorker(Process $worker): void
     {
-        if($worker instanceof SymfonyServerProcess) {
+        if($worker instanceof SymfonyHttpServerProcess) {
             $this->initializeSymfonyServerProcess($worker);
-        } elseif ($worker instanceof SymfonyCommandPeriodicProcess) {
+        } elseif ($worker instanceof SymfonyPeriodicProcess) {
             $this->initializeSymfonyPeriodicProcess($worker);
-        } elseif ($worker instanceof SymfonyCommandWorkerProcess) {
+        } elseif ($worker instanceof SymfonyWorkerProcess) {
             $this->initializeSymfonyWorkerProcess($worker);
         }
     }
 
-    private function initializeSymfonyServerProcess(SymfonyServerProcess $worker): void
+    private function initializeSymfonyServerProcess(SymfonyHttpServerProcess $process): void
     {
         $appLoader = $this->appLoader;
 
-        $worker->onStart(priority: -1, onStart: static function (SymfonyServerProcess $worker) use ($appLoader): void {
+        $process->onStart(priority: -1, onStart: static function (SymfonyHttpServerProcess $worker) use ($appLoader): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'web=1';
             $kernel = $appLoader->createKernel();
             $kernel->boot();
@@ -53,7 +53,7 @@ final class SymfonyPlugin extends Plugin
             $eventDispatcher->dispatch(new ProcessStartEvent($worker));
         });
 
-        $worker->onStop(priority: 1000, onStop: static function (SymfonyServerProcess $worker): void {
+        $process->onStop(priority: 1000, onStop: static function (SymfonyHttpServerProcess $worker): void {
             /** @var KernelInterface $kernel */
             $kernel = $worker->container->getService('kernel');
 
@@ -62,7 +62,7 @@ final class SymfonyPlugin extends Plugin
             $eventDispatcher->dispatch(new ProcessStopEvent($worker));
         });
 
-        $worker->onReload(priority: 1000, onReload: static function (SymfonyServerProcess $worker): void {
+        $process->onReload(priority: 1000, onReload: static function (SymfonyHttpServerProcess $worker): void {
             /** @var KernelInterface $kernel */
             $kernel = $worker->container->getService('kernel');
 
@@ -72,11 +72,11 @@ final class SymfonyPlugin extends Plugin
         });
     }
 
-    private function initializeSymfonyPeriodicProcess(SymfonyCommandPeriodicProcess $worker): void
+    private function initializeSymfonyPeriodicProcess(SymfonyPeriodicProcess $process): void
     {
         $appLoader = $this->appLoader;
 
-        $worker->onStart(priority: -1, onStart: static function (SymfonyCommandPeriodicProcess $worker) use ($appLoader): void {
+        $process->onStart(priority: -1, onStart: static function (SymfonyPeriodicProcess $worker) use ($appLoader): void {
             $kernel = $appLoader->createKernel();
             $kernel->boot();
 
@@ -100,11 +100,11 @@ final class SymfonyPlugin extends Plugin
         });
     }
 
-    private function initializeSymfonyWorkerProcess(SymfonyCommandWorkerProcess $worker): void
+    private function initializeSymfonyWorkerProcess(SymfonyWorkerProcess $process): void
     {
         $appLoader = $this->appLoader;
 
-        $worker->onStart(priority: -1, onStart: static function (SymfonyCommandWorkerProcess $worker) use ($appLoader): void {
+        $process->onStart(priority: -1, onStart: static function (SymfonyWorkerProcess $worker) use ($appLoader): void {
             $kernel = $appLoader->createKernel();
             $kernel->boot();
 

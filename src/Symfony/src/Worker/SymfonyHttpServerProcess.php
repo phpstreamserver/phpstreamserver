@@ -8,7 +8,7 @@ use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Plugin\HttpServer\Listen;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
-final class SymfonyServerProcess extends HttpServerProcess
+final class SymfonyHttpServerProcess extends HttpServerProcess
 {
     public function __construct(
         Listen|string|array $listen,
