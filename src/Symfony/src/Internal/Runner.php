@@ -8,6 +8,7 @@ use Amp\Http\Server\Driver\HttpDriver;
 use Amp\Http\Server\Middleware\CompressionMiddleware;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
+use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Runtime\RunnerInterface;
 
@@ -43,6 +44,10 @@ final readonly class Runner implements RunnerInterface
         $server->addPlugin(new SymfonyPlugin(
             appLoader: $this->appLoader,
         ));
+
+        if (\class_exists(SchedulerPlugin::class)) {
+            $server->addPlugin(new SchedulerPlugin());
+        }
 
         $configFile = $options['config_file'] ?? ($this->appLoader->getProjectDir() . '/phpss.config.php');
 
