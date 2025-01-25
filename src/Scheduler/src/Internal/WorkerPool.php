@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Internal;
 
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
-use PHPStreamServer\Plugin\Scheduler\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 
 /**
  * @internal

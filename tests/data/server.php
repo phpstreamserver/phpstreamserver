@@ -5,14 +5,14 @@ declare(strict_types=1);
 use Amp\Http\Server\HttpErrorException;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
-use PHPStreamServer\Core\ExternalProcess;
 use PHPStreamServer\Core\Server;
-use PHPStreamServer\Core\WorkerProcess;
+use PHPStreamServer\Core\Worker\ExternalProcess;
+use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
-use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Plugin\HttpServer\Listen;
-use PHPStreamServer\Plugin\Scheduler\PeriodicProcess;
+use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerProcess;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use PHPStreamServer\Test\data\TestPlugin\TestPlugin;
 
 include __DIR__ . '/../../vendor/autoload.php';

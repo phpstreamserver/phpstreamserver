@@ -11,13 +11,12 @@ use PHPStreamServer\Core\Internal\SIGCHLDHandler;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessScheduledEvent;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
-use PHPStreamServer\Plugin\Scheduler\PeriodicProcess;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
-
 use function Amp\weakClosure;
 
 /**

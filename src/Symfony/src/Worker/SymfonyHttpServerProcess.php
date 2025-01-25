@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Plugin\HttpServer\HttpServerProcess;
 use PHPStreamServer\Plugin\HttpServer\Listen;
+use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
 final class SymfonyHttpServerProcess extends HttpServerProcess

@@ -30,11 +30,7 @@ After startup, metrics are available at http://127.0.0.1:8081/metrics
 ```php
 // server.php
 
-use PHPStreamServer\Core\Server;
-use PHPStreamServer\Core\WorkerProcess;
-use PHPStreamServer\Plugin\Metrics\MetricsPlugin;
-use PHPStreamServer\Plugin\Metrics\RegistryInterface;
-use Revolt\EventLoop;
+use PHPStreamServer\Core\Server;use PHPStreamServer\Core\Worker\WorkerProcess;use PHPStreamServer\Plugin\Metrics\MetricsPlugin;use PHPStreamServer\Plugin\Metrics\RegistryInterface;use Revolt\EventLoop;
 
 $server = new Server();
 

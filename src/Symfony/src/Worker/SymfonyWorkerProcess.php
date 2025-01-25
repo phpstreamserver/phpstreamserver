@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Core\WorkerProcess;
+use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
 final class SymfonyWorkerProcess extends WorkerProcess

@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
+use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\MessageBus\ExternalProcessMessageBus;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Core\Worker\ContainerInterface;
 
 final class MessageBusFactory
 {

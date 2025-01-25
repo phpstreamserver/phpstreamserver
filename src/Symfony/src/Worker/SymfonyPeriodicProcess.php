@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Plugin\Scheduler\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
 if (!\class_exists(PeriodicProcess::class)) {

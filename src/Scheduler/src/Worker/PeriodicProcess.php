@@ -2,17 +2,18 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Plugin\Scheduler;
+namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
+use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\UserChangeException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
+use PHPStreamServer\Core\Internal\ProcessUserChange;
+use PHPStreamServer\Core\Internal\Status;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Process;
 use PHPStreamServer\Core\Server;
-use PHPStreamServer\Core\Worker\ContainerInterface;
-use PHPStreamServer\Core\Worker\ProcessUserChange;
-use PHPStreamServer\Core\Worker\Status;
+use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Revolt\EventLoop;
 use Revolt\EventLoop\DriverFactory;
 use function PHPStreamServer\Core\getCurrentGroup;

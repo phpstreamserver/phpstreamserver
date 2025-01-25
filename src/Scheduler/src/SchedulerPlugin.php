@@ -17,6 +17,7 @@ use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
 use PHPStreamServer\Plugin\Scheduler\Internal\Scheduler;
 use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
 use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Revolt\EventLoop\Suspension;
 
 final class SchedulerPlugin extends Plugin

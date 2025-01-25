@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Plugin\HttpServer;
+namespace PHPStreamServer\Plugin\HttpServer\Worker;
 
 use Amp\Http\Server\HttpErrorException;
 use Amp\Http\Server\Middleware;
@@ -14,9 +14,11 @@ use PHPStreamServer\Core\Exception\ServiceNotFoundException;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
-use PHPStreamServer\Core\WorkerProcess;
+use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
+use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
+use PHPStreamServer\Plugin\HttpServer\Listen;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use function PHPStreamServer\Core\getCpuCount;
 

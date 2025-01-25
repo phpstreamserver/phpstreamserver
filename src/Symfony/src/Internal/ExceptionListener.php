@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
-use PHPStreamServer\Core\Worker\ContainerInterface;
+use PHPStreamServer\Core\ContainerInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
