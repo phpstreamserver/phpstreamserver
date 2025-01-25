@@ -11,6 +11,9 @@ use Amp\Http\Server\Response;
 use Psr\Log\LoggerInterface as PsrLogger;
 use Psr\Log\LogLevel;
 
+/**
+ * @internal
+ */
 final readonly class AccessLoggerMiddleware implements Middleware
 {
     public function __construct(private PsrLogger $logger)

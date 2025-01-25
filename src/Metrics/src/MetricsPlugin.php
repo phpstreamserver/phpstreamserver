@@ -12,7 +12,7 @@ use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Socket\ResourceServerSocketFactory;
-use PHPStreamServer\Core\Internal\Container;
+use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\Logger\NullLogger;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
@@ -42,7 +42,7 @@ final class MetricsPlugin extends Plugin
             new MessageBusRegistry($this->masterContainer->getService(MessageBusInterface::class)),
         );
 
-        $this->workerContainer->registerService(RegistryInterface::class, static function (Container $container): RegistryInterface {
+        $this->workerContainer->registerService(RegistryInterface::class, static function (ContainerInterface $container): RegistryInterface {
             return new MessageBusRegistry($container->getService(MessageBusInterface::class));
         });
 

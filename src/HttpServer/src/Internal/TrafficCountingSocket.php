@@ -13,8 +13,8 @@ use Amp\Socket\TlsState;
 use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 
 /**
- * @internal
  * @implements \IteratorAggregate<int, string>
+ * @internal
  */
 final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
 {

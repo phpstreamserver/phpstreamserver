@@ -7,6 +7,9 @@ namespace PHPStreamServer\Plugin\Logger\Internal\GelfTransport;
 use Amp\ByteStream\WritableStream;
 use Amp\Socket\DnsSocketConnector;
 
+/**
+ * @internal
+ */
 final readonly class GelfUdpTransport implements GelfTransport
 {
     private const MAGIC_BYTES = "\x1e\x0f";

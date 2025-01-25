@@ -6,6 +6,9 @@ namespace PHPStreamServer\Plugin\Logger\Internal;
 
 use Amp\ByteStream\WritableStream;
 
+/**
+ * @internal
+ */
 final class NullWritableStream implements WritableStream
 {
     public function close(): void

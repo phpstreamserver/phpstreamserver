@@ -8,6 +8,9 @@ use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\MessageBus\ExternalProcessMessageBus;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 
+/**
+ * @internal
+ */
 final class MessageBusFactory
 {
     public function __construct(private bool $isPhpSSRuntimeLoaded, private string $phpSSCacheFile, private ContainerInterface|null $workerContainer)

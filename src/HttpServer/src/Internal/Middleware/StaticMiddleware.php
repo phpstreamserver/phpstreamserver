@@ -11,6 +11,9 @@ use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
 use PHPStreamServer\Plugin\HttpServer\Internal\MimeTypeMapper;
 
+/**
+ * @internal
+ */
 final readonly class StaticMiddleware implements Middleware
 {
     public function __construct(

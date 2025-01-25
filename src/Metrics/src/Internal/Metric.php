@@ -8,6 +8,9 @@ use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Plugin\Metrics\Exception\LabelsNotMatchException;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\RemoveMetricMessage;
 
+/**
+ * @internal
+ */
 abstract class Metric
 {
     protected const TYPE = '';

@@ -21,6 +21,9 @@ use Prometheus\RenderTextFormat;
 
 use function Amp\weakClosure;
 
+/**
+ * @internal
+ */
 final class MessageBusRegistryHandler
 {
     private InMemory $adapter;

@@ -12,6 +12,9 @@ use Amp\Socket\DnsSocketConnector;
 use PHPStreamServer\Plugin\Logger\Internal\NullWritableStream;
 use Revolt\EventLoop;
 
+/**
+ * @internal
+ */
 final class GelfTcpTransport implements GelfTransport
 {
     private const CONNECT_TIMEOUT = 4;

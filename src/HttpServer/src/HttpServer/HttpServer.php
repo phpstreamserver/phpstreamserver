@@ -87,7 +87,7 @@ final readonly class HttpServer
 
         $middleware[] = new PhpSSMiddleware($this->errorHandler, $this->networkTrafficCounter, $this->reloadStrategyTrigger);
 
-        // StaticMiddleware must be at the end of the chain.
+        // StaticMiddleware must be at the end of the chain
         if ($this->serveDir !== null) {
             $middleware[] = new StaticMiddleware($this->serveDir);
         }

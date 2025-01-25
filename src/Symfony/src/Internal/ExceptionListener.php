@@ -8,6 +8,9 @@ use PHPStreamServer\Core\ContainerInterface;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
+/**
+ * @internal
+ */
 final class ExceptionListener
 {
     private \WeakMap $map;

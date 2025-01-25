@@ -13,6 +13,9 @@ use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
 use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
 use function Amp\weakClosure;
 
+/**
+ * @internal
+ */
 final readonly class MetricsHandler
 {
     private Gauge $workersTotal;

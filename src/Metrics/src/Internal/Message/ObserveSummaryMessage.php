@@ -8,6 +8,7 @@ use PHPStreamServer\Core\MessageBus\MessageInterface;
 
 /**
  * @implements MessageInterface<null>
+ * @internal
  */
 final readonly class ObserveSummaryMessage implements MessageInterface
 {

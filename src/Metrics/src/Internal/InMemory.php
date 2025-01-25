@@ -6,6 +6,9 @@ namespace PHPStreamServer\Plugin\Metrics\Internal;
 
 use Prometheus\Storage\InMemory as PrometheusInMemory;
 
+/**
+ * @internal
+ */
 final class InMemory extends PrometheusInMemory
 {
     public function remove(string $type, string $namespace, string $name, array $labels): void

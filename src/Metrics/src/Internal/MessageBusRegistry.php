@@ -15,6 +15,9 @@ use PHPStreamServer\Plugin\Metrics\Internal\Message\RegisterMetricMessage;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Metrics\Summary;
 
+/**
+ * @internal
+ */
 final class MessageBusRegistry implements RegistryInterface
 {
     private array $map = [];

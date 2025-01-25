@@ -8,6 +8,7 @@ use PHPStreamServer\Core\MessageBus\MessageInterface;
 
 /**
  * @implements MessageInterface<bool>
+ * @internal
  */
 final readonly class RegisterMetricMessage implements MessageInterface
 {

@@ -9,6 +9,9 @@ use Amp\Http\Client\HttpClientBuilder;
 use Amp\Http\Client\Request;
 use Amp\Http\Client\SocketException;
 
+/**
+ * @internal
+ */
 final class GelfHttpTransport implements GelfTransport
 {
     private HttpClient $httpClient;

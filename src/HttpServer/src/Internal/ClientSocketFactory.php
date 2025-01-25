@@ -13,11 +13,14 @@ use Amp\Socket\SocketException;
 use Amp\TimeoutCancellation;
 use Psr\Log\LoggerInterface as PsrLogger;
 
-final class ClientSocketFactory implements ClientFactory
+/**
+ * @internal
+ */
+final readonly class ClientSocketFactory implements ClientFactory
 {
     public function __construct(
-        private readonly PsrLogger $logger,
-        private readonly float $tlsHandshakeTimeout = 5,
+        private PsrLogger $logger,
+        private float $tlsHandshakeTimeout = 5,
     ) {
     }
 

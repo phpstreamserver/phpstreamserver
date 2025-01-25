@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger;
 
-use PHPStreamServer\Core\Internal\Container;
+use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Logger\LoggerInterface as CoreLoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
@@ -30,7 +30,7 @@ final class LoggerPlugin extends Plugin
     {
         $masterLogger = new MasterLogger();
 
-        $workerLoggerFactory = static function (Container $container): WorkerLogger {
+        $workerLoggerFactory = static function (ContainerInterface $container): WorkerLogger {
             return new WorkerLogger($container->getService(MessageBusInterface::class));
         };
 

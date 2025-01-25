@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer;
 
+/**
+ * @internal
+ */
 final readonly class FlattenEnum
 {
     private function __construct(
