@@ -5,7 +5,7 @@ declare(strict_types=1);
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Worker\ContainerInterface;
-use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
+use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Http\DeleteUploadedFilesListener;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
@@ -35,7 +35,7 @@ return static function (array $config, ContainerConfigurator $container) {
         ->set('phpss.configurator', Configurator::class)
         ->args([service('kernel')])
         ->tag('kernel.event_listener', [
-            'event' => HttpServerStartEvent::class,
+            'event' => ProcessStartEvent::class,
             'priority' => 8192,
         ])
     ;

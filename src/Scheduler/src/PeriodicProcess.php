@@ -26,9 +26,13 @@ class PeriodicProcess implements Process
     private int $exitCode = 0;
     public readonly int $id;
     public readonly int $pid;
+    public readonly string $name;
     public readonly ContainerInterface $container;
     public readonly LoggerInterface $logger;
     public readonly MessageBusInterface $bus;
+
+    /** @var array<\Closure(self): void> */
+    private array $onStartCallbacks = [];
 
     /**
      * $schedule can be one of the following formats:
@@ -43,15 +47,25 @@ class PeriodicProcess implements Process
      * @param null|\Closure(self):void $onStart
      */
     public function __construct(
-        public readonly string $name = 'none',
+        string $name = '',
         public readonly string $schedule = '1 minute',
         public readonly int $jitter = 0,
         private string|null $user = null,
         private string|null $group = null,
-        private \Closure|null $onStart = null,
+        \Closure|null $onStart = null,
     ) {
         static $nextId = 0;
         $this->id = ++$nextId;
+
+        if ($name === '') {
+            $this->name = 'periodic_worker_' . $this->id;
+        } else {
+            $this->name = $name;
+        }
+
+        if ($onStart !== null) {
+            $this->onStart($onStart);
+        }
     }
 
     /**
@@ -86,8 +100,8 @@ class PeriodicProcess implements Process
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
 
         EventLoop::queue(function () {
-            if ($this->onStart !== null) {
-                ($this->onStart)($this);
+            foreach ($this->onStartCallbacks as $onStartCallback) {
+                $onStartCallback($this);
             }
         });
 
@@ -101,6 +115,16 @@ class PeriodicProcess implements Process
         return [SchedulerPlugin::class];
     }
 
+    public function getPid(): int
+    {
+        return $this->pid;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
     final public function getUser(): string
     {
         return $this->user ?? getCurrentUser();
@@ -109,5 +133,34 @@ class PeriodicProcess implements Process
     final public function getGroup(): string
     {
         return $this->group ?? getCurrentGroup();
+    }
+
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
+    }
+
+    public function getLogger(): LoggerInterface
+    {
+        return $this->logger;
+    }
+
+    public function getMessageBus(): MessageBusInterface
+    {
+        return $this->bus;
+    }
+
+    /**
+     * @param \Closure(self): void $onStart
+     */
+    public function onStart(\Closure $onStart, int $priority = 0): void
+    {
+        $this->onStartCallbacks[$priority . \uniqid()] = $onStart;
+        \ksort($this->onStartCallbacks);
+    }
+
+    public function setExitCode(int $exitCode): void
+    {
+        $this->exitCode = $exitCode;
     }
 }

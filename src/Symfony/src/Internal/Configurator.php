@@ -6,7 +6,7 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
-use PHPStreamServer\Symfony\Event\HttpServerStartEvent;
+use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -19,13 +19,15 @@ final readonly class Configurator
     {
     }
 
-    public function __invoke(HttpServerStartEvent $event): void
+    public function __invoke(ProcessStartEvent $event): void
     {
         $kernelContainer = $this->kernel->getContainer();
-        $workerContainer = $event->worker->container;
+        $workerContainer = $event->worker->getContainer();
 
         $kernelContainer->set('phpss.container', $workerContainer);
-        $kernelContainer->set('phpss.logger', $event->worker->logger);
+        $kernelContainer->set('phpss.logger', $event->worker->getLogger());
+
+        $workerContainer->setService('kernel', $this->kernel);
 
         /** @var HttpRequestHandler $symfonyHttpRequestHandler */
         $symfonyHttpRequestHandler = $kernelContainer->get('phpss.http_handler');
@@ -34,7 +36,6 @@ final readonly class Configurator
             return $symfonyHttpRequestHandler($request);
         });
 
-        $workerContainer->setService('kernel', $this->kernel);
         $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
     }
 }

@@ -10,8 +10,11 @@ use PHPStreamServer\Symfony\Command\StartCommand;
 use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
 use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Event\ProcessStopEvent;
-use PHPStreamServer\Symfony\Worker\SymfonyPeriodicProcess;
+use PHPStreamServer\Symfony\Worker\SymfonyCommandPeriodicProcess;
 use PHPStreamServer\Symfony\Worker\SymfonyServerProcess;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Input\StringInput;
+use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
@@ -26,8 +29,15 @@ final class SymfonyPlugin extends Plugin
 
     public function addWorker(Process $worker): void
     {
-        \assert($worker instanceof SymfonyServerProcess);
+        if($worker instanceof SymfonyServerProcess) {
+            $this->initializeSymfonyServerProcess($worker);
+        } elseif ($worker instanceof SymfonyCommandPeriodicProcess) {
+            $this->initializeSymfonyPeriodicProcess($worker);
+        }
+    }
 
+    private function initializeSymfonyServerProcess(SymfonyServerProcess $worker): void
+    {
         $appLoader = $this->appLoader;
 
         $worker->onStart(priority: -1, onStart: static function (SymfonyServerProcess $worker) use ($appLoader): void {
@@ -37,7 +47,7 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new HttpServerStartEvent($worker));
+            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
         });
 
         $worker->onStop(priority: 1000, onStop: static function (SymfonyServerProcess $worker): void {
@@ -46,7 +56,7 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new HttpServerStopEvent($worker));
+            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
         });
 
         $worker->onReload(priority: 1000, onReload: static function (SymfonyServerProcess $worker): void {
@@ -55,7 +65,35 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new HttpServerReloadEvent($worker));
+            $eventDispatcher->dispatch(new ProcessReloadEvent($worker));
+        });
+    }
+
+    private function initializeSymfonyPeriodicProcess(SymfonyCommandPeriodicProcess $worker): void
+    {
+        $appLoader = $this->appLoader;
+
+        $worker->onStart(priority: -1, onStart: static function (SymfonyCommandPeriodicProcess $worker) use ($appLoader): void {
+            $kernel = $appLoader->createKernel();
+            $kernel->boot();
+
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+
+            $application = new Application($kernel);
+            $application->setAutoExit(false);
+
+            if (!$application->has($worker->commandWithoutArguments)) {
+                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandWithoutArguments));
+                $worker->setExitCode(1);
+                return;
+            }
+
+            $input = new StringInput($worker->command);
+            $output = new NullOutput();
+            $exitCode = $application->run($input, $output);
+            $worker->setExitCode($exitCode);
         });
     }
 

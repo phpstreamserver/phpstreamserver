@@ -46,6 +46,7 @@
         "monolog/monolog": "^3.8",
         "phpunit/phpunit": "^11.4.3",
         "psalm/phar": "^5.26.1",
+        "symfony/framework-bundle": "^7.0",
         "symfony/var-dumper": "^6.4.15",
         "symplify/monorepo-builder": "^11.2.22"
     },
