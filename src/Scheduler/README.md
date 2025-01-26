@@ -28,7 +28,9 @@ Here is an example of a simple server configuration with scheduler.
 ```php
 // server.php
 
-use PHPStreamServer\Core\Server;use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+use PHPStreamServer\Core\Server;
+use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
+use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 
 $server = new Server();
 

@@ -32,7 +32,12 @@ Here is an example of a simple HTTP server configuration.
 ```php
 // server.php
 
-use Amp\Http\Server\HttpErrorException;use Amp\Http\Server\Request;use Amp\Http\Server\Response;use PHPStreamServer\Core\Server;use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerProcess;
+use Amp\Http\Server\HttpErrorException;
+use Amp\Http\Server\Request;
+use Amp\Http\Server\Response;
+use PHPStreamServer\Core\Server;
+use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
+use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerProcess;
 
 $server = new Server();
 
