@@ -14,24 +14,26 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class HttpFoundationFactory
 {
-    /**
-     * @TODO Check how it works with ipv6
-     * Supression is TEMPORARILY!!!
-     * @psalm-suppress PossiblyUndefinedArrayOffset
-     */
     public function createRequest(AmpRequest $request): SymfonyRequest
     {
         $server = [];
         $uri = $request->getUri();
         $client = $request->getClient();
-        $serverAddress = \explode(':', $client->getLocalAddress()->toString(), 2);
-        $remoteAddress = \explode(':', $client->getRemoteAddress()->toString(), 2);
+
+        $serverAddress = $client->getLocalAddress()->toString();
+        $serverAddressDelimiterPosition = (int) \strrpos($serverAddress, ':');
+        $serverAddressHost = \substr($serverAddress, 0, $serverAddressDelimiterPosition);
+
+        $remoteAddress = $client->getRemoteAddress()->toString();
+        $remoteAddressDelimiterPosition = (int) \strrpos($remoteAddress, ':');
+        $remoteAddressHost = \substr($remoteAddress, 0, $remoteAddressDelimiterPosition);
+        $remoteAddressPort = \substr($remoteAddress, $remoteAddressDelimiterPosition + 1);
 
         $server['SERVER_NAME'] = $uri->getHost();
-        $server['SERVER_ADDR'] = $serverAddress[0];
+        $server['SERVER_ADDR'] = $serverAddressHost;
         $server['SERVER_PORT'] = $uri->getPort() ?: ('https' === $uri->getScheme() ? 443 : 80);
-        $server['REMOTE_ADDR'] = $remoteAddress[0];
-        $server['REMOTE_PORT'] = (int) $remoteAddress[1];
+        $server['REMOTE_ADDR'] = $remoteAddressHost;
+        $server['REMOTE_PORT'] = (int) $remoteAddressPort;
         $server['REQUEST_URI'] = $uri->getPath();
         $server['REQUEST_METHOD'] = $request->getMethod();
         $server['QUERY_STRING'] = $uri->getQuery();
