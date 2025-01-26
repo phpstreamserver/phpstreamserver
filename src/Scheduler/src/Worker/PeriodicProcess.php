@@ -32,7 +32,9 @@ class PeriodicProcess implements Process
     public readonly LoggerInterface $logger;
     public readonly MessageBusInterface $bus;
 
-    /** @var array<\Closure(self): void> */
+    /**
+     * @var array<string, \Closure(static): void>
+     */
     private array $onStartCallbacks = [];
 
     /**
@@ -152,7 +154,7 @@ class PeriodicProcess implements Process
     }
 
     /**
-     * @param \Closure(self): void $onStart
+     * @param \Closure(static): void $onStart
      */
     public function onStart(\Closure $onStart, int $priority = 0): void
     {

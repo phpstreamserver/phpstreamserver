@@ -19,7 +19,7 @@ final class AmpHttpFactory
             $body = new ReadableResourceStream(\fopen($path, 'r'));
         } else if ($symfonyResponse instanceof StreamedResponse || $symfonyResponse instanceof BinaryFileResponse) {
             $resource = \fopen('php://temp', 'r+');
-            \ob_start(static function ($buffer) use ($resource): string {
+            \ob_start(static function (string $buffer) use ($resource): string {
                 \fwrite($resource, $buffer);
                 return '';
             }, 1);
@@ -31,6 +31,9 @@ final class AmpHttpFactory
             $body = (string) $symfonyResponse->getContent();
         }
 
+        /**
+         * @var array<non-empty-string, array<array-key, string>|string> $headers
+         */
         $headers = $symfonyResponse->headers->all();
         $cookies = $symfonyResponse->headers->getCookies();
         if ($cookies !== []) {

@@ -16,7 +16,7 @@ final readonly class MultipartParser
      * @param resource $resource
      * @throws InvalidMultipartHeaderException
      */
-    public function __construct(private mixed $resource, string $contentType)
+    public function __construct(private mixed $resource, string|null $contentType)
     {
         [$headerValue, $headerOptions] = Multipart::parseHeaderContent($contentType);
         $this->contentType = $headerValue ?? '';

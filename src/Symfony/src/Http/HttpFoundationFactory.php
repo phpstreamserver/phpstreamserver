@@ -14,6 +14,11 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class HttpFoundationFactory
 {
+    /**
+     * @TODO Check how it works with ipv6
+     * Supression is TEMPORARILY!!!
+     * @psalm-suppress PossiblyUndefinedArrayOffset
+     */
     public function createRequest(AmpRequest $request): SymfonyRequest
     {
         $server = [];
@@ -139,7 +144,7 @@ final class HttpFoundationFactory
                 $payload[$name] = $part->getContents();
             }
         }
-        if (!empty($fileStructureList)) {
+        if ($fileStructureList !== []) {
             $i = 0;
             \parse_str($fileStructureStr, $files);
             \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i) {

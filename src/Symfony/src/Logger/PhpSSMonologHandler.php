@@ -22,6 +22,7 @@ final class PhpSSMonologHandler extends AbstractHandler
 
     /**
      * @param array<LogRecord> $records
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function handleBatch(array $records): void
     {

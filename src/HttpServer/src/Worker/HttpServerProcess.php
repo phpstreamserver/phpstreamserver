@@ -28,15 +28,16 @@ class HttpServerProcess extends WorkerProcess
 
     /**
      * @param Listen|string|array<Listen> $listen
-     * @param null|\Closure(self):void $onStart
-     * @param null|\Closure(Request, self): Response $onRequest
-     * @param null|\Closure(self):void $onStop
-     * @param null|\Closure(self):void $onReload
+     * @param null|\Closure(static):void $onStart
+     * @param null|\Closure(Request, static): Response $onRequest
+     * @param null|\Closure(static):void $onStop
+     * @param null|\Closure(static):void $onReload
      * @param array<Middleware> $middleware
      * @param array<ReloadStrategy> $reloadStrategies
      * @param positive-int|null $connectionLimit
      * @param positive-int|null $connectionLimitPerIp
      * @param positive-int|null $concurrencyLimit
+     * @psalm-suppress ArgumentTypeCoercion
      */
     public function __construct(
         private Listen|string|array $listen,

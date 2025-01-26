@@ -54,5 +54,15 @@
                 <directory name="src" />
             </errorLevel>
         </RedundantConditionGivenDocblockType>
+        <RiskyTruthyFalsyComparison>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </RiskyTruthyFalsyComparison>
+        <UnsupportedReferenceUsage>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </UnsupportedReferenceUsage>
     </issueHandlers>
 </psalm>

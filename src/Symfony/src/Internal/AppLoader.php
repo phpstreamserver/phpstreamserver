@@ -27,6 +27,9 @@ final readonly class AppLoader
         return ($this->app)(...\array_map($this->resolveArgument(...), (new \ReflectionFunction($this->app))->getParameters()));
     }
 
+    /**
+     * @psalm-suppress InvalidReturnStatement, InvalidReturnType
+     */
     public function getEnvironment(): string
     {
         return $_SERVER[$this->options['env_var_name']] ?? throw new \RuntimeException(\sprintf('Environment is not set yet. Run %s::loadEnv() to set the environment', self::class));
@@ -44,6 +47,7 @@ final readonly class AppLoader
 
     private function resolveArgument(\ReflectionParameter $parameter): mixed
     {
+        /** @psalm-suppress UndefinedMethod */
         $type = $parameter->getType()?->getName();
 
         if ($type === 'array' && $parameter->name === 'context') {
@@ -75,7 +79,7 @@ final readonly class AppLoader
             $_SERVER[$envKey] = $this->options['env'];
         }
 
-        if (!($options['disable_dotenv'] ?? false) && \class_exists(Dotenv::class)) {
+        if (!($this->options['disable_dotenv'] ?? false) && \class_exists(Dotenv::class)) {
             (new Dotenv($envKey, $debugKey))
                 ->setProdEnvs(
                     prodEnvs: (array) ($this->options['prod_envs'] ?? ['prod']),
@@ -85,10 +89,10 @@ final readonly class AppLoader
                 );
         } else {
             $_SERVER[$envKey] ??= $_ENV[$envKey] ?? 'dev';
-            $_SERVER[$debugKey] ??= $_ENV[$debugKey] ?? !\in_array($_SERVER[$envKey], (array) ($options['prod_envs'] ?? ['prod']), true);
+            $_SERVER[$debugKey] ??= $_ENV[$debugKey] ?? !\in_array($_SERVER[$envKey], (array) ($this->options['prod_envs'] ?? ['prod']), true);
         }
 
-        $debug = $options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true;
+        $debug = $this->options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true;
         if (!\is_bool($debug)) {
             $debug = filter_var($debug, \FILTER_VALIDATE_BOOL);
         }

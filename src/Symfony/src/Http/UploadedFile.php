@@ -16,6 +16,8 @@ final class UploadedFile extends BaseUploadedFile
         $path = \sys_get_temp_dir() . DIRECTORY_SEPARATOR . \uniqid('phpss-upload');
         $filename = $multipart->getFileName();
         $contentType = $multipart->getHeaderValue('content-type');
+        \assert(\is_string($filename));
+        \assert(\is_string($contentType));
 
         parent::__construct($path, $filename, $contentType, -1);
     }

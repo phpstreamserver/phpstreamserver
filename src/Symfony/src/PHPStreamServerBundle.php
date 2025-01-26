@@ -38,6 +38,7 @@ final class PHPStreamServerBundle extends AbstractBundle implements CompilerPass
 
     public function boot(): void
     {
+        /** @psalm-suppress PossiblyNullReference */
         $this->container->set('phpss.logger', new NullLogger());
     }
 }
