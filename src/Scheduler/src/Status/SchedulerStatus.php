@@ -7,6 +7,7 @@ namespace PHPStreamServer\Plugin\Scheduler\Status;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessScheduledEvent;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+
 use function Amp\weakClosure;
 
 final class SchedulerStatus

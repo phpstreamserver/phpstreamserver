@@ -17,6 +17,7 @@ use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
+
 use function Amp\weakClosure;
 
 /**

@@ -32,7 +32,7 @@ final readonly class Configurator
         /** @var HttpRequestHandler $symfonyHttpRequestHandler */
         $symfonyHttpRequestHandler = $kernelContainer->get('phpss.http_handler');
 
-        $workerContainer->setService('request_handler', static function(Request $request) use ($symfonyHttpRequestHandler): Response {
+        $workerContainer->setService('request_handler', static function (Request $request) use ($symfonyHttpRequestHandler): Response {
             return $symfonyHttpRequestHandler($request);
         });
 

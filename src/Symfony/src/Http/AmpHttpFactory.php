@@ -17,7 +17,7 @@ final class AmpHttpFactory
         if ($symfonyResponse instanceof BinaryFileResponse && !$symfonyResponse->headers->has('Content-Range')) {
             $path = $symfonyResponse->getFile()->getPathname();
             $body = new ReadableResourceStream(\fopen($path, 'r'));
-        } else if ($symfonyResponse instanceof StreamedResponse || $symfonyResponse instanceof BinaryFileResponse) {
+        } elseif ($symfonyResponse instanceof StreamedResponse || $symfonyResponse instanceof BinaryFileResponse) {
             $resource = \fopen('php://temp', 'r+');
             \ob_start(static function (string $buffer) use ($resource): string {
                 \fwrite($resource, $buffer);

@@ -33,7 +33,7 @@ final class ExceptionListener
             return;
         }
 
-        /** @var \Closure $reloadStrategyEmitter*/
+        /** @var \Closure $reloadStrategyEmitter */
         $reloadStrategyEmitter = $this->workerContainer->getService('reload_strategy_emitter');
         $reloadStrategyEmitter($exception);
     }

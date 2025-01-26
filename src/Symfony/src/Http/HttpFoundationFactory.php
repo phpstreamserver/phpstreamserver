@@ -39,7 +39,7 @@ final class HttpFoundationFactory
         $server['QUERY_STRING'] = $uri->getQuery();
 
         if ($server['QUERY_STRING'] !== '') {
-            $server['REQUEST_URI'] .= '?'.$server['QUERY_STRING'];
+            $server['REQUEST_URI'] .= '?' . $server['QUERY_STRING'];
         }
 
         if ($uri->getScheme() === 'https') {
@@ -156,5 +156,4 @@ final class HttpFoundationFactory
 
         return [$payload, $files];
     }
-
 }

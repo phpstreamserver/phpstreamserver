@@ -10,9 +10,9 @@ use PHPStreamServer\Symfony\Command\StartCommand;
 use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
 use PHPStreamServer\Symfony\Event\ProcessStartEvent;
 use PHPStreamServer\Symfony\Event\ProcessStopEvent;
+use PHPStreamServer\Symfony\Worker\SymfonyHttpServerProcess;
 use PHPStreamServer\Symfony\Worker\SymfonyPeriodicProcess;
 use PHPStreamServer\Symfony\Worker\SymfonyWorkerProcess;
-use PHPStreamServer\Symfony\Worker\SymfonyHttpServerProcess;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -30,7 +30,7 @@ final class SymfonyPlugin extends Plugin
 
     public function addWorker(Process $worker): void
     {
-        if($worker instanceof SymfonyHttpServerProcess) {
+        if ($worker instanceof SymfonyHttpServerProcess) {
             $this->initializeSymfonyServerProcess($worker);
         } elseif ($worker instanceof SymfonyPeriodicProcess) {
             $this->initializeSymfonyPeriodicProcess($worker);

@@ -84,7 +84,7 @@ final readonly class AppLoader
                 ->setProdEnvs(
                     prodEnvs: (array) ($this->options['prod_envs'] ?? ['prod']),
                 )->bootEnv(
-                    path: $this->options['project_dir'].'/'.($this->options['dotenv_path'] ?? '.env'),
+                    path: $this->options['project_dir'] . '/' . ($this->options['dotenv_path'] ?? '.env'),
                     testEnvs: (array) ($this->options['test_envs'] ?? ['test']),
                 );
         } else {
@@ -94,7 +94,7 @@ final readonly class AppLoader
 
         $debug = $this->options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true;
         if (!\is_bool($debug)) {
-            $debug = filter_var($debug, \FILTER_VALIDATE_BOOL);
+            $debug = \filter_var($debug, \FILTER_VALIDATE_BOOL);
         }
 
         if ($debug) {

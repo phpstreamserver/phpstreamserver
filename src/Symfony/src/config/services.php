@@ -17,6 +17,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\EnvConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
+
 use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -67,7 +68,7 @@ return static function (array $config, ContainerConfigurator $container) {
                 ->args([
                     param('phpss.is_runtime_loaded'),
                     param('phpss.cache_file'),
-                    (new ReferenceConfigurator('phpss.container'))->nullOnInvalid()
+                    (new ReferenceConfigurator('phpss.container'))->nullOnInvalid(),
                 ]),
             'create',
         ])
@@ -94,7 +95,7 @@ return static function (array $config, ContainerConfigurator $container) {
         ->set('phpss.monolog_handler', PhpSSMonologHandler::class)
         ->args([
             param('phpss.is_runtime_loaded'),
-            service('phpss.bus')
+            service('phpss.bus'),
         ])
     ;
 

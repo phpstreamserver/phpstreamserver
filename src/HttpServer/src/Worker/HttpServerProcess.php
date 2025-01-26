@@ -20,6 +20,7 @@ use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
 use PHPStreamServer\Plugin\HttpServer\Listen;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
+
 use function PHPStreamServer\Core\getCpuCount;
 
 class HttpServerProcess extends WorkerProcess
@@ -127,7 +128,7 @@ class HttpServerProcess extends WorkerProcess
 
         if ($this->serverDir !== null) {
             $serverDir = $this->serverDir;
-        } elseif($this->container->hasParameter('server_dir')) {
+        } elseif ($this->container->hasParameter('server_dir')) {
             $serverDir = $this->container->getParameter('server_dir');
         } else {
             $serverDir = null;

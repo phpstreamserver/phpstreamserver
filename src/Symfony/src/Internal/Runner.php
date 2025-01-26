@@ -58,7 +58,7 @@ final readonly class Runner implements RunnerInterface
         $configfurator = include $configFile;
 
         if (!$configfurator instanceof \Closure) {
-            throw new \TypeError(sprintf('Invalid return value: "Closure" object expected, "%s" returned from "%s"', \get_debug_type($configfurator), $configFile));
+            throw new \TypeError(\sprintf('Invalid return value: "Closure" object expected, "%s" returned from "%s"', \get_debug_type($configfurator), $configFile));
         }
 
         $configfurator($server);
