@@ -20,7 +20,6 @@ $ composer require phpstreamserver/symfony
 
 ### Enable the bundle
 ```php
-<?php
 // config/bundles.php
 
 return [
@@ -29,7 +28,7 @@ return [
 ];
 ```
 
-### Create phpss.config.php in the root directory
+### Create phpss.config.php file in the root directory
 ```php
 # phpss.config.php
 
@@ -48,14 +47,15 @@ return static function (Server $server): void {
 };
 ```
 
-### Create phpss file in bin directory
+### Create phpss file in the bin directory
+
 ```php
 # bin/phpss
 
 use App\Kernel;
-use PHPStreamServer\Symfony\Runtime;
+use PHPStreamServer\Symfony\PHPStreamServerRuntime;
 
-$_SERVER['APP_RUNTIME'] = Runtime::class;
+$_SERVER['APP_RUNTIME'] = PHPStreamServerRuntime::class;
 
 require_once \dirname(__DIR__).'/vendor/autoload_runtime.php';
 

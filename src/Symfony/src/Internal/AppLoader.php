@@ -27,12 +27,10 @@ final readonly class AppLoader
         return ($this->app)(...\array_map($this->resolveArgument(...), (new \ReflectionFunction($this->app))->getParameters()));
     }
 
-    /**
-     * @psalm-suppress InvalidReturnStatement, InvalidReturnType
-     */
+    /** @psalm-suppress InvalidReturnStatement, InvalidReturnType */
     public function getEnvironment(): string
     {
-        return $_SERVER[$this->options['env_var_name']] ?? throw new \RuntimeException(\sprintf('Environment is not set yet. Run %s::loadEnv() to set the environment', self::class));
+        return $_SERVER[$this->options['env_var_name']] ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
     }
 
     public function getProjectDir(): string

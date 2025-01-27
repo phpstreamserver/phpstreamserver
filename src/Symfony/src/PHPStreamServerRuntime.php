@@ -35,7 +35,7 @@ use Symfony\Component\Runtime\RuntimeInterface;
  *   - "gzip_min_length" Minimum response size required to enable gzip compression;
  *   - "gzip_types_regex" Regular expression to match content types eligible for gzip compression;
  */
-final class Runtime implements RuntimeInterface
+final class PHPStreamServerRuntime implements RuntimeInterface
 {
     private array $options;
 
