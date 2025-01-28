@@ -26,7 +26,6 @@
         "phpstreamserver/http-server": "^0.4",
         "symfony/config": "^7.0",
         "symfony/dependency-injection": "^7.0",
-        "symfony/error-handler": "^7.0",
         "symfony/http-kernel": "^7.0",
         "symfony/runtime": "^7.0",
         "symfony/dotenv": "^7.0"
