@@ -49,7 +49,7 @@ final readonly class Runner implements RunnerInterface
             $server->addPlugin(new SchedulerPlugin());
         }
 
-        $configFile = $options['config_file'] ?? ($this->appLoader->getProjectDir() . '/phpss.config.php');
+        $configFile = $options['config_file'] ?? ($this->appLoader->getProjectDir() . '/config/phpss.config.php');
 
         if (!\is_file($configFile)) {
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));
