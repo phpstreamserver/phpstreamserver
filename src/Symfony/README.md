@@ -28,9 +28,9 @@ return [
 ];
 ```
 
-### Create phpss.config.php file in the root directory
+### Create phpss.config.php file in the config directory
 ```php
-# phpss.config.php
+# config/phpss.config.php
 
 use PHPStreamServer\Core\ReloadStrategy\ExceptionReloadStrategy;
 use PHPStreamServer\Core\Server;
