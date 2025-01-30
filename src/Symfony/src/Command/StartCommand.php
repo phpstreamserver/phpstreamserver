@@ -35,8 +35,6 @@ final class StartCommand extends BaseStartCommand
             \putenv($debugVarName . '=' . $_SERVER[$debugVarName] = $_ENV[$debugVarName] = '0');
         }
 
-        $this->appLoader->loadEnv();
-
         return parent::execute($args);
     }
 }
