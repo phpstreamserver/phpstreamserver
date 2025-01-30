@@ -130,9 +130,13 @@ final class HttpFoundationFactory
     private function parseMultiPartParts(\Generator $parts): array
     {
         $payload = [];
+        $payloadStructureStr = '';
+        $payloadStructureList = [];
+
         $files = [];
         $fileStructureStr = '';
         $fileStructureList = [];
+
         foreach ($parts as $part) {
             /** @var Multipart $part */
             if (null === $name = $part->getName()) {
@@ -143,14 +147,24 @@ final class HttpFoundationFactory
                 $fileStructureStr .= "$name&";
                 $fileStructureList[] = new UploadedFile($part);
             } else {
-                $payload[$name] = $part->getContents();
+                $payloadStructureStr .= "$name&";
+                $payloadStructureList[] = $part->getContents();
             }
         }
+
         if ($fileStructureList !== []) {
             $i = 0;
             \parse_str($fileStructureStr, $files);
             \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i) {
                 $item = $fileStructureList[$i++];
+            });
+        }
+
+        if ($payloadStructureList !== []) {
+            $i = 0;
+            \parse_str($payloadStructureStr, $payload);
+            \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i) {
+                $item = $payloadStructureList[$i++];
             });
         }
 
