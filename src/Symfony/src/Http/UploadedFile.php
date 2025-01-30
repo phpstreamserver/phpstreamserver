@@ -20,6 +20,8 @@ final class UploadedFile extends BaseUploadedFile
         \assert(\is_string($contentType));
 
         parent::__construct($path, $filename, $contentType, -1);
+
+        $this->move($this->getPath(), $this->getBasename());
     }
 
     public function getSize(): int
@@ -40,13 +42,6 @@ final class UploadedFile extends BaseUploadedFile
     public function isValid(): bool
     {
         return true;
-    }
-
-    public function createTempFile(): self
-    {
-        $this->move($this->getPath(), $this->getBasename());
-
-        return $this;
     }
 
     public function move(string $directory, ?string $name = null): File
