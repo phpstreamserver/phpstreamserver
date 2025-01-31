@@ -22,6 +22,7 @@ final class InotifyMonitorWatcher
     public function __construct(
         private readonly string $sourceDir,
         private readonly array $filePattern,
+        private readonly bool $recursive,
         private readonly \Closure $reloadCallback,
     ) {
     }
@@ -31,13 +32,18 @@ final class InotifyMonitorWatcher
         $this->fd = \inotify_init();
         \stream_set_blocking($this->fd, false);
 
-        $dirIterator = new \RecursiveDirectoryIterator($this->sourceDir, \FilesystemIterator::SKIP_DOTS);
-        $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST);
-
         $this->watchDir($this->sourceDir);
-        foreach ($iterator as $file) {
-            /** @var \SplFileInfo $file */
-            if ($file->isDir()) {
+
+        if ($this->recursive) {
+            $dirIterator = new \RecursiveDirectoryIterator($this->sourceDir, \FilesystemIterator::SKIP_DOTS);
+            $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST);
+
+            foreach ($iterator as $file) {
+                /** @var \SplFileInfo $file */
+                if (!$file->isDir()) {
+                    continue;
+                }
+
                 $this->watchDir($file->getPathname());
             }
         }

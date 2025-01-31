@@ -27,6 +27,7 @@ final class FileMonitorPlugin extends Plugin
             $fileMonitor = new InotifyMonitorWatcher(
                 sourceDir: $watchDir->sourceDir,
                 filePattern: $watchDir->filePattern,
+                recursive: $watchDir->recursive,
                 reloadCallback: $watchDir->invalidateOpcache
                     ? $this->triggerReloadWithOpcacheReset(...)
                     : $this->triggerReloadWithoutOpcacheReset(...),
