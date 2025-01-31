@@ -6,6 +6,8 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Driver\HttpDriver;
 use Amp\Http\Server\Middleware\CompressionMiddleware;
+use PHPStreamServer\Core\Console\Options;
+use PHPStreamServer\Core\Internal\Console\OptionDefinition;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
@@ -25,6 +27,25 @@ final readonly class Runner implements RunnerInterface
 
     public function run(): int
     {
+        $inputOptions = new Options(
+            argv: $_SERVER['argv'] ?? [],
+            defaultOptionDefinitions: [new OptionDefinition('env', 'e'), new OptionDefinition('no-debug')],
+        );
+
+        $env = $inputOptions->getOption('env');
+        $noDebug = $inputOptions->getOption('no-debug');
+        unset($inputOptions);
+
+        if (\is_string($env) && $env !== '') {
+            $envVarName = $this->appLoader->options['env_var_name'];
+            \putenv($envVarName . '=' . $_SERVER[$envVarName] = $_ENV[$envVarName] = $env);
+        }
+
+        if ($noDebug === true) {
+            $debugVarName = $this->appLoader->options['debug_var_name'];
+            \putenv($debugVarName . '=' . $_SERVER[$debugVarName] = $_ENV[$debugVarName] = '0');
+        }
+
         $this->appLoader->loadEnv();
         $options = $this->appLoader->options;
 
@@ -87,7 +108,7 @@ final readonly class Runner implements RunnerInterface
 
         throw new \InvalidArgumentException(\sprintf(
             'Cannot resolve argument "%s $%s" in "%s" on line "%d"',
-            $type,
+            $type ?? 'mixed',
             $parameter->name,
             $parameter->getDeclaringFunction()->getFileName(),
             $parameter->getDeclaringFunction()->getStartLine(),

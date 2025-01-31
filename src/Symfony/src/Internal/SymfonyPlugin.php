@@ -154,6 +154,6 @@ final class SymfonyPlugin extends Plugin
 
     public function registerCommands(): iterable
     {
-        return [new StartCommand($this->appLoader)];
+        return [new StartCommand()];
     }
 }

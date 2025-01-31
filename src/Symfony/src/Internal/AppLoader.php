@@ -54,7 +54,7 @@ final readonly class AppLoader
 
         throw new \InvalidArgumentException(\sprintf(
             'Cannot resolve argument "%s $%s" in "%s" on line "%d"',
-            $type,
+            $type ?? 'mixed',
             $parameter->name,
             $parameter->getDeclaringFunction()->getFileName(),
             $parameter->getDeclaringFunction()->getStartLine(),
