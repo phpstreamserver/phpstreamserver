@@ -37,14 +37,14 @@
         "symfony/runtime": "^7.0"
     },
     "require-dev": {
-        "amphp/http-client": "^5.1",
-        "friendsofphp/php-cs-fixer": "^3.65",
-        "monolog/monolog": "^3.8",
-        "phpunit/phpunit": "^11.4.3",
-        "symfony/framework-bundle": "^7.0",
-        "symfony/var-dumper": "^6.4.15",
+        "amphp/http-client": "^5.2.2",
+        "friendsofphp/php-cs-fixer": "^3.68.5",
+        "monolog/monolog": "^3.8.1",
+        "phpunit/phpunit": "^11.5.6",
+        "symfony/framework-bundle": "^7.2.3",
+        "symfony/var-dumper": "^6.4.18",
         "symplify/monorepo-builder": "^11.2.22",
-        "vimeo/psalm": "6"
+        "vimeo/psalm": "^6.1"
     },
     "replace": {
         "phpstreamserver/core": "self.version",
@@ -55,7 +55,7 @@
         "phpstreamserver/scheduler": "self.version",
         "phpstreamserver/symfony": "self.version"
     },
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "autoload": {
         "psr-4": {
             "PHPStreamServer\\Core\\": "src/Core/src/",
