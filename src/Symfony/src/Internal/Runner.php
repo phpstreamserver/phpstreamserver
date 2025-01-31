@@ -99,6 +99,8 @@ final readonly class Runner implements RunnerInterface
             return $this->server;
         } elseif ($type === 'array' && $parameter->name === 'context') {
             return $_SERVER;
+        } elseif ($type === 'string' && $parameter->name === 'projectDir') {
+            return $this->appLoader->options['project_dir'];
         } elseif ($type === 'string' && $parameter->name === 'env') {
             /** @psalm-suppress PossiblyInvalidCast */
             return (string) $_SERVER[$this->appLoader->options['env_var_name']];
