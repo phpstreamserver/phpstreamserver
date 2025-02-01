@@ -73,7 +73,7 @@ final class Multipart
 
     public function getFileName(): string|null
     {
-        return $this->getHeaderOption('Content-Disposition', 'filename');
+        return (null !== $fileName = $this->getHeaderOption('Content-Disposition', 'filename')) ? \trim($fileName, '"') : null;
     }
 
     public function getName(): string|null

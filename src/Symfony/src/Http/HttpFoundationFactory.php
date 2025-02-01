@@ -144,8 +144,11 @@ final class HttpFoundationFactory
             }
 
             if ($part->isFile()) {
-                $fileStructureStr .= "$name&";
-                $fileStructureList[] = new UploadedFile($part);
+                $filename = $part->getFilename();
+                if ($filename !== null && $filename !== '') {
+                    $fileStructureStr .= "$name&";
+                    $fileStructureList[] = new UploadedFile($part);
+                }
             } else {
                 $payloadStructureStr .= "$name&";
                 $payloadStructureList[] = $part->getContents();
