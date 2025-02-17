@@ -20,7 +20,7 @@ final readonly class NotFoundPage
     {
         $this->status = $status;
         $this->reason = HttpStatus::getReason($status);
-        $this->server = Server::getVersionString();
+        $this->server = Server::getProductName();
     }
 
     public function toHtml(): string

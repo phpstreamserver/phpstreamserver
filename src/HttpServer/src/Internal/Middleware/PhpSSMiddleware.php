@@ -39,7 +39,7 @@ final readonly class PhpSSMiddleware implements Middleware
         ($this->reloadStrategyTrigger)($request);
 
         if (!$response->hasHeader('server')) {
-            $response->setHeader('server', Server::getVersionString());
+            $response->setHeader('server', Server::getProductName());
         }
 
         return $response;

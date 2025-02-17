@@ -18,7 +18,7 @@ final readonly class ErrorPage
         public string $reason = '',
         public \Throwable|null $exception = null,
     ) {
-        $this->server = Server::getVersionString();
+        $this->server = Server::getProductName();
     }
 
     public function toHtml(): string
