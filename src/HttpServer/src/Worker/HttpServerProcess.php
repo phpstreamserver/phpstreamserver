@@ -162,9 +162,7 @@ class HttpServerProcess extends WorkerProcess
 
     private function stopServer(): void
     {
-        if (isset($this->httpServer)) {
-            $this->httpServer->stop();
-        }
+        $this->httpServer->stop();
     }
 
     /**

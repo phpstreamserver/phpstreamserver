@@ -99,6 +99,6 @@ return static function (array $config, ContainerConfigurator $container) {
         ])
     ;
 
-    $parameters->set('phpss.cache_file', param('kernel.cache_dir') . '/phpss_cache.php');
+    $parameters->set('phpss.cache_file', param('kernel.cache_dir')->__toString() . '/phpss_cache.php');
     $parameters->set('phpss.is_runtime_loaded', (new EnvConfigurator('APP_RUNTIME_PHPSS'))->default('')->bool());
 };

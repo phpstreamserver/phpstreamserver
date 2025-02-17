@@ -159,7 +159,7 @@ class PeriodicProcess implements Process
      */
     public function onStart(\Closure $onStart, int $priority = 0): void
     {
-        $this->onStartCallbacks[$priority . \uniqid()] = $onStart;
+        $this->onStartCallbacks[((string) $priority) . \uniqid()] = $onStart;
         \ksort($this->onStartCallbacks);
     }
 

@@ -13,6 +13,9 @@ final class Gauge extends Metric
 {
     protected const TYPE = 'gauge';
 
+    /**
+     * @var array<string, array{0: float, 1: string}>
+     */
     private array $buffer = [];
 
     /**

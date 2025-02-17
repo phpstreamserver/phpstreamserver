@@ -8,6 +8,7 @@
     findUnusedCode="false"
     ignoreInternalFunctionFalseReturn="true"
     ignoreInternalFunctionNullReturn="true"
+    ensureOverrideAttribute ="false"
     cacheDirectory="var/"
 >
     <projectFiles>
@@ -25,26 +26,21 @@
     </forbiddenFunctions>
 
     <issueHandlers>
-        <RedundantPropertyInitializationCheck>
-            <errorLevel type="suppress">
-                <directory name="src" />
-            </errorLevel>
-        </RedundantPropertyInitializationCheck>
         <PropertyNotSetInConstructor>
             <errorLevel type="suppress">
                 <directory name="src" />
             </errorLevel>
         </PropertyNotSetInConstructor>
-        <RedundantCastGivenDocblockType>
-            <errorLevel type="suppress">
-                <directory name="src" />
-            </errorLevel>
-        </RedundantCastGivenDocblockType>
         <InaccessibleProperty>
             <errorLevel type="suppress">
                 <directory name="src" />
             </errorLevel>
         </InaccessibleProperty>
+        <UnsupportedReferenceUsage>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </UnsupportedReferenceUsage>
         <UnsupportedPropertyReferenceUsage>
             <errorLevel type="suppress">
                 <directory name="src" />
@@ -60,10 +56,20 @@
                 <directory name="src" />
             </errorLevel>
         </RiskyTruthyFalsyComparison>
-        <UnsupportedReferenceUsage>
+        <InvalidOperand>
             <errorLevel type="suppress">
                 <directory name="src" />
             </errorLevel>
-        </UnsupportedReferenceUsage>
+        </InvalidOperand>
+        <PossiblyInvalidOperand>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </PossiblyInvalidOperand>
+        <ClassMustBeFinal>
+            <errorLevel type="suppress">
+                <directory name="src" />
+            </errorLevel>
+        </ClassMustBeFinal>
     </issueHandlers>
 </psalm>

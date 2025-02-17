@@ -44,7 +44,7 @@
         "symfony/framework-bundle": "^7.2.3",
         "symfony/var-dumper": "^6.4.18",
         "symplify/monorepo-builder": "^11.2.22",
-        "vimeo/psalm": "^6.1"
+        "vimeo/psalm": "^6.7.1"
     },
     "replace": {
         "phpstreamserver/core": "self.version",
