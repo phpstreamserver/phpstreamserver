@@ -26,10 +26,10 @@ jobs:
         run: composer run monorepo-validate
 
       - name: Codestyle check
-        run: composer run cs-fixer-test
+        run: composer run cs
 
       - name: Static analyze
-        run: composer run static-analyze
+        run: composer run psalm
 
   tests:
     runs-on: ${{ matrix.os }}

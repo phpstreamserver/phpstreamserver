@@ -44,7 +44,7 @@
         "symfony/framework-bundle": "^7.2.3",
         "symfony/var-dumper": "^6.4.18",
         "symplify/monorepo-builder": "^11.2.22",
-        "vimeo/psalm": "^6.7.1"
+        "vimeo/psalm": "^6.8.0"
     },
     "replace": {
         "phpstreamserver/core": "self.version",
@@ -88,13 +88,13 @@
         "monorepo-merge": [
             "monorepo-builder merge"
         ],
-        "cs-fixer-test": [
+        "cs": [
             "php-cs-fixer fix -v --dry-run"
         ],
-        "cs-fixer-fix": [
+        "cs-fix": [
             "php-cs-fixer fix -v"
         ],
-        "static-analyze": [
+        "psalm": [
             "psalm --no-cache"
         ],
         "test": [

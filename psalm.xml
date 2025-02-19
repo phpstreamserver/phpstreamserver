@@ -4,12 +4,13 @@
     xmlns="https://getpsalm.org/schema/config"
     xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
     errorLevel="2"
+    cacheDirectory="var/"
     resolveFromConfigFile="true"
     findUnusedCode="false"
     ignoreInternalFunctionFalseReturn="true"
     ignoreInternalFunctionNullReturn="true"
-    ensureOverrideAttribute ="false"
-    cacheDirectory="var/"
+    ensureOverrideAttribute="false"
+    strictBinaryOperands="false"
 >
     <projectFiles>
         <directory name="src" />
@@ -56,16 +57,6 @@
                 <directory name="src" />
             </errorLevel>
         </RiskyTruthyFalsyComparison>
-        <InvalidOperand>
-            <errorLevel type="suppress">
-                <directory name="src" />
-            </errorLevel>
-        </InvalidOperand>
-        <PossiblyInvalidOperand>
-            <errorLevel type="suppress">
-                <directory name="src" />
-            </errorLevel>
-        </PossiblyInvalidOperand>
         <ClassMustBeFinal>
             <errorLevel type="suppress">
                 <directory name="src" />
