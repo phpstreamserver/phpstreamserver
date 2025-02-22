@@ -18,6 +18,7 @@ final class SymfonyWorkerProcess extends WorkerProcess
      */
     public function __construct(
         string $command,
+        string $name = '',
         int $count = 1,
         bool $reloadable = true,
         string|null $user = null,
@@ -26,7 +27,13 @@ final class SymfonyWorkerProcess extends WorkerProcess
         $this->command = $command;
         $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
 
-        parent::__construct(name: $this->commandWithoutArguments, count: $count, reloadable: $reloadable, user: $user, group: $group);
+        parent::__construct(
+            name: $name ?: $this->commandWithoutArguments,
+            count: $count,
+            reloadable: $reloadable,
+            user: $user,
+            group: $group,
+        );
 
         $this->onStart($this->startProcess(...), -2);
         $this->onStart(fn() => $this->stop());

@@ -21,6 +21,7 @@ final class SymfonyPeriodicProcess extends PeriodicProcess
      */
     public function __construct(
         string $command,
+        string $name = '',
         string $schedule = '1 minute',
         int $jitter = 0,
         string|null $user = null,
@@ -30,7 +31,7 @@ final class SymfonyPeriodicProcess extends PeriodicProcess
         $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
 
         parent::__construct(
-            name: $this->commandWithoutArguments,
+            name: $name ?: $this->commandWithoutArguments,
             schedule: $schedule,
             jitter: $jitter,
             user: $user,
