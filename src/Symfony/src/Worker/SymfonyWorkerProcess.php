@@ -29,7 +29,7 @@ final class SymfonyWorkerProcess extends WorkerProcess
         parent::__construct(name: $this->commandWithoutArguments, count: $count, reloadable: $reloadable, user: $user, group: $group);
 
         $this->onStart($this->startProcess(...), -2);
-        $this->onStart(fn () => $this->stop());
+        $this->onStart(fn() => $this->stop());
     }
 
     private function startProcess(): void
