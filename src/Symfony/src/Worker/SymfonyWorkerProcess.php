@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
+use PHPStreamServer\Core\Message\ProcessDetachedEvent;
 use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
@@ -27,12 +28,13 @@ final class SymfonyWorkerProcess extends WorkerProcess
 
         parent::__construct(name: $this->commandWithoutArguments, count: $count, reloadable: $reloadable, user: $user, group: $group);
 
-        $this->onStart($this->startProcess(...));
+        $this->onStart($this->startProcess(...), -2);
+        $this->onStart(fn () => $this->stop());
     }
 
     private function startProcess(): void
     {
-        $this->stop();
+        $this->bus->dispatch(new ProcessDetachedEvent($this->pid))->await();
     }
 
     public static function handleBy(): array
