@@ -1,4 +1,5 @@
-name: subtree
+name: Subtree
+
 on:
   push:
     tags:
