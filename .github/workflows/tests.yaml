@@ -7,7 +7,7 @@ on:
 jobs:
   codestyle:
     runs-on: ubuntu-latest
-
+    name: Codestyle
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -32,13 +32,12 @@ jobs:
         run: composer run psalm
 
   tests:
-    runs-on: ${{ matrix.os }}
-    name: ${{ matrix.os }} - PHP ${{ matrix.php }}
     strategy:
       matrix:
-        os: ['ubuntu-latest', 'macos-latest']
-        php: ['8.2', '8.3', '8.4']
-
+        os: [ 'ubuntu-latest', 'macos-latest' ]
+        php: [ '8.2', '8.3', '8.4' ]
+    runs-on: ${{ matrix.os }}
+    name: Tests - ${{ matrix.os }}/PHP ${{ matrix.php }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
