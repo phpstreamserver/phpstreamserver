@@ -13,7 +13,7 @@
 ⚠️ This is the **monorepo** for the main components of [PHPStreamServer](https://phpstreamserver.dev/) ⚠️
 
 **PHPStreamServer** is a high performance, event-loop based application server and supervisor for PHP, written in PHP.  
-Powered by the [Revolt](https://revolt.run/) event loop and built on the [AMPHP](https://amphp.org/) ecosystem, it brings true asynchronous capabilities to your applications.  
+Powered by the [Revolt](https://revolt.run/) event loop and built on the [AMPHP](https://amphp.org/) ecosystem, it brings true asynchronous capabilities to your applications.
 PHPStreamServer is highly extensible with its plugin system, allowing it to replace traditional setups like Nginx, PHP-FPM, Cron, and Supervisor. See the available plugin packages below.
 
 ## Installatin
