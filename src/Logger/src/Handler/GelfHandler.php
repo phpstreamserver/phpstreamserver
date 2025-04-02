@@ -24,7 +24,8 @@ final class GelfHandler extends AbstractHandler
     private GelfTransport $transport;
 
     /**
-     * @param string $address gelf address. Can start with udp:// tcp://, http:// or https://
+     * @param string $address Gelf server address. Must begin with one of the following schemes: udp://, tcp://, http://, https://
+     * @throws \InvalidArgumentException
      */
     public function __construct(
         string $address,
@@ -45,6 +46,7 @@ final class GelfHandler extends AbstractHandler
 
     /**
      * @return array{0: string, 1: string, 2: int}
+     * @throws \InvalidArgumentException
      */
     private function parseAddress(string $address): array
     {
@@ -54,12 +56,12 @@ final class GelfHandler extends AbstractHandler
             !\str_starts_with($address, 'http://') &&
             !\str_starts_with($address, 'https://')
         ) {
-            throw new \InvalidArgumentException('Address should start with "udp://", "tcp://", "http://" or "https://"');
+            throw new \InvalidArgumentException('Invalid address format: must begin with one of the following schemes: udp://, tcp://, http://, https://');
         }
 
         $parts = \parse_url($address);
-        if ($parts === false || !isset($parts['scheme'], $parts['host'])) {
-            throw new \InvalidArgumentException('Invalid address format');
+        if (!isset($parts['scheme'], $parts['host'])) {
+            throw new \InvalidArgumentException('Invalid address format: missing host');
         }
 
         $scheme = $parts['scheme'];
@@ -67,7 +69,7 @@ final class GelfHandler extends AbstractHandler
         $port = $parts['port'] ?? match ($scheme) {
             'http' => 80,
             'https' => 443,
-            default => throw new \InvalidArgumentException('Address should contain port'),
+            default => throw new \InvalidArgumentException('Invalid address format: missing port number'),
         };
 
         return [$scheme, $host, $port];
