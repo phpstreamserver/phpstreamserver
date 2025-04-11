@@ -21,7 +21,7 @@ final class Multipart
     /**
      * @param resource $stream
      */
-    public function __construct(private mixed $stream, int $offset, int $size)
+    public function __construct(private readonly mixed $stream, int $offset, int $size)
     {
         \fseek($this->stream, $offset);
         $this->offset = $offset;

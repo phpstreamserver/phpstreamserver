@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony\Http;
 
 use Amp\ByteStream\ReadableStream;
+use Amp\ByteStream\StreamException;
 use Amp\Http\Server\Request as AmpRequest;
 use PHPStreamServer\Symfony\Http\Multipart\InvalidMultipartContentException;
 use PHPStreamServer\Symfony\Http\Multipart\InvalidMultipartHeaderException;
@@ -88,15 +89,14 @@ final class HttpFoundationFactory
             $parsedFiles = [];
             \parse_str(\urldecode($content), $parsedBody);
         } elseif ($contentType === 'application/json') {
-            $content = $request->getBody()->buffer();
+            $content = \trim($request->getBody()->buffer());
             $parsedBody = (array) \json_decode($content, true);
             $parsedFiles = [];
         } elseif ($contentType === 'multipart/form-data') {
             $content = '';
             try {
-                $multipartParser = new MultipartParser($this->createTempResource($request->getBody()), $request->getHeader('content-type'));
-                [$parsedBody, $parsedFiles] = $this->parseMultiPartParts($multipartParser->getParts());
-            } catch (InvalidMultipartHeaderException|InvalidMultipartContentException) {
+                [$parsedBody, $parsedFiles] = $this->parseMultiPartPayload($request->getBody(), (string) $request->getHeader('content-type'));
+            } catch (InvalidMultipartHeaderException|InvalidMultipartContentException|StreamException) {
                 $parsedBody = [];
                 $parsedFiles = [];
             }
@@ -110,25 +110,20 @@ final class HttpFoundationFactory
     }
 
     /**
-     * @return resource
+     * @return array{0: array, 1: array}
+     * @throws InvalidMultipartHeaderException
+     * @throws InvalidMultipartContentException
+     * @throws StreamException
      */
-    private function createTempResource(ReadableStream $stream): mixed
+    private function parseMultiPartPayload(ReadableStream $stream, string $contentType): array
     {
         $resource = \fopen('php://temp', 'r+');
         while (null !== $chunk = $stream->read()) {
             \fwrite($resource, $chunk);
         }
-        \rewind($resource);
 
-        return $resource;
-    }
+        $multipartParser = new MultipartParser($resource, $contentType);
 
-    /**
-     * @param \Generator<Multipart> $parts
-     * @return array{0: array, 1: array}
-     */
-    private function parseMultiPartParts(\Generator $parts): array
-    {
         $payload = [];
         $payloadStructureStr = '';
         $payloadStructureList = [];
@@ -137,8 +132,7 @@ final class HttpFoundationFactory
         $fileStructureStr = '';
         $fileStructureList = [];
 
-        foreach ($parts as $part) {
-            /** @var Multipart $part */
+        foreach ($multipartParser as $part) {
             if (null === $name = $part->getName()) {
                 continue;
             }

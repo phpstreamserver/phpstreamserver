@@ -6,8 +6,9 @@ namespace PHPStreamServer\Symfony\Http\Multipart;
 
 /**
  * @internal
+ * @implements \IteratorAggregate<Multipart>
  */
-final readonly class MultipartParser
+final readonly class MultipartParser implements \IteratorAggregate
 {
     private string $contentType;
     private string $boundary;
@@ -23,11 +24,11 @@ final readonly class MultipartParser
         $this->boundary = $headerOptions['boundary'] ?? '';
 
         if ($this->contentType !== 'multipart/form-data') {
-            throw new InvalidMultipartHeaderException('content type must be "multipart/form-data"');
+            throw new InvalidMultipartHeaderException('Content type must be "multipart/form-data"');
         }
 
         if ($this->boundary === '') {
-            throw new InvalidMultipartHeaderException('Can\'t find boundary in content type');
+            throw new InvalidMultipartHeaderException('Boundary parameter must be included');
         }
 
         \rewind($resource);
@@ -37,7 +38,7 @@ final readonly class MultipartParser
      * @return \Generator<Multipart>
      * @throws InvalidMultipartContentException
      */
-    public function getParts(): \Generator
+    public function getIterator(): \Generator
     {
         $separator = "--$this->boundary";
         $partCount = 0;
