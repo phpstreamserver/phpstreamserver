@@ -15,7 +15,7 @@ final class HttpServerTest extends PHPSSTestCase
         $client = $this->createHttpClient();
 
         // Act
-        $response = $client->request(new Request("http://127.0.0.1:9080"));
+        $response = $client->request(new Request('http://127.0.0.1:9080'));
 
         // Assert
         $this->assertSame(200, $response->getStatus());
@@ -28,7 +28,7 @@ final class HttpServerTest extends PHPSSTestCase
         $client = $this->createHttpClient();
 
         // Act
-        $response = $client->request(new Request("https://127.0.0.1:9081"));
+        $response = $client->request(new Request('https://127.0.0.1:9081'));
 
         // Assert
         $this->assertSame(200, $response->getStatus());
@@ -41,7 +41,7 @@ final class HttpServerTest extends PHPSSTestCase
         $client = $this->createHttpClient();
 
         // Act
-        $response = $client->request(new Request("https://127.0.0.1:9081/error"));
+        $response = $client->request(new Request('https://127.0.0.1:9081/error'));
 
         // Assert
         $this->assertSame(500, $response->getStatus());
@@ -53,7 +53,7 @@ final class HttpServerTest extends PHPSSTestCase
         $client = $this->createHttpClient();
 
         // Act
-        $response = $client->request(new Request("https://127.0.0.1:9081/qwertyasdf"));
+        $response = $client->request(new Request('https://127.0.0.1:9081/qwertyasdf'));
 
         // Assert
         $this->assertSame(404, $response->getStatus());

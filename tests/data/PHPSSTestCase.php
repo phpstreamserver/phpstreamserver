@@ -10,6 +10,7 @@ use Amp\Http\Client\HttpClient;
 use Amp\Http\Client\HttpClientBuilder;
 use Amp\Socket\ClientTlsContext;
 use Amp\Socket\ConnectContext;
+use Amp\Socket\DnsSocketConnector;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
 use PHPUnit\Framework\TestCase;
 
@@ -37,11 +38,14 @@ abstract class PHPSSTestCase extends TestCase
 
     protected function createHttpClient(): HttpClient
     {
-        $connectContext = (new ConnectContext())->withTlsContext((new ClientTlsContext())->withoutPeerVerification());
-        $client = (new HttpClientBuilder())
-            ->usingPool(new UnlimitedConnectionPool(new DefaultConnectionFactory(connectContext: $connectContext)))
-            ->build();
+        $pool = new UnlimitedConnectionPool(new DefaultConnectionFactory(
+            connector: new DnsSocketConnector(),
+            connectContext: (new ConnectContext())->withTlsContext((new ClientTlsContext())->withoutPeerVerification()),
+        ));
 
-        return $client;
+        return (new HttpClientBuilder())
+            ->usingPool($pool)
+            ->retry(0)
+            ->build();
     }
 }
