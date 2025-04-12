@@ -17,9 +17,7 @@ final class MasterLogger implements LoggerInterface
 {
     use LoggerTrait;
 
-    /**
-     * @var array<Handler>
-     */
+    /** @var array<Handler> */
     private array $handlers = [];
     private string $channel = 'server';
 
@@ -45,7 +43,7 @@ final class MasterLogger implements LoggerInterface
         $this->logEntry(new LogEntry(
             time: new \DateTimeImmutable('now'),
             pid: \posix_getpid(),
-            level: LogLevel::fromName((string) $level),
+            level: LogLevel::fromString((string) $level),
             channel: $this->channel,
             message: (string) $message,
             context: ContextFlattenNormalizer::flatten($context),

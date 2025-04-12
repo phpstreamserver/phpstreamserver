@@ -19,10 +19,8 @@ final class WorkerLogger implements LoggerInterface
 {
     use LoggerTrait;
 
-    /**
-     * @var list<LogEntry>
-     */
-    private array $log = [];
+    /** @var list<LogEntry> */
+    private array $logs = [];
     private string $channel = 'worker';
     private string $callbackId = '';
 
@@ -40,26 +38,24 @@ final class WorkerLogger implements LoggerInterface
 
     public function log(mixed $level, string|\Stringable $message, array $context = []): void
     {
-        $event = new LogEntry(
+        $this->logs[] = new LogEntry(
             time: new \DateTimeImmutable('now'),
             pid: \posix_getpid(),
-            level: LogLevel::fromName((string) $level),
+            level: LogLevel::fromString((string) $level),
             channel: $this->channel,
             message: (string) $message,
             context: ContextFlattenNormalizer::flatten($context),
         );
 
-        $this->log[] = $event;
-
         if ($this->callbackId === '') {
-            $this->callbackId = EventLoop::defer(fn() => $this->flush());
+            $this->callbackId = EventLoop::defer($this->flush(...));
         }
     }
 
     private function flush(): void
     {
-        $log = $this->log;
-        $this->log = [];
+        $log = $this->logs;
+        $this->logs = [];
         $this->callbackId = '';
         $this->messageBus->dispatch(new CompositeMessage($log));
     }

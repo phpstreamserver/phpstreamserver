@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger;
 
-use Psr\Log\LogLevel as PsrLogLevel;
-
 enum LogLevel: int
 {
     case DEBUG = 1;
@@ -17,32 +15,18 @@ enum LogLevel: int
     case ALERT = 7;
     case EMERGENCY = 8;
 
-    public static function fromName(string $name): self
+    public static function fromString(string $name): self
     {
         return match (\strtolower($name)) {
-            PsrLogLevel::DEBUG => self::DEBUG,
-            PsrLogLevel::INFO => self::INFO,
-            PsrLogLevel::NOTICE => self::NOTICE,
-            PsrLogLevel::WARNING => self::WARNING,
-            PsrLogLevel::ERROR => self::ERROR,
-            PsrLogLevel::CRITICAL => self::CRITICAL,
-            PsrLogLevel::ALERT => self::ALERT,
-            PsrLogLevel::EMERGENCY => self::EMERGENCY,
+            'debug' => self::DEBUG,
+            'info' => self::INFO,
+            'notice' => self::NOTICE,
+            'warning' => self::WARNING,
+            'error' => self::ERROR,
+            'critical' => self::CRITICAL,
+            'alert' => self::ALERT,
+            'emergency' => self::EMERGENCY,
             default => self::CRITICAL,
-        };
-    }
-
-    public static function fromRFC5424(int $level): self
-    {
-        return match ($level) {
-            7 => self::DEBUG,
-            6 => self::INFO,
-            5 => self::NOTICE,
-            4 => self::WARNING,
-            3 => self::ERROR,
-            2 => self::CRITICAL,
-            1 => self::ALERT,
-            0 => self::EMERGENCY,
         };
     }
 
@@ -57,6 +41,20 @@ enum LogLevel: int
             self::CRITICAL => 'critical',
             self::ALERT => 'alert',
             self::EMERGENCY => 'emergency',
+        };
+    }
+
+    public static function fromRFC5424(int $level): self
+    {
+        return match ($level) {
+            7 => self::DEBUG,
+            6 => self::INFO,
+            5 => self::NOTICE,
+            4 => self::WARNING,
+            3 => self::ERROR,
+            2 => self::CRITICAL,
+            1 => self::ALERT,
+            0 => self::EMERGENCY,
         };
     }
 
