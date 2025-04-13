@@ -19,7 +19,9 @@ final class WorkerLogger implements LoggerInterface
 {
     use LoggerTrait;
 
-    /** @var list<LogEntry> */
+    /**
+     * @var list<LogEntry>
+     */
     private array $logs = [];
     private string $channel = 'worker';
     private string $callbackId = '';
@@ -47,16 +49,15 @@ final class WorkerLogger implements LoggerInterface
             context: ContextFlattenNormalizer::flatten($context),
         );
 
-        if ($this->callbackId === '') {
-            $this->callbackId = EventLoop::defer($this->flush(...));
+        if ($this->callbackId !== '') {
+            return;
         }
-    }
 
-    private function flush(): void
-    {
-        $log = $this->logs;
-        $this->logs = [];
-        $this->callbackId = '';
-        $this->messageBus->dispatch(new CompositeMessage($log));
+        $this->callbackId = EventLoop::defer(function () {
+            $log = $this->logs;
+            $this->logs = [];
+            $this->callbackId = '';
+            $this->messageBus->dispatch(new CompositeMessage($log));
+        });
     }
 }
