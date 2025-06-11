@@ -23,7 +23,7 @@ final class GelfHttpTransport implements GelfTransport
     public function __construct(private readonly string $url)
     {
         if (!\class_exists(HttpClient::class)) {
-            throw new \RuntimeException(\sprintf('You cannot use "%s" as the "http-client" package is not installed. Try running "composer require amphp/http-client".', __CLASS__));
+            throw new \RuntimeException(\sprintf('You cannot use "%s" as the "http-client" package is not installed. Try running "composer require amphp/http-client"', __CLASS__));
         }
     }
 
