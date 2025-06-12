@@ -75,7 +75,7 @@ final readonly class ServerRunner implements RunnerInterface
             $this->server->addPlugin(new SchedulerPlugin());
         }
 
-        $configFile = $options['config_file'] ?? $this->appLoader->getProjectDir() . '/config/phpss.config.php';
+        $configFile = $this->appLoader->getServerConfigFile();
 
         if (!\is_file($configFile)) {
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));

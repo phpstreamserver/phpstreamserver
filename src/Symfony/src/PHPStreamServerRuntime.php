@@ -63,6 +63,6 @@ final class PHPStreamServerRuntime implements RuntimeInterface
 
     public function getResolver(callable $callable, \ReflectionFunction|null $reflector = null): ResolverInterface
     {
-        return new ClosureResolver($callable(...), static fn () => []);
+        return new ClosureResolver($callable(...), static fn() => []);
     }
 }

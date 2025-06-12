@@ -14,12 +14,12 @@ final readonly class AppLoader
 {
     public array $options;
 
-    /**
-     * @param \Closure(): KernelInterface $app
-     * @param array $options
-     */
     public function __construct(private \Closure $app, array $options)
     {
+        if (!isset($options['env_var_name'], $options['debug_var_name'], $options['project_dir'])) {
+            throw new \RuntimeException('Specify the env_var_name, env_var_name and project_dir options');
+        }
+
         $this->options = $options;
     }
 
@@ -52,6 +52,11 @@ final readonly class AppLoader
     public function getSocketFile(): string
     {
         return $this->options['socket_file'] ?? $this->getProjectDir() . '/var/run/phpss.socket';
+    }
+
+    public function getServerConfigFile(): string
+    {
+        return $this->options['config_file'] ?? $this->getProjectDir() . '/config/phpss.config.php';
     }
 
     private function resolveArgument(\ReflectionParameter $parameter): mixed
