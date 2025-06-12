@@ -123,8 +123,7 @@ final class SymfonyPlugin extends Plugin
 
             $input = new StringInput($worker->command);
             $output = new NullOutput();
-            $exitCode = $application->run($input, $output);
-            $worker->stop($exitCode);
+            $application->run($input, $output);
         });
     }
 

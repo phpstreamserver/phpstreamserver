@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Core\Message\ProcessDetachedEvent;
+use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 use PHPStreamServer\Core\Worker\WorkerProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
@@ -15,6 +15,7 @@ final class SymfonyWorkerProcess extends WorkerProcess
 
     /**
      * @param string $command Symfony console command name with optinal parameters
+     * @param array<ReloadStrategy> $reloadStrategies
      */
     public function __construct(
         string $command,
@@ -23,6 +24,7 @@ final class SymfonyWorkerProcess extends WorkerProcess
         bool $reloadable = true,
         string|null $user = null,
         string|null $group = null,
+        array $reloadStrategies = [],
     ) {
         $this->command = $command;
         $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
@@ -33,15 +35,8 @@ final class SymfonyWorkerProcess extends WorkerProcess
             reloadable: $reloadable,
             user: $user,
             group: $group,
+            reloadStrategies: $reloadStrategies,
         );
-
-        $this->onStart($this->startProcess(...), -2);
-        $this->onStart(fn() => $this->stop());
-    }
-
-    private function startProcess(): void
-    {
-        $this->bus->dispatch(new ProcessDetachedEvent($this->pid))->await();
     }
 
     public static function handleBy(): array
