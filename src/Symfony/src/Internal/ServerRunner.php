@@ -52,8 +52,8 @@ final readonly class ServerRunner implements RunnerInterface
         $options = $this->appLoader->options;
 
         $this->server = new Server(
-            pidFile: $options['pid_file'] ?? $this->appLoader->getProjectDir() . '/var/run/phpss.pid',
-            socketFile: $options['socket_file'] ?? $this->appLoader->getProjectDir() . '/var/run/phpss.socket',
+            pidFile: $this->appLoader->getPidFile(),
+            socketFile: $this->appLoader->getSocketFile(),
             stopTimeout: isset($options['stop_timeout']) ? (int) $options['stop_timeout'] : null,
             restartDelay: isset($options['restart_delay']) ? (int) $options['restart_delay'] : null,
         );

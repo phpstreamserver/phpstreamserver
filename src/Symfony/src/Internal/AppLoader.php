@@ -44,6 +44,16 @@ final readonly class AppLoader
         return $this->getProjectDir() . '/var/cache/' . $this->getEnvironment();
     }
 
+    public function getPidFile(): string
+    {
+        return $this->options['pid_file'] ?? $this->getProjectDir() . '/var/run/phpss.pid';
+    }
+
+    public function getSocketFile(): string
+    {
+        return $this->options['socket_file'] ?? $this->getProjectDir() . '/var/run/phpss.socket';
+    }
+
     private function resolveArgument(\ReflectionParameter $parameter): mixed
     {
         /** @psalm-suppress UndefinedMethod */
@@ -98,5 +108,8 @@ final readonly class AppLoader
         } else {
             $_SERVER[$debugKey] = $_ENV[$debugKey] = '0';
         }
+
+        $_SERVER['PHPSS_PID_FILE']  = $this->getPidFile();
+        $_SERVER['PHPSS_SOCKET_FILE']  = $this->getSocketFile();
     }
 }

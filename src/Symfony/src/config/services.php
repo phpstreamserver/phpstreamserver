@@ -16,6 +16,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
+use function Symfony\Component\DependencyInjection\Loader\Configurator\env;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -63,7 +64,8 @@ return static function (array $config, ContainerConfigurator $container) {
         ->set('phpss.bus', MessageBusInterface::class)
         ->factory([
             inline_service(MessageBusFactory::class)->args([
-                param('phpss.cache_file'),
+                param('phpss.pid_file'),
+                param('phpss.socket_file'),
                 service('phpss.container')->nullOnInvalid(),
             ]),
             'create',
@@ -92,5 +94,6 @@ return static function (array $config, ContainerConfigurator $container) {
         ->args([service('phpss.bus')])
     ;
 
-    $parameters->set('phpss.cache_file', param('kernel.cache_dir')->__toString() . '/phpss_cache.php');
+    $parameters->set('phpss.pid_file', env('PHPSS_PID_FILE'));
+    $parameters->set('phpss.socket_file', env('PHPSS_SOCKET_FILE'));
 };

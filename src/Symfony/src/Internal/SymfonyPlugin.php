@@ -128,25 +128,6 @@ final class SymfonyPlugin extends Plugin
         });
     }
 
-    public function onStart(): void
-    {
-        $cacheDir = $this->appLoader->getCacheDir();
-        $phpSSCacheFile = $cacheDir . '/phpss_cache.php';
-
-        $pidFile = $this->masterContainer->getParameter('pid_file');
-        $socketFile = $this->masterContainer->getParameter('socket_file');
-        $pid = $this->masterContainer->getParameter('pid');
-        $cacheArray = [$pidFile, $socketFile, $pid];
-
-        $cacheData = '<?php return ' . \var_export($cacheArray, true) . ';';
-
-        if (!\is_dir($cacheDir)) {
-            \mkdir($cacheDir, 0775, true);
-        }
-
-        \file_put_contents($phpSSCacheFile, $cacheData);
-    }
-
     public function onReload(): void
     {
         $this->appLoader->loadEnv();

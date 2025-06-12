@@ -11,10 +11,13 @@ use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 /**
  * @internal
  */
-final class MessageBusFactory
+final readonly class MessageBusFactory
 {
-    public function __construct(private string $phpSSCacheFile, private ContainerInterface|null $workerContainer)
-    {
+    public function __construct(
+        private string $pidFile,
+        private string $socketFile,
+        private ContainerInterface|null $workerContainer,
+    ) {
     }
 
     public function create(): MessageBusInterface
@@ -23,12 +26,6 @@ final class MessageBusFactory
             return $this->workerContainer->getService(MessageBusInterface::class);
         }
 
-        if (\file_exists($this->phpSSCacheFile)) {
-            [$pidFile, $socketFile] = require $this->phpSSCacheFile;
-        } else {
-            [$pidFile, $socketFile] = ['', ''];
-        }
-
-        return new ExternalProcessMessageBus($pidFile, $socketFile);
+        return new ExternalProcessMessageBus($this->pidFile, $this->socketFile);
     }
 }
