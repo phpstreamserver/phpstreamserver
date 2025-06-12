@@ -23,6 +23,8 @@ use Symfony\Component\Runtime\RuntimeInterface;
  *   - "dotenv_path" to define the path of dot-env files - defaults to ".env";
  *   - "prod_envs" to define the names of the production envs - defaults to ["prod"];
  *   - "test_envs" to define the names of the test envs - defaults to ["test"];
+ *   - "dotenv_overload" to tell Dotenv to override existing vars
+ *   - "dotenv_extra_paths" to define a list of additional dot-env files
  *
  *  PHPStreamServer specific options:
  *   - "config_file" Path to the phpss config file - defaults to "config/phpss.config.php";

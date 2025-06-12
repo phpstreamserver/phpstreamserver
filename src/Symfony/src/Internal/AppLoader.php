@@ -31,7 +31,8 @@ final readonly class AppLoader
     /** @psalm-suppress InvalidReturnStatement, InvalidReturnType */
     public function getEnvironment(): string
     {
-        return $_SERVER[$this->options['env_var_name']] ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
+        return $_SERVER[$this->options['env_var_name']]
+            ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
     }
 
     public function getProjectDir(): string
@@ -94,13 +95,20 @@ final readonly class AppLoader
         }
 
         if (!($this->options['disable_dotenv'] ?? false) && \class_exists(Dotenv::class)) {
-            (new Dotenv($envKey, $debugKey))
-                ->setProdEnvs(
-                    prodEnvs: (array) ($this->options['prod_envs'] ?? ['prod']),
-                )->bootEnv(
-                    path: $this->options['project_dir'] . '/' . ($this->options['dotenv_path'] ?? '.env'),
-                    testEnvs: (array) ($this->options['test_envs'] ?? ['test']),
-                );
+            $overrideExistingVars = (bool) ($this->options['dotenv_overload'] ?? false);
+            $dotenv = (new Dotenv($envKey, $debugKey))->setProdEnvs((array) ($this->options['prod_envs'] ?? ['prod']));
+            $dotenv->bootEnv(
+                path: $this->options['project_dir'] . '/' . ($this->options['dotenv_path'] ?? '.env'),
+                defaultEnv: 'dev',
+                testEnvs: (array) ($this->options['test_envs'] ?? ['test']),
+                overrideExistingVars: $overrideExistingVars,
+            );
+
+            $extraPaths = (array) ($this->options['dotenv_extra_paths'] ?? []);
+            if ($extraPaths !== []) {
+                $extraPaths = \array_map(fn(string $path) => $this->options['project_dir'] . '/' . $path, $this->options['dotenv_extra_paths']);
+                $overrideExistingVars ? $dotenv->overload(...$extraPaths) : $dotenv->load(...$extraPaths);
+            }
         } else {
             $_SERVER[$envKey] ??= $_ENV[$envKey] ?? 'dev';
             $_SERVER[$debugKey] ??= $_ENV[$debugKey] ?? !\in_array($_SERVER[$envKey], (array) ($this->options['prod_envs'] ?? ['prod']), true);
