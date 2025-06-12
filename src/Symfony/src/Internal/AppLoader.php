@@ -13,13 +13,14 @@ use Symfony\Component\HttpKernel\KernelInterface;
 final readonly class AppLoader
 {
     public array $options;
-    private string $projectDir;
 
-    /** @psalm-suppress InvalidPropertyAssignmentValue */
+    /**
+     * @param \Closure(): KernelInterface $app
+     * @param array $options
+     */
     public function __construct(private \Closure $app, array $options)
     {
         $this->options = $options;
-        $this->projectDir = $this->options['project_dir'];
     }
 
     public function createKernel(): KernelInterface
@@ -35,12 +36,12 @@ final readonly class AppLoader
 
     public function getProjectDir(): string
     {
-        return $this->projectDir;
+        return $this->options['project_dir'];
     }
 
     public function getCacheDir(): string
     {
-        return $this->projectDir . '/var/cache/' . $this->getEnvironment();
+        return $this->getProjectDir() . '/var/cache/' . $this->getEnvironment();
     }
 
     private function resolveArgument(\ReflectionParameter $parameter): mixed
@@ -90,11 +91,7 @@ final readonly class AppLoader
             $_SERVER[$debugKey] ??= $_ENV[$debugKey] ?? !\in_array($_SERVER[$envKey], (array) ($this->options['prod_envs'] ?? ['prod']), true);
         }
 
-        $debug = $this->options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true;
-        if (!\is_bool($debug)) {
-            $debug = \filter_var($debug, \FILTER_VALIDATE_BOOL);
-        }
-
+        $debug = \filter_var($this->options['debug'] ?? $_SERVER[$debugKey] ?? $_ENV[$debugKey] ?? true, \FILTER_VALIDATE_BOOL);
         if ($debug) {
             \umask(0000);
             $_SERVER[$debugKey] = $_ENV[$debugKey] = '1';

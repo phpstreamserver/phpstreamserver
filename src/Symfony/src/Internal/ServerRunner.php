@@ -17,7 +17,7 @@ use Symfony\Component\Runtime\RunnerInterface;
 /**
  * @internal
  */
-final readonly class Runner implements RunnerInterface
+final readonly class ServerRunner implements RunnerInterface
 {
     private Server $server;
 
@@ -27,6 +27,8 @@ final readonly class Runner implements RunnerInterface
 
     public function run(): int
     {
+        \set_time_limit(0);
+
         $inputOptions = new Options(
             argv: $_SERVER['argv'] ?? [],
             defaultOptionDefinitions: [new OptionDefinition('env', 'e'), new OptionDefinition('no-debug')],
@@ -73,7 +75,7 @@ final readonly class Runner implements RunnerInterface
             $this->server->addPlugin(new SchedulerPlugin());
         }
 
-        $configFile = $options['config_file'] ?? ($this->appLoader->getProjectDir() . '/config/phpss.config.php');
+        $configFile = $options['config_file'] ?? $this->appLoader->getProjectDir() . '/config/phpss.config.php';
 
         if (!\is_file($configFile)) {
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));

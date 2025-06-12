@@ -15,7 +15,7 @@ use PHPStreamServer\Plugin\Logger\LogLevel;
 
 final class PhpSSMonologHandler extends AbstractHandler
 {
-    public function __construct(private bool $isPhpSSRuntimeLoaded, private MessageBusInterface $bus)
+    public function __construct(private MessageBusInterface $bus)
     {
         parent::__construct();
     }
@@ -40,13 +40,9 @@ final class PhpSSMonologHandler extends AbstractHandler
         }
 
         try {
-            $promise = $this->bus->dispatch(new CompositeMessage($buffer));
-
-            if (!$this->isPhpSSRuntimeLoaded) {
-                $promise->await();
-            }
+            $this->bus->dispatch(new CompositeMessage($buffer));
         } catch (ServerIsNotRunning) {
-            // noop
+            // ignore
         }
     }
 

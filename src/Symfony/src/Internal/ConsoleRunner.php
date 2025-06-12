@@ -1,0 +1,61 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PHPStreamServer\Symfony\Internal;
+
+use Revolt\EventLoop;
+use Symfony\Bundle\FrameworkBundle\Console\Application;
+use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\Runtime\RunnerInterface;
+
+/**
+ * @internal
+ */
+final readonly class ConsoleRunner implements RunnerInterface
+{
+    public function __construct(private AppLoader $appLoader)
+    {
+    }
+
+    public function run(): int
+    {
+        \set_time_limit(0);
+
+        $input = new ArgvInput();
+        $output = new ConsoleOutput();
+
+        if (null !== $env = $input->getParameterOption(['--env', '-e'], null, true)) {
+            $envVarName = $this->appLoader->options['env_var_name'];
+            \putenv($envVarName . '=' . $_SERVER[$envVarName] = $_ENV[$envVarName] = $env);
+        }
+
+        if ($input->hasParameterOption('--no-debug', true)) {
+            $debugVarName = $this->appLoader->options['debug_var_name'];
+            \putenv($debugVarName . '=' . $_SERVER[$debugVarName] = $_ENV[$debugVarName] = '0');
+        }
+
+        $this->appLoader->loadEnv();
+        $kernel = $this->appLoader->createKernel();
+
+        $application = new Application($kernel);
+        $application->setAutoExit(false);
+
+        $ret = 0;
+
+        EventLoop::setErrorHandler(static function (\Throwable $e) use ($application, $output, &$ret) {
+            $application->renderThrowable($e, $output);
+            $ret = Command::FAILURE;
+        });
+
+        EventLoop::queue(static function () use ($application, $input, $output, &$ret) {
+            $ret = $application->run($input, $output);
+        });
+
+        EventLoop::run();
+
+        return $ret;
+    }
+}

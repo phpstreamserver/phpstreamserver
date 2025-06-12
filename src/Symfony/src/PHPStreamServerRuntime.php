@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony;
 
 use PHPStreamServer\Symfony\Internal\AppLoader;
-use PHPStreamServer\Symfony\Internal\Runner;
+use PHPStreamServer\Symfony\Internal\ConsoleRunner;
+use PHPStreamServer\Symfony\Internal\ServerRunner;
+use Symfony\Component\Runtime\Resolver\ClosureResolver;
 use Symfony\Component\Runtime\ResolverInterface;
 use Symfony\Component\Runtime\RunnerInterface;
 use Symfony\Component\Runtime\RuntimeInterface;
@@ -23,16 +25,16 @@ use Symfony\Component\Runtime\RuntimeInterface;
  *   - "test_envs" to define the names of the test envs - defaults to ["test"];
  *
  *  PHPStreamServer specific options:
- *   - "config_file" Path to the phpss config file - defaults to "phpss.config.php";
- *   - "pid_file" Path to the pid file;
- *   - "socket_file" Path to the Unix socket file;
- *   - "stop_timeout" Maximum time to wait before forcefully terminating workers during shutdown;
- *   - "restart_delay" Delay between worker restarts;
- *   - "http2_enable" Enables support for HTTP/2 protocol;
- *   - "http_connection_timeout" Timeout duration for idle HTTP connections;
- *   - "http_header_size_limit" Maximum allowed size for HTTP headers;
- *   - "http_body_size_limit" Maximum allowed size for the HTTP request body;
- *   - "gzip_min_length" Minimum response size required to enable gzip compression;
+ *   - "config_file" Path to the phpss config file - defaults to "config/phpss.config.php";
+ *   - "pid_file" Path to the pid file - defaults to "var/run/phpss.pid";
+ *   - "socket_file" Path to the Unix socket file - defaults to "var/run/phpss.socket";
+ *   - "stop_timeout" Maximum time to wait before forcefully terminating workers during shutdown - defaults to "10";
+ *   - "restart_delay" Delay between worker restarts - defaults to "0.25";
+ *   - "http2_enable" Enables support for HTTP/2 protocol - defaults to "true";
+ *   - "http_connection_timeout" Timeout duration for idle HTTP connections - defaults to "60";
+ *   - "http_header_size_limit" Maximum allowed size for HTTP headers - defaults to "32768";
+ *   - "http_body_size_limit" Maximum allowed size for the HTTP request body - defaults to min of ini options "post_max_size" and "upload_max_filesize";
+ *   - "gzip_min_length" Minimum response size required to enable gzip compression - defaults to "860";
  *   - "gzip_types_regex" Regular expression to match content types eligible for gzip compression;
  */
 final class PHPStreamServerRuntime implements RuntimeInterface
@@ -41,7 +43,6 @@ final class PHPStreamServerRuntime implements RuntimeInterface
 
     public function __construct(array $options = [])
     {
-        $_SERVER['APP_RUNTIME_PHPSS'] = '1';
         $options['env_var_name'] ??= 'APP_ENV';
         $options['debug_var_name'] ??= 'APP_DEBUG';
         $this->options = $options;
@@ -49,26 +50,19 @@ final class PHPStreamServerRuntime implements RuntimeInterface
 
     public function getRunner(object|null $application): RunnerInterface
     {
-        if (!$application instanceof AppLoader) {
-            throw new \LogicException(\sprintf('Not supported application type, %s was expected', AppLoader::class));
+        if ($application instanceof ServerApplication) {
+            return new ServerRunner(new AppLoader($application->kernelFactory, $this->options));
         }
 
-        return new Runner($application);
+        if ($application instanceof ConsoleApplication) {
+            return new ConsoleRunner(new AppLoader($application->kernelFactory, $this->options));
+        }
+
+        throw new \LogicException(\sprintf('"%s" doesn\'t know how to handle apps of type "%s"', \get_debug_type($this), \get_debug_type($application)));
     }
 
     public function getResolver(callable $callable, \ReflectionFunction|null $reflector = null): ResolverInterface
     {
-        $callable = $callable(...);
-
-        return new class ($callable, $this->options) implements ResolverInterface {
-            public function __construct(private readonly \Closure $callable, private readonly array $options)
-            {
-            }
-
-            public function resolve(): array
-            {
-                return [static fn(mixed ...$args) => new AppLoader(...$args), [$this->callable, $this->options]];
-            }
-        };
+        return new ClosureResolver($callable(...), static fn () => []);
     }
 }

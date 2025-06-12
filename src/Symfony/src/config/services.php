@@ -13,8 +13,6 @@ use PHPStreamServer\Symfony\Internal\ExceptionListener;
 use PHPStreamServer\Symfony\Internal\MessageBusFactory;
 use PHPStreamServer\Symfony\Logger\PhpSSMonologHandler;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\EnvConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;
 
@@ -64,12 +62,10 @@ return static function (array $config, ContainerConfigurator $container) {
     $services
         ->set('phpss.bus', MessageBusInterface::class)
         ->factory([
-            inline_service(MessageBusFactory::class)
-                ->args([
-                    param('phpss.is_runtime_loaded'),
-                    param('phpss.cache_file'),
-                    (new ReferenceConfigurator('phpss.container'))->nullOnInvalid(),
-                ]),
+            inline_service(MessageBusFactory::class)->args([
+                param('phpss.cache_file'),
+                service('phpss.container')->nullOnInvalid(),
+            ]),
             'create',
         ])
     ;
@@ -93,12 +89,8 @@ return static function (array $config, ContainerConfigurator $container) {
 
     $services
         ->set('phpss.monolog_handler', PhpSSMonologHandler::class)
-        ->args([
-            param('phpss.is_runtime_loaded'),
-            service('phpss.bus'),
-        ])
+        ->args([service('phpss.bus')])
     ;
 
     $parameters->set('phpss.cache_file', param('kernel.cache_dir')->__toString() . '/phpss_cache.php');
-    $parameters->set('phpss.is_runtime_loaded', (new EnvConfigurator('APP_RUNTIME_PHPSS'))->default('')->bool());
 };
