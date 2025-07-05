@@ -24,11 +24,11 @@ final readonly class MultipartParser implements \IteratorAggregate
         $this->boundary = $headerOptions['boundary'] ?? '';
 
         if ($this->contentType !== 'multipart/form-data') {
-            throw new InvalidMultipartHeaderException('Content type must be "multipart/form-data"');
+            throw new InvalidMultipartHeaderException('Content-Type must be "multipart/form-data"');
         }
 
         if ($this->boundary === '') {
-            throw new InvalidMultipartHeaderException('Boundary parameter must be included');
+            throw new InvalidMultipartHeaderException('The "boundary" parameter must be included in the Content-Type header');
         }
 
         \rewind($resource);
@@ -70,7 +70,7 @@ final readonly class MultipartParser implements \IteratorAggregate
         }
 
         if ($partCount === 0 || $endOfBody === false) {
-            throw new InvalidMultipartContentException('Can\'t find multipart content');
+            throw new InvalidMultipartContentException('Multipart content not found or incomplete');
         }
     }
 }
