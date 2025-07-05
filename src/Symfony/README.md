@@ -100,3 +100,7 @@ return new ConsoleApplication(static function (array $context) {
 ```bash
 $ bin/phpss start
 ```
+
+### Intergation with Monolog logger
+Learn how to integrate your Symfony application with the Monolog logger.  
+[Read more...](https://phpstreamserver.dev/docs/integrations/symfony#intergation-with-monolog)
