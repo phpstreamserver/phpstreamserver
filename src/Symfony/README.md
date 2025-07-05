@@ -13,7 +13,7 @@
 This bundle provides a PHPStreamServer integration with the Symfony framework to run your application in a highly efficient event-loop based runtime.
 
 ## Getting started
-### Install composer packages
+### Install
 ```bash
 $ composer require phpstreamserver/symfony
 ```
@@ -28,9 +28,24 @@ return [
 ];
 ```
 
-### Create phpss.config.php file in the config directory
+### Set PHPStreamServerRuntime as the application runtime
+Use the `APP_RUNTIME` environment variable or by specifying the `extra.runtime.class` in `composer.json` to change the Runtime class to `PHPStreamServer\Symfony\PHPStreamServerRuntime`.
+```json
+{
+  "require": {
+    "...": "..."
+  },
+  "extra": {
+    "runtime": {
+      "class": "PHPStreamServer\\Symfony\\PHPStreamServerRuntime"
+    }
+  }
+}
+```
+
+### Create config/phpss.config.php file
 ```php
-# config/phpss.config.php
+<?php
 
 use PHPStreamServer\Core\ReloadStrategy\ExceptionReloadStrategy;
 use PHPStreamServer\Core\Server;
@@ -47,22 +62,39 @@ return static function (Server $server): void {
 };
 ```
 
-### Create phpss file in the bin directory
+### Create bin/phpss file
 
 ```php
-# bin/phpss
+#!/usr/bin/env php
+<?php
 
 use App\Kernel;
-use PHPStreamServer\Symfony\PHPStreamServerRuntime;
+use PHPStreamServer\Symfony\ServerApplication;
 
-$_SERVER['APP_RUNTIME'] = PHPStreamServerRuntime::class;
+require_once \dirname(__DIR__) . '/vendor/autoload_runtime.php';
 
-require_once \dirname(__DIR__).'/vendor/autoload_runtime.php';
-
-return function (array $context) {
+return new ServerApplication(static function (array $context) {
     return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
-};
+});
 ```
+
+### Create bin/console file
+
+```php
+#!/usr/bin/env php
+<?php
+
+use App\Kernel;
+use PHPStreamServer\Symfony\ConsoleApplication;
+
+require_once \dirname(__DIR__) . '/vendor/autoload_runtime.php';
+
+return new ConsoleApplication(static function (array $context) {
+    return new Kernel($context['APP_ENV'], (bool) $context['APP_DEBUG']);
+});
+```
+
+\* Modifying the `bin/console` file is essential to integrate console commands with PHPStreamServer—do not skip this step.
 
 ### Start the server
 ```bash
