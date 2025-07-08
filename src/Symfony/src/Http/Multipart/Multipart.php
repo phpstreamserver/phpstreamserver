@@ -73,18 +73,19 @@ final class Multipart
 
     public function getFileName(): string|null
     {
-        return (null !== $fileName = $this->getHeaderOption('Content-Disposition', 'filename')) ? \trim($fileName, '"') : null;
+        return $this->getHeaderOption('Content-Disposition', 'filename');
     }
 
     public function getName(): string|null
     {
-        return (null !== $name = $this->getHeaderOption('Content-Disposition', 'name')) ? \trim($name, '"') : null;
+        return $this->getHeaderOption('Content-Disposition', 'name');
     }
 
     public static function parseHeaderContent(string|null $content): array
     {
         if ($content !== null) {
-            \parse_str(\preg_replace('/;\s?/', '&', $content), $values);
+            \parse_str(\str_replace('+', '%2B', \preg_replace('/;\s?/', '&', $content)), $values);
+            $values = \array_map(static fn (string $v) => \trim($v, '"'), $values);
             if (($firstKey = \array_key_first($values)) !== null && $values[$firstKey] === '') {
                 \array_shift($values);
                 $headerValue = $firstKey;
