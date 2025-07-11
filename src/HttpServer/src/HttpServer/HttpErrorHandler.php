@@ -62,15 +62,9 @@ final readonly class HttpErrorHandler implements ErrorHandler
         $local = $client->getLocalAddress()->toString();
         $remote = $client->getRemoteAddress()->toString();
 
-        $title = match (true) {
-            $exception instanceof \Error => 'Error',
-            $exception instanceof \ErrorException => '',
-            default => 'Exception',
-        };
-
         $message = \sprintf(
             'Uncaught %s %s: "%s" in %s:%d during request: %s %s HTTP/%s',
-            $title,
+            $exception instanceof \Error ? 'Error' : 'Exception',
             (new \ReflectionClass($exception::class))->getShortName(),
             $exception->getMessage(),
             \basename($exception->getFile()),
