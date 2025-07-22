@@ -49,7 +49,7 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
         return $this->socket->isReadable();
     }
 
-    public function read(?Cancellation $cancellation = null, ?int $limit = null): ?string
+    public function read(Cancellation|null $cancellation = null, int|null $limit = null): string|null
     {
         $bytes = $this->socket->read($cancellation, $limit);
 
@@ -70,12 +70,12 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
         return $this->socket->getRemoteAddress();
     }
 
-    public function setupTls(?Cancellation $cancellation = null): void
+    public function setupTls(Cancellation|null $cancellation = null): void
     {
         $this->socket->setupTls($cancellation);
     }
 
-    public function shutdownTls(?Cancellation $cancellation = null): void
+    public function shutdownTls(Cancellation|null $cancellation = null): void
     {
         $this->socket->shutdownTls($cancellation);
     }
@@ -90,7 +90,7 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
         return $this->socket->getTlsState();
     }
 
-    public function getTlsInfo(): ?TlsInfo
+    public function getTlsInfo(): TlsInfo|null
     {
         return $this->socket->getTlsInfo();
     }

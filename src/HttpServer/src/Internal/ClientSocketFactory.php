@@ -24,7 +24,7 @@ final readonly class ClientSocketFactory implements ClientFactory
     ) {
     }
 
-    public function createClient(Socket $socket): ?Client
+    public function createClient(Socket $socket): Client|null
     {
         if ($socket->isTlsConfigurationAvailable()) {
             try {

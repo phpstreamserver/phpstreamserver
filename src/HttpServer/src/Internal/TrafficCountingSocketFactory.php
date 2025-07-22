@@ -23,7 +23,7 @@ final readonly class TrafficCountingSocketFactory implements ServerSocketFactory
     ) {
     }
 
-    public function listen(SocketAddress|string $address, ?BindContext $bindContext = null): ServerSocket
+    public function listen(SocketAddress|string $address, BindContext|null $bindContext = null): ServerSocket
     {
         $serverSocket = $this->socketServerFactory->listen($address, $bindContext);
 
@@ -47,7 +47,7 @@ final readonly class TrafficCountingSocketFactory implements ServerSocketFactory
                 $this->serverSocket->onClose($onClose);
             }
 
-            public function accept(?Cancellation $cancellation = null): ?Socket
+            public function accept(Cancellation|null $cancellation = null): Socket|null
             {
                 if (null === $socket = $this->serverSocket->accept($cancellation)) {
                     return null;
