@@ -85,7 +85,7 @@ final class Multipart
     {
         if ($content !== null) {
             \parse_str(\str_replace('+', '%2B', \preg_replace('/;\s?/', '&', $content)), $values);
-            $values = \array_map(static fn (string $v) => \trim($v, '"'), $values);
+            $values = \array_map(static fn(mixed $v) => \is_string($v) ? \trim($v, '"') : $v, $values);
             if (($firstKey = \array_key_first($values)) !== null && $values[$firstKey] === '') {
                 \array_shift($values);
                 $headerValue = $firstKey;
