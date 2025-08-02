@@ -89,10 +89,11 @@ class PeriodicProcess implements Process
         $this->logger = $workerContainer->getService(LoggerInterface::class);
         $this->bus = $workerContainer->getService(MessageBusInterface::class);
 
+        $exitCode = &$this->exitCode;
         ErrorHandler::register($this->logger);
-        EventLoop::setErrorHandler(function (\Throwable $exception) {
+        EventLoop::setErrorHandler(static function (\Throwable $exception) use (&$exitCode): void {
             ErrorHandler::handleException($exception);
-            $this->exitCode = 1;
+            $exitCode = 1;
         });
 
         try {

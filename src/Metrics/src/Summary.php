@@ -25,18 +25,24 @@ final class Summary extends Metric
 
         $key = \hash('xxh128', \json_encode($labels));
         $this->buffer[$key] ??= [[], ''];
-        $buffer = &$this->buffer[$key][0];
-        $callbackId = &$this->buffer[$key][1];
-        $buffer[] = $value;
 
-        if ($callbackId !== '') {
+        $bufferValue = &$this->buffer[$key][0];
+        $bufferCallbackId = &$this->buffer[$key][1];
+        $bufferValue[] = $value;
+
+        if ($bufferCallbackId !== '') {
             return;
         }
 
-        $callbackId = EventLoop::delay(self::FLUSH_TIMEOUT, function () use ($labels, &$buffer, $key) {
-            $values = $buffer;
-            unset($this->buffer[$key]);
-            $this->messageBus->dispatch(new ObserveSummaryMessage($this->namespace, $this->name, $labels, $values));
+        $bus = $this->messageBus;
+        $buffer = &$this->buffer;
+        $namespace = $this->namespace;
+        $name = $this->name;
+
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+            $values = $bufferValue;
+            unset($buffer[$key]);
+            $bus->dispatch(new ObserveSummaryMessage($namespace, $name, $labels, $values));
         });
     }
 

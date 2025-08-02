@@ -73,13 +73,14 @@ final class Scheduler
 
         if ($nextRunDate !== null) {
             $delay = $nextRunDate->getTimestamp() - $currentDate->getTimestamp();
-            EventLoop::delay($delay, function () use ($worker, $trigger): void {
+            EventLoop::delay($delay, weakClosure(function () use ($worker, $trigger): void {
                 $this->startWorker($worker, $trigger);
-            });
+            }));
         }
 
-        EventLoop::defer(function () use ($worker, $nextRunDate): void {
-            $this->messageBus->dispatch(new ProcessScheduledEvent($worker->id, $nextRunDate));
+        $bus = $this->messageBus;
+        EventLoop::defer(static function () use ($bus, $worker, $nextRunDate): void {
+            $bus->dispatch(new ProcessScheduledEvent($worker->id, $nextRunDate));
         });
 
         return true;

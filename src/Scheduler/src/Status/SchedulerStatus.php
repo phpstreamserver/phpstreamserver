@@ -8,8 +8,6 @@ use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessScheduledEvent;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 
-use function Amp\weakClosure;
-
 final class SchedulerStatus
 {
     /**
@@ -23,9 +21,10 @@ final class SchedulerStatus
 
     public function subscribeToWorkerMessages(MessageHandlerInterface $handler): void
     {
-        $handler->subscribe(ProcessScheduledEvent::class, weakClosure(function (ProcessScheduledEvent $message): void {
-            $this->periodicWorkers[$message->id]->nextRunDate = $message->nextRunDate;
-        }));
+        $periodicWorkers = &$this->periodicWorkers;
+        $handler->subscribe(ProcessScheduledEvent::class, static function (ProcessScheduledEvent $message) use (&$periodicWorkers): void {
+            $periodicWorkers[$message->id]->nextRunDate = $message->nextRunDate;
+        });
     }
 
     public function addWorker(PeriodicProcess $worker): void

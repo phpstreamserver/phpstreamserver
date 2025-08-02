@@ -53,11 +53,15 @@ final class WorkerLogger implements LoggerInterface
             return;
         }
 
-        $this->callbackId = EventLoop::defer(function () {
-            $log = $this->logs;
-            $this->logs = [];
-            $this->callbackId = '';
-            $this->messageBus->dispatch(new CompositeMessage($log));
+        $bus = $this->messageBus;
+        $logs = &$this->logs;
+        $callbackId = &$this->callbackId;
+
+        $callbackId = EventLoop::defer(static function () use ($bus, &$logs, &$callbackId): void {
+            $logsToSend = $logs;
+            $logs = [];
+            $callbackId = '';
+            $bus->dispatch(new CompositeMessage($logsToSend));
         });
     }
 }

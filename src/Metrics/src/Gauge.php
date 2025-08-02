@@ -28,18 +28,24 @@ final class Gauge extends Metric
 
         $key = \hash('xxh128', \json_encode($labels) . 'set');
         $this->buffer[$key] ??= [0, ''];
-        $buffer = &$this->buffer[$key][0];
-        $callbackId = &$this->buffer[$key][1];
-        $buffer = $value;
 
-        if ($callbackId !== '') {
+        $bufferValue = &$this->buffer[$key][0];
+        $bufferCallbackId = &$this->buffer[$key][1];
+        $bufferValue = $value;
+
+        if ($bufferCallbackId !== '') {
             return;
         }
 
-        $callbackId = EventLoop::delay(self::FLUSH_TIMEOUT, function () use ($labels, &$buffer, $key) {
-            $value = $buffer;
-            unset($this->buffer[$key]);
-            $this->messageBus->dispatch(new SetGaugeMessage($this->namespace, $this->name, $labels, $value, false));
+        $bus = $this->messageBus;
+        $buffer = &$this->buffer;
+        $namespace = $this->namespace;
+        $name = $this->name;
+
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+            $value = $bufferValue;
+            unset($buffer[$key]);
+            $bus->dispatch(new SetGaugeMessage($namespace, $name, $labels, $value, false));
         });
     }
 
@@ -71,18 +77,24 @@ final class Gauge extends Metric
 
         $key = \hash('xxh128', \json_encode($labels) . 'add');
         $this->buffer[$key] ??= [0, ''];
-        $buffer = &$this->buffer[$key][0];
-        $callbackId = &$this->buffer[$key][1];
-        $buffer += $value;
 
-        if ($callbackId !== '') {
+        $bufferValue = &$this->buffer[$key][0];
+        $bufferCallbackId = &$this->buffer[$key][1];
+        $bufferValue += $value;
+
+        if ($bufferCallbackId !== '') {
             return;
         }
 
-        $callbackId = EventLoop::delay(self::FLUSH_TIMEOUT, function () use ($labels, &$buffer, $key) {
-            $value = $buffer;
-            unset($this->buffer[$key]);
-            $this->messageBus->dispatch(new SetGaugeMessage($this->namespace, $this->name, $labels, $value, true));
+        $bus = $this->messageBus;
+        $buffer = &$this->buffer;
+        $namespace = $this->namespace;
+        $name = $this->name;
+
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+            $value = $bufferValue;
+            unset($buffer[$key]);
+            $bus->dispatch(new SetGaugeMessage($namespace, $name, $labels, $value, true));
         });
     }
 
