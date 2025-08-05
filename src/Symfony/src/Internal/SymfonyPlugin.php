@@ -80,10 +80,6 @@ final class SymfonyPlugin extends Plugin
             $kernel = $appLoader->createKernel();
             $kernel->boot();
 
-            /** @var EventDispatcherInterface $eventDispatcher */
-            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
-
             $application = new Application($kernel);
             $application->setAutoExit(false);
 
@@ -93,9 +89,15 @@ final class SymfonyPlugin extends Plugin
                 return;
             }
 
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+
             $input = new StringInput($worker->command);
             $output = new NullOutput();
+
+            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
             $exitCode = $application->run($input, $output);
+            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
             $worker->setExitCode($exitCode);
         });
     }
@@ -109,10 +111,6 @@ final class SymfonyPlugin extends Plugin
             $kernel = $appLoader->createKernel();
             $kernel->boot();
 
-            /** @var EventDispatcherInterface $eventDispatcher */
-            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
-
             $application = new Application($kernel);
             $application->setAutoExit(false);
 
@@ -122,9 +120,15 @@ final class SymfonyPlugin extends Plugin
                 return;
             }
 
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+
             $input = new StringInput($worker->command);
             $output = new NullOutput();
+
+            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
             $application->run($input, $output);
+            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
         });
     }
 
