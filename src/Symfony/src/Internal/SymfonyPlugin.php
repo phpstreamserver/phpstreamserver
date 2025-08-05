@@ -24,7 +24,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final class SymfonyPlugin extends Plugin
 {
-    public function __construct(private AppLoader $appLoader)
+    public function __construct(private readonly AppLoader $appLoader)
     {
     }
 

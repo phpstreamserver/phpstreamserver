@@ -41,24 +41,24 @@ class HttpServerProcess extends WorkerProcess
      * @psalm-suppress ArgumentTypeCoercion
      */
     public function __construct(
-        private Listen|string|array $listen,
+        private readonly Listen|string|array $listen,
         string $name = 'HTTP Server',
         int|null $count = null,
         bool $reloadable = true,
         string|null $user = null,
         string|null $group = null,
         \Closure|null $onStart = null,
-        private \Closure|null $onRequest = null,
+        private readonly \Closure|null $onRequest = null,
         \Closure|null $onStop = null,
         \Closure|null $onReload = null,
-        private array $middleware = [],
+        private readonly array $middleware = [],
         array $reloadStrategies = [],
-        private string|null $serverDir = null,
-        private bool $accessLog = true,
-        private bool $gzip = false,
-        private int|null $connectionLimit = null,
-        private int|null $connectionLimitPerIp = null,
-        private int|null $concurrencyLimit = null,
+        private readonly string|null $serverDir = null,
+        private readonly bool $accessLog = true,
+        private readonly bool $gzip = false,
+        private readonly int|null $connectionLimit = null,
+        private readonly int|null $connectionLimitPerIp = null,
+        private readonly int|null $concurrencyLimit = null,
     ) {
         parent::__construct(
             name: $name,
@@ -84,17 +84,15 @@ class HttpServerProcess extends WorkerProcess
 
     private function startServer(): void
     {
-        if ($this->onRequest !== null) {
-            $requestHandler = $this->onRequest;
-        } elseif ($this->container->has('request_handler')) {
-            $requestHandler = $this->container->get('request_handler');
-        } else {
-            $requestHandler = new ClosureRequestHandler(static fn(): never => throw new HttpErrorException(404));
-        }
+        $requestHandler = match (true) {
+            $this->onRequest !== null => $this->onRequest,
+            $this->container->has('request_handler') => $this->container->get('request_handler'),
+            default => new ClosureRequestHandler(static fn(): never => throw new HttpErrorException(404)),
+        };
 
         if ($requestHandler instanceof \Closure) {
             $requestHandler = new class ($requestHandler, $this) implements RequestHandler {
-                public function __construct(private readonly \Closure $handler, private WorkerProcess $worker)
+                public function __construct(private readonly \Closure $handler, private readonly WorkerProcess $worker)
                 {
                 }
 
@@ -121,24 +119,21 @@ class HttpServerProcess extends WorkerProcess
                 $registry = $this->container->getService(RegistryInterface::class);
                 $middleware[] = new MetricsMiddleware($registry);
             } catch (ServiceNotFoundException) {
+                // no action
             }
         }
 
         $networkTrafficCounter = new NetworkTrafficCounter($this->container->getService(MessageBusInterface::class));
 
-        if ($this->serverDir !== null) {
-            $serverDir = $this->serverDir;
-        } elseif ($this->container->hasParameter('server_dir')) {
-            $serverDir = $this->container->getParameter('server_dir');
-        } else {
-            $serverDir = null;
-        }
+        $serverDir = match (true) {
+            $this->serverDir !== null => $this->serverDir,
+            $this->container->hasParameter('server_dir') => $this->container->getParameter('server_dir'),
+            default => null,
+        };
 
         $reloadStrategyEmitter = $this->container->getService('reload_strategy_emitter');
 
-        /**
-         * @psalm-suppress InvalidArgument
-         */
+        /** @psalm-suppress InvalidArgument */
         $this->httpServer = new HttpServer(
             listen: self::normalizeListenList($this->listen),
             requestHandler: $requestHandler,
