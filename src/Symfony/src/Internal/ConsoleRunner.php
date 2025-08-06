@@ -9,6 +9,7 @@ use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArgvInput;
 use Symfony\Component\Console\Output\ConsoleOutput;
+use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Runtime\RunnerInterface;
 
 /**
@@ -38,9 +39,14 @@ final readonly class ConsoleRunner implements RunnerInterface
         }
 
         $this->appLoader->loadEnv();
-        $kernel = $this->appLoader->createKernel();
+        $app = $this->appLoader->loadApp();
 
-        $application = new Application($kernel);
+        $application = match (true) {
+            $app instanceof Application => $app,
+            $app instanceof KernelInterface => new Application($app),
+            default => throw new \TypeError(\sprintf('Invalid app value: "%s" or "%s" expected, "%s" returned', Application::class, KernelInterface::class, \get_debug_type($app))),
+        };
+
         $application->setAutoExit(false);
 
         $ret = 0;

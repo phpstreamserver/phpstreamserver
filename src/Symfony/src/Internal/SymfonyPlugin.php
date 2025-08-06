@@ -24,6 +24,9 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
  */
 final class SymfonyPlugin extends Plugin
 {
+    /**
+     * @param AppLoader<KernelInterface> $appLoader
+     */
     public function __construct(private readonly AppLoader $appLoader)
     {
     }
@@ -45,7 +48,7 @@ final class SymfonyPlugin extends Plugin
 
         $process->onStart(priority: -1, onStart: static function (SymfonyHttpServerProcess $worker) use ($appLoader): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1&web=1';
-            $kernel = $appLoader->createKernel();
+            $kernel = $appLoader->loadApp();
             $kernel->boot();
 
             /** @var EventDispatcherInterface $eventDispatcher */
@@ -77,7 +80,7 @@ final class SymfonyPlugin extends Plugin
         $appLoader = $this->appLoader;
 
         $process->onStart(priority: -1, onStart: static function (SymfonyPeriodicProcess $worker) use ($appLoader): void {
-            $kernel = $appLoader->createKernel();
+            $kernel = $appLoader->loadApp();
             $kernel->boot();
 
             $application = new Application($kernel);
@@ -108,7 +111,7 @@ final class SymfonyPlugin extends Plugin
 
         $process->onStart(priority: -1, onStart: static function (SymfonyWorkerProcess $worker) use ($appLoader): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1';
-            $kernel = $appLoader->createKernel();
+            $kernel = $appLoader->loadApp();
             $kernel->boot();
 
             $application = new Application($kernel);

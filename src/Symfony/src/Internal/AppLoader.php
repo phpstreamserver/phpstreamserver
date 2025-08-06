@@ -5,15 +5,18 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony\Internal;
 
 use Symfony\Component\Dotenv\Dotenv;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
+ * @template T
  * @internal
  */
 final readonly class AppLoader
 {
     public array $options;
 
+    /**
+     * @param \Closure(mixed ...$args): T $app
+     */
     public function __construct(private \Closure $app, array $options)
     {
         if (!isset($options['env_var_name'], $options['debug_var_name'], $options['project_dir'])) {
@@ -23,59 +26,12 @@ final readonly class AppLoader
         $this->options = $options;
     }
 
-    public function createKernel(): KernelInterface
+    /**
+     * @return T
+     */
+    public function loadApp(): mixed
     {
         return ($this->app)(...\array_map($this->resolveArgument(...), (new \ReflectionFunction($this->app))->getParameters()));
-    }
-
-    /** @psalm-suppress InvalidReturnStatement, InvalidReturnType */
-    public function getEnvironment(): string
-    {
-        return $_SERVER[$this->options['env_var_name']]
-            ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
-    }
-
-    public function getProjectDir(): string
-    {
-        return $this->options['project_dir'];
-    }
-
-    public function getCacheDir(): string
-    {
-        return $this->getProjectDir() . '/var/cache/' . $this->getEnvironment();
-    }
-
-    public function getPidFile(): string
-    {
-        return $this->options['pid_file'] ?? $this->getProjectDir() . '/var/run/phpss.pid';
-    }
-
-    public function getSocketFile(): string
-    {
-        return $this->options['socket_file'] ?? $this->getProjectDir() . '/var/run/phpss.socket';
-    }
-
-    public function getServerConfigFile(): string
-    {
-        return $this->options['config_file'] ?? $this->getProjectDir() . '/config/phpss.config.php';
-    }
-
-    private function resolveArgument(\ReflectionParameter $parameter): mixed
-    {
-        /** @psalm-suppress UndefinedMethod */
-        $type = $parameter->getType()?->getName();
-
-        if ($type === 'array' && $parameter->name === 'context') {
-            return $_SERVER;
-        }
-
-        throw new \InvalidArgumentException(\sprintf(
-            'Cannot resolve argument "%s $%s" in "%s" on line "%d"',
-            $type ?? 'mixed',
-            $parameter->name,
-            $parameter->getDeclaringFunction()->getFileName(),
-            $parameter->getDeclaringFunction()->getStartLine(),
-        ));
     }
 
     public function loadEnv(): void
@@ -124,5 +80,55 @@ final readonly class AppLoader
 
         $_SERVER['PHPSS_PID_FILE']  = $this->getPidFile();
         $_SERVER['PHPSS_SOCKET_FILE']  = $this->getSocketFile();
+    }
+
+    private function resolveArgument(\ReflectionParameter $parameter): mixed
+    {
+        /** @psalm-suppress UndefinedMethod */
+        $type = $parameter->getType()?->getName();
+
+        if ($type === 'array' && $parameter->name === 'context') {
+            return $_SERVER;
+        }
+
+        throw new \InvalidArgumentException(\sprintf(
+            'Cannot resolve argument "%s $%s" in "%s" on line "%d"',
+            $type ?? 'mixed',
+            $parameter->name,
+            $parameter->getDeclaringFunction()->getFileName(),
+            $parameter->getDeclaringFunction()->getStartLine(),
+        ));
+    }
+
+    /** @psalm-suppress InvalidReturnStatement, InvalidReturnType */
+    public function getEnvironment(): string
+    {
+        return $_SERVER[$this->options['env_var_name']]
+            ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
+    }
+
+    public function getProjectDir(): string
+    {
+        return $this->options['project_dir'];
+    }
+
+    public function getCacheDir(): string
+    {
+        return $this->getProjectDir() . '/var/cache/' . $this->getEnvironment();
+    }
+
+    public function getPidFile(): string
+    {
+        return $this->options['pid_file'] ?? $this->getProjectDir() . '/var/run/phpss.pid';
+    }
+
+    public function getSocketFile(): string
+    {
+        return $this->options['socket_file'] ?? $this->getProjectDir() . '/var/run/phpss.socket';
+    }
+
+    public function getServerConfigFile(): string
+    {
+        return $this->options['config_file'] ?? $this->getProjectDir() . '/config/phpss.config.php';
     }
 }

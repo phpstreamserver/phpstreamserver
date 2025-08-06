@@ -4,14 +4,16 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony;
 
+use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 final readonly class ConsoleApplication
 {
     /**
-     * @param \Closure(): KernelInterface $kernelFactory
+     * @template T of KernelInterface|Application
+     * @param \Closure(mixed ...$args): T $app
      */
-    public function __construct(public \Closure $kernelFactory)
+    public function __construct(public \Closure $app)
     {
     }
 

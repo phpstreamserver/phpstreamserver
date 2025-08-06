@@ -9,9 +9,10 @@ use Symfony\Component\HttpKernel\KernelInterface;
 final readonly class ServerApplication
 {
     /**
-     * @param \Closure(): KernelInterface $kernelFactory
+     * @template T of KernelInterface
+     * @param \Closure(mixed ...$args): T $app
      */
-    public function __construct(public \Closure $kernelFactory)
+    public function __construct(public \Closure $app)
     {
     }
 

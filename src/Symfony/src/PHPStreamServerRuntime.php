@@ -53,11 +53,11 @@ final class PHPStreamServerRuntime implements RuntimeInterface
     public function getRunner(object|null $application): RunnerInterface
     {
         if ($application instanceof ServerApplication) {
-            return new ServerRunner(new AppLoader($application->kernelFactory, $this->options));
+            return new ServerRunner(new AppLoader($application->app, $this->options));
         }
 
         if ($application instanceof ConsoleApplication) {
-            return new ConsoleRunner(new AppLoader($application->kernelFactory, $this->options));
+            return new ConsoleRunner(new AppLoader($application->app, $this->options));
         }
 
         throw new \LogicException(\sprintf('"%s" doesn\'t know how to handle apps of type "%s"', \get_debug_type($this), \get_debug_type($application)));
@@ -65,6 +65,11 @@ final class PHPStreamServerRuntime implements RuntimeInterface
 
     public function getResolver(callable $callable, \ReflectionFunction|null $reflector = null): ResolverInterface
     {
-        return new ClosureResolver($callable(...), static fn() => []);
+        $closure = match (true) {
+            $callable instanceof ServerApplication, $callable instanceof ConsoleApplication => $callable(...),
+            default => static fn(): ConsoleApplication => new ConsoleApplication($callable(...)),
+        };
+
+        return new ClosureResolver($closure, static fn(): array => []);
     }
 }
