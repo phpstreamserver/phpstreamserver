@@ -19,7 +19,7 @@ final class MaxRequestsReloadStrategy implements ReloadStrategy
 
     public function __construct(int $maxRequests, int $dispersionPercentage = 0)
     {
-        $minRequests = $maxRequests - (int) \round($maxRequests * $dispersionPercentage / 100);
+        $minRequests = $maxRequests - (int) \round($maxRequests * $dispersionPercentage * 0.01);
         $this->maxRequests = \random_int($minRequests, $maxRequests);
     }
 
