@@ -24,7 +24,7 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
     {
         $this->trafficStatisticStore->addConnection($this);
 
-        $socket->onClose(function () {
+        $socket->onClose(function (): void {
             $this->trafficStatisticStore->removeConnection($this);
         });
     }

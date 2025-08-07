@@ -77,15 +77,19 @@ final class GelfHandler extends AbstractHandler
 
     public function start(): Future
     {
-        return async(function () {
-            $this->transport->start();
+        $transport = $this->transport;
+
+        return async(static function () use ($transport): void {
+            $transport->start();
         });
     }
 
     public function handle(LogEntry $record): void
     {
-        EventLoop::queue(function () use ($record) {
-            $this->transport->write($this->formatter->format($record));
+        $transport = $this->transport;
+        $formatter = $this->formatter;
+        EventLoop::queue(static function () use ($transport, $formatter, $record): void {
+            $transport->write($formatter->format($record));
         });
     }
 }

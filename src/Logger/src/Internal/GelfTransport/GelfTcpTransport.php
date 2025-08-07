@@ -12,6 +12,8 @@ use Amp\Socket\DnsSocketConnector;
 use PHPStreamServer\Plugin\Logger\Internal\NullWritableStream;
 use Revolt\EventLoop;
 
+use function Amp\weakClosure;
+
 /**
  * @internal
  */
@@ -43,9 +45,9 @@ final class GelfTcpTransport implements GelfTransport
                 $this->inErrorState = true;
             }
 
-            EventLoop::delay(self::RECONNECT_TIMEOUT, function () {
+            EventLoop::delay(self::RECONNECT_TIMEOUT, weakClosure(function (): void {
                 $this->start();
-            });
+            }));
         }
     }
 

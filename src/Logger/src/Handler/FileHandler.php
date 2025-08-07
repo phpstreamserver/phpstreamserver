@@ -49,7 +49,7 @@ final class FileHandler extends AbstractHandler
 
     public function start(): Future
     {
-        return async(function () {
+        return async(function (): void {
             $file = !\str_starts_with($this->filename, '/') ? \getcwd() . '/' . $this->filename : $this->filename;
             $this->logFile = new \SplFileInfo($file);
 

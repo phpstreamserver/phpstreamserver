@@ -104,7 +104,7 @@ class PeriodicProcess implements Process
 
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
 
-        EventLoop::queue(function () {
+        EventLoop::queue(function (): void {
             foreach ($this->onStartCallbacks as $onStartCallback) {
                 $onStartCallback($this);
             }
