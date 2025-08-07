@@ -20,7 +20,7 @@ final readonly class AppLoader
     public function __construct(private \Closure $app, array $options)
     {
         if (!isset($options['env_var_name'], $options['debug_var_name'], $options['project_dir'])) {
-            throw new \RuntimeException('Specify the env_var_name, env_var_name and project_dir options');
+            throw new \RuntimeException('Specify the env_var_name, debug_var_name, and project_dir options');
         }
 
         $this->options = $options;
@@ -104,7 +104,7 @@ final readonly class AppLoader
     public function getEnvironment(): string
     {
         return $_SERVER[$this->options['env_var_name']]
-            ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Run %s::loadEnv() to set the environment', self::class));
+            ?? throw new \RuntimeException(\sprintf('The environment has not been set yet. Call %s::loadEnv() to set the environment', self::class));
     }
 
     public function getProjectDir(): string

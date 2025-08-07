@@ -9,8 +9,8 @@ use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 
 /**
  * Reload worker on every $maxRequests requests.
- * To prevent simultaneous restart of all workers $dispersionPercentage can be set.
- * 1000 $maxRequests and 20% $dispersionPercentage will restart between 800 and 1000
+ * To prevent all workers from restarting at the same time, you can set a $dispersionPercentage.
+ * With $maxRequests = 1000 and $dispersionPercentage = 20, workers will restart after a random number of requests between 800 and 1000
  */
 final class MaxRequestsReloadStrategy implements ReloadStrategy
 {

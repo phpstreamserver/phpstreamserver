@@ -41,7 +41,7 @@ final class SchedulerCommand extends Command
                     'Next run',
                     'Status',
                 ])
-                ->addRows(\array_map(array: $status->getPeriodicWorkers(), callback: static fn(PeriodicWorkerInfo $w) => [
+                ->addRows(\array_map(array: $status->getPeriodicWorkers(), callback: static fn(PeriodicWorkerInfo $w): array => [
                     $w->user === 'root' ? $w->user : "<color;fg=gray>{$w->user}</>",
                     $w->name,
                     $w->schedule ?: '-',

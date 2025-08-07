@@ -7,14 +7,12 @@ namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 final class TriggerFactory
 {
     /**
-     * Sets the trigger frequency.
+     * Sets the trigger frequency. Supported formats include:
      *
-     * Supported frequency formats:
-     *
-     *  * An integer or string to define the frequency as a number of seconds;
+     *  * An integer or string representing the frequency in seconds;
      *  * An ISO8601 datetime format;
      *  * An ISO8601 duration format;
-     *  * A relative date format as supported by \DateInterval;
+     *  * A relative date format supported by \DateInterval;
      *  * A \DateInterval instance;
      *  * A \DateTimeImmutable instance;
      *  * A cron expression.

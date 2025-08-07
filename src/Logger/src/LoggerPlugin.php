@@ -43,17 +43,17 @@ final class LoggerPlugin extends Plugin
         foreach ($this->handlers as $loggerHandler) {
             $loggerHandler
                 ->start()
-                ->map(static function () use ($masterLogger, $loggerHandler) {
+                ->map(static function () use ($masterLogger, $loggerHandler): void {
                     $masterLogger->addHandler($loggerHandler);
                 })
-                ->catch(static function (\Throwable $e) use ($masterLogger) {
+                ->catch(static function (\Throwable $e) use ($masterLogger): void {
                     $masterLogger->error($e->getMessage(), ['exception' => $e]);
                 })
             ;
         }
 
         $messageBusHandler->subscribe(LogEntry::class, static function (LogEntry $event) use ($masterLogger): void {
-            EventLoop::queue(static function () use ($event, $masterLogger) {
+            EventLoop::queue(static function () use ($event, $masterLogger): void {
                 $masterLogger->logEntry($event);
             });
         });

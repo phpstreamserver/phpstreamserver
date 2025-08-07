@@ -17,7 +17,7 @@ final class SymfonyPeriodicProcess extends PeriodicProcess
     public readonly string $commandWithoutArguments;
 
     /**
-     * @param string $command Symfony console command name with optinal parameters
+     * @param string $command Symfony console command name with optional parameters
      */
     public function __construct(
         string $command,

@@ -42,7 +42,7 @@ final class Gauge extends Metric
         $namespace = $this->namespace;
         $name = $this->name;
 
-        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name): void {
             $value = $bufferValue;
             unset($buffer[$key]);
             $bus->dispatch(new SetGaugeMessage($namespace, $name, $labels, $value, false));
@@ -91,7 +91,7 @@ final class Gauge extends Metric
         $namespace = $this->namespace;
         $name = $this->name;
 
-        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name): void {
             $value = $bufferValue;
             unset($buffer[$key]);
             $bus->dispatch(new SetGaugeMessage($namespace, $name, $labels, $value, true));

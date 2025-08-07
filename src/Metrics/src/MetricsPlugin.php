@@ -61,14 +61,12 @@ final class MetricsPlugin extends Plugin
             httpDriverFactory: new DefaultHttpDriverFactory(logger: $nullLogger),
         );
 
-        /**
-         * @psalm-suppress TooFewArguments
-         */
+        /** @psalm-suppress TooFewArguments */
         $socketHttpServer->expose(...HttpServer::createInternetAddressAndContext($listen));
 
         $messageBusRegistryHandler = new MessageBusRegistryHandler($handler);
 
-        EventLoop::defer(function () use (&$logger, $socketHttpServer, $messageBusRegistryHandler, $errorHandler, $listen) {
+        EventLoop::defer(function () use (&$logger, $socketHttpServer, $messageBusRegistryHandler, $errorHandler, $listen): void {
             $requestHandler = $this->createRequestHandler($messageBusRegistryHandler);
             $socketHttpServer->start($requestHandler, $errorHandler);
             $logger->info(\sprintf('Prometheus metrics available on %s/metrics', $listen->getAddress()));

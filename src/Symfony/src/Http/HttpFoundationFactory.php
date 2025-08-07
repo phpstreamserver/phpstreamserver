@@ -152,7 +152,7 @@ final class HttpFoundationFactory
         if ($fileStructureList !== []) {
             $i = 0;
             \parse_str($fileStructureStr, $files);
-            \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i) {
+            \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i): void {
                 $item = $fileStructureList[$i++];
             });
         }
@@ -160,7 +160,7 @@ final class HttpFoundationFactory
         if ($payloadStructureList !== []) {
             $i = 0;
             \parse_str($payloadStructureStr, $payload);
-            \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i) {
+            \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i): void {
                 $item = $payloadStructureList[$i++];
             });
         }

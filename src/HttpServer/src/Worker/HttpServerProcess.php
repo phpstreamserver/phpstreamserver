@@ -131,6 +131,7 @@ class HttpServerProcess extends WorkerProcess
             default => null,
         };
 
+        /** @var \Closure $reloadStrategyEmitter */
         $reloadStrategyEmitter = $this->container->getService('reload_strategy_emitter');
 
         /** @psalm-suppress InvalidArgument */

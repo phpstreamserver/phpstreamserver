@@ -8,7 +8,7 @@ use Amp\Http\Server\Request;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 
 /**
- * Reload worker after each request.
+ * Reload the worker after each request.
  */
 final class EachRequestReloadStrategy implements ReloadStrategy
 {

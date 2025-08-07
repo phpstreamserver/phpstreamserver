@@ -40,14 +40,15 @@ class PeriodicProcess implements Process
 
     /**
      * $schedule can be one of the following formats:
-     *  - Number of seconds
-     *  - An ISO8601 datetime format
-     *  - An ISO8601 duration format
-     *  - A relative date format as supported by \DateInterval
-     *  - A cron expression
+     *
+     *  * An integer representing the frequency in seconds;
+     *  * An ISO8601 datetime format;
+     *  * An ISO8601 duration format;
+     *  * A relative date format as supported by \DateInterval;
+     *  * A cron expression;
      *
      * @param string $schedule Schedule in one of the formats described above
-     * @param int $jitter Jitter in seconds that adds a random time offset to the schedule
+     * @param int $jitter Jitter in seconds that adds a random offset to the schedule
      * @param null|\Closure(self):void $onStart
      */
     public function __construct(
@@ -77,7 +78,7 @@ class PeriodicProcess implements Process
      */
     final public function run(ContainerInterface $workerContainer): int
     {
-        // some command line SAPIs (e.g. phpdbg) don't have that function
+        // some command line SAPIs (e.g., phpdbg) don't have that function
         if (\function_exists('cli_set_process_title')) {
             \cli_set_process_title(\sprintf('%s: perriodic process  %s', Server::NAME, $this->name));
         }

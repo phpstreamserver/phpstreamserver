@@ -39,7 +39,7 @@ final class Summary extends Metric
         $namespace = $this->namespace;
         $name = $this->name;
 
-        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name): void {
             $values = $bufferValue;
             unset($buffer[$key]);
             $bus->dispatch(new ObserveSummaryMessage($namespace, $name, $labels, $values));

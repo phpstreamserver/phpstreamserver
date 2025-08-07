@@ -39,7 +39,7 @@ final class Histogram extends Metric
         $namespace = $this->namespace;
         $name = $this->name;
 
-        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name) {
+        $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name): void {
             $values = $bufferValue;
             unset($buffer[$key]);
             $bus->dispatch(new ObserveHistorgamMessage($namespace, $name, $labels, $values));
@@ -47,9 +47,9 @@ final class Histogram extends Metric
     }
 
     /**
-     * Creates count buckets, where the lowest bucket has an upper bound of start and each following bucket's upper
+     * Creates count buckets, where the lowest bucket has an upper bound of start, and each following bucket's upper
      * bound is factor times the previous bucket's upper bound.
-     * The returned slice is meant to be used for the Buckets field of HistogramOpts.
+     * The returned array is meant to be used for the Buckets field of HistogramOpts.
      *
      * @return list<float>
      */
@@ -69,8 +69,8 @@ final class Histogram extends Metric
     }
 
     /**
-     * Creates count regular buckets, each width wide, where the lowest bucket has an upper bound of start.
-     * The returned slice is meant to be used for the Buckets field of HistogramOpts.
+     * Creates count buckets, each with the given width, where the lowest bucket has an upper bound of start.
+     * The returned array is meant to be used for the Buckets field of HistogramOpts.
      *
      * @return list<float>
      */

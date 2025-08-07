@@ -44,7 +44,7 @@ final readonly class FlattenException implements \Stringable
     }
 
     /**
-     * Gets a multiline string representation of the thrown object with a stack race, same as the original exception
+     * Gets a multiline string representation of the thrown object with a stack trace, identical to the original exception
      */
     public function __toString(): string
     {

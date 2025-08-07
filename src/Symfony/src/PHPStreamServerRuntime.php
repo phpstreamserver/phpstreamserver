@@ -13,7 +13,7 @@ use Symfony\Component\Runtime\RunnerInterface;
 use Symfony\Component\Runtime\RuntimeInterface;
 
 /**
- *  A runtime to run application in PHPStreamServer.
+ *  A runtime for running applications in PHPStreamServer.
  *
  *  It supports the following options:
  *   - "env_var_name" and "debug_var_name" define the name of the env vars that hold the Symfony env and the debug flag respectively;
@@ -30,14 +30,14 @@ use Symfony\Component\Runtime\RuntimeInterface;
  *   - "config_file" Path to the phpss config file - defaults to "config/phpss.config.php";
  *   - "pid_file" Path to the pid file - defaults to "var/run/phpss.pid";
  *   - "socket_file" Path to the Unix socket file - defaults to "var/run/phpss.socket";
- *   - "stop_timeout" Maximum time to wait before forcefully terminating workers during shutdown - defaults to "10";
+ *   - "stop_timeout" Time to wait (in seconds) before forcefully terminating workers during shutdown - defaults to "10";
  *   - "restart_delay" Delay between worker restarts - defaults to "0.25";
  *   - "http2_enable" Enables support for HTTP/2 protocol - defaults to "true";
  *   - "http_connection_timeout" Timeout duration for idle HTTP connections - defaults to "60";
  *   - "http_header_size_limit" Maximum allowed size for HTTP headers - defaults to "32768";
  *   - "http_body_size_limit" Maximum allowed size for the HTTP request body - defaults to min of ini options "post_max_size" and "upload_max_filesize";
  *   - "gzip_min_length" Minimum response size required to enable gzip compression - defaults to "860";
- *   - "gzip_types_regex" Regular expression to match content types eligible for gzip compression;
+ *   - "gzip_types_regex" Regular expression to match content types that will be gzipped;
  */
 final class PHPStreamServerRuntime implements RuntimeInterface
 {
@@ -60,7 +60,7 @@ final class PHPStreamServerRuntime implements RuntimeInterface
             return new ConsoleRunner(new AppLoader($application->app, $this->options));
         }
 
-        throw new \LogicException(\sprintf('"%s" doesn\'t know how to handle apps of type "%s"', \get_debug_type($this), \get_debug_type($application)));
+        throw new \LogicException(\sprintf('"%s" does not know how to handle apps of type "%s"', \get_debug_type($this), \get_debug_type($application)));
     }
 
     public function getResolver(callable $callable, \ReflectionFunction|null $reflector = null): ResolverInterface
