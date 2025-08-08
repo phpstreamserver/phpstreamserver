@@ -14,7 +14,7 @@ final class SymfonyWorkerProcess extends WorkerProcess
     public readonly string $commandWithoutArguments;
 
     /**
-     * @param string $command Symfony console command name with optional parameters
+     * @param string $command Symfony console command name, with optional parameters
      * @param array<ReloadStrategy> $reloadStrategies
      */
     public function __construct(
