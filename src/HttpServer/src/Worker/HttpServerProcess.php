@@ -77,9 +77,9 @@ class HttpServerProcess extends WorkerProcess
         $this->onReload($this->stopServer(...), -1000);
     }
 
-    public static function handleBy(): array
+    public static function handledBy(): array
     {
-        return [...parent::handleBy(), HttpServerPlugin::class];
+        return [...parent::handledBy(), HttpServerPlugin::class];
     }
 
     private function startServer(): void

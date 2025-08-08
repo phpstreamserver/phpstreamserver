@@ -8,7 +8,6 @@ use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\UserChangeException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Internal\ProcessUserChange;
-use PHPStreamServer\Core\Internal\Status;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Process;
@@ -24,7 +23,6 @@ class PeriodicProcess implements Process
 {
     use ProcessUserChange;
 
-    private Status $status = Status::SHUTDOWN;
     private int $exitCode = 0;
     public readonly int $id;
     public readonly int $pid;
@@ -116,7 +114,7 @@ class PeriodicProcess implements Process
         return $this->exitCode;
     }
 
-    public static function handleBy(): array
+    public static function handledBy(): array
     {
         return [SchedulerPlugin::class];
     }

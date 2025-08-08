@@ -31,7 +31,7 @@ final class SymfonyPlugin extends Plugin
     {
     }
 
-    public function addWorker(Process $worker): void
+    public function handleWorker(Process $worker): void
     {
         if ($worker instanceof SymfonyHttpServerProcess) {
             $this->initializeSymfonyServerProcess($worker);

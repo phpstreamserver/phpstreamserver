@@ -51,8 +51,8 @@ final class SymfonyHttpServerProcess extends HttpServerProcess
         );
     }
 
-    public static function handleBy(): array
+    public static function handledBy(): array
     {
-        return [...parent::handleBy(), SymfonyPlugin::class];
+        return [...parent::handledBy(), SymfonyPlugin::class];
     }
 }

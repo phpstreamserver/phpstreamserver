@@ -36,7 +36,7 @@ final class SchedulerPlugin extends Plugin
         $this->schedulerStatus = new SchedulerStatus();
     }
 
-    public function addWorker(Process $worker): void
+    public function handleWorker(Process $worker): void
     {
         \assert($worker instanceof PeriodicProcess);
         $this->scheduler->addWorker($worker);
