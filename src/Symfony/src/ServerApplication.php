@@ -10,7 +10,7 @@ final readonly class ServerApplication
 {
     /**
      * @template T of KernelInterface
-     * @param \Closure(mixed ...$args): T $app
+     * @param \Closure(mixed...): T $app
      */
     public function __construct(public \Closure $app)
     {

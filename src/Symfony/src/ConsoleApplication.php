@@ -11,7 +11,7 @@ final readonly class ConsoleApplication
 {
     /**
      * @template T of KernelInterface|Application
-     * @param \Closure(mixed ...$args): T $app
+     * @param \Closure(mixed...): T $app
      */
     public function __construct(public \Closure $app)
     {

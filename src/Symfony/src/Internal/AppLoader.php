@@ -15,7 +15,7 @@ final readonly class AppLoader
     public array $options;
 
     /**
-     * @param \Closure(mixed ...$args): T $app
+     * @param \Closure(mixed...): T $app
      */
     public function __construct(private \Closure $app, array $options)
     {
@@ -31,7 +31,10 @@ final readonly class AppLoader
      */
     public function loadApp(): mixed
     {
-        return ($this->app)(...\array_map($this->resolveArgument(...), (new \ReflectionFunction($this->app))->getParameters()));
+        $params = (new \ReflectionFunction($this->app))->getParameters();
+        $args = \array_map($this->resolveArgument(...), $params);
+
+        return ($this->app)(...$args);
     }
 
     public function loadEnv(): void
