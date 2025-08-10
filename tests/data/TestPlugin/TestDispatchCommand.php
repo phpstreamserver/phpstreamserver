@@ -12,18 +12,25 @@ use function PHPStreamServer\Core\isRunning;
 
 final class TestDispatchCommand extends Command
 {
-    public const COMMAND = 'test-dispatch';
-    public const DESCRIPTION = 'For testing purposes';
+    public static function getName(): string
+    {
+        return 'test-dispatch';
+    }
+
+    public static function getDescription(): string
+    {
+        return 'For testing purposes';
+    }
 
     public function configure(): void
     {
-        $this->options->addOptionDefinition('message', null, 'Serialized base64 string with MessageInterface instance');
+        $this->addOptionDefinition('message', null, 'Serialized base64 string with MessageInterface instance');
     }
 
-    public function execute(array $args): int
+    public function execute(string $pidFile, string $socketFile): int
     {
-        $isRunning = isRunning($args['pidFile']);
-        $message = (string) $this->options->getOption('message');
+        $isRunning = isRunning($pidFile);
+        $message = (string) $this->getOption('message');
         $message = \base64_decode($message, true);
 
         \set_error_handler(static fn(): true => true);
@@ -40,7 +47,7 @@ final class TestDispatchCommand extends Command
             return 2;
         }
 
-        $bus = new SocketFileMessageBus($args['socketFile']);
+        $bus = new SocketFileMessageBus($socketFile);
         $answer = $bus->dispatch($message)->await();
 
         echo \serialize($answer);

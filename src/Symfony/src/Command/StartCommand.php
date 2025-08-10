@@ -15,7 +15,7 @@ final class StartCommand extends BaseStartCommand
     public function configure(): void
     {
         parent::configure();
-        $this->options->addOptionDefinition('env', 'e', 'The environment name');
-        $this->options->addOptionDefinition('no-debug', null, 'Switch off debug mode');
+        $this->addOptionDefinition('env', 'e', 'The environment name');
+        $this->addOptionDefinition('no-debug', null, 'Switch off debug mode');
     }
 }

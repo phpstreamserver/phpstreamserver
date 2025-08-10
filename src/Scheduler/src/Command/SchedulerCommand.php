@@ -16,16 +16,19 @@ use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
  */
 final class SchedulerCommand extends Command
 {
-    public const COMMAND = 'scheduler';
-    public const DESCRIPTION = 'Show scheduler map';
-
-    public function execute(array $args): int
+    public static function getName(): string
     {
-        /**
-         * @var array{pidFile: string, socketFile: string} $args
-         */
+        return 'scheduler';
+    }
 
-        $bus = new ExternalProcessMessageBus($args['pidFile'], $args['socketFile']);
+    public static function getDescription(): string
+    {
+        return 'Show scheduler map';
+    }
+
+    public function execute(string $pidFile, string $socketFile): int
+    {
+        $bus = new ExternalProcessMessageBus($pidFile, $socketFile);
 
         echo "❯ Scheduler\n";
 
