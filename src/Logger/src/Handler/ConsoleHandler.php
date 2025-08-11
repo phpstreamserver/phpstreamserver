@@ -4,25 +4,20 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger\Handler;
 
-use Amp\ByteStream\WritableResourceStream;
 use Amp\Future;
-use PHPStreamServer\Core\Internal\Console\Colorizer;
+use PHPStreamServer\Core\Internal\Console\StdoutHandler;
 use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\ConsoleFormatter;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 use PHPStreamServer\Plugin\Logger\LogLevel;
 
-use function PHPStreamServer\Core\getStderr;
-use function PHPStreamServer\Core\getStdout;
-
 final class ConsoleHandler extends AbstractHandler
 {
     public const OUTPUT_STDOUT = 1;
     public const OUTPUT_STDERR = 2;
 
-    private WritableResourceStream $stream;
-    private bool $colorSupport;
+    private \Closure $stdHandler;
 
     public function __construct(
         private readonly int $output = self::OUTPUT_STDERR,
@@ -35,9 +30,7 @@ final class ConsoleHandler extends AbstractHandler
 
     public function start(): Future
     {
-        $this->stream = $this->output === self::OUTPUT_STDERR ? getStderr() : getStdout();
-        /** @psalm-suppress PossiblyInvalidArgument */
-        $this->colorSupport = Colorizer::hasColorSupport($this->stream->getResource());
+        $this->stdHandler = $this->output === self::OUTPUT_STDERR ? StdoutHandler::stderr(...) : StdoutHandler::stdout(...);
 
         return Future::complete();
     }
@@ -45,7 +38,6 @@ final class ConsoleHandler extends AbstractHandler
     public function handle(LogEntry $record): void
     {
         $message = $this->formatter->format($record);
-        $message = $this->colorSupport ? Colorizer::colorize($message) : Colorizer::stripTags($message);
-        $this->stream->write($message . "\n");
+        $this->stdHandler->__invoke($message . "\n");
     }
 }
