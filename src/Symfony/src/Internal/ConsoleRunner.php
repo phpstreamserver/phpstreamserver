@@ -51,12 +51,12 @@ final readonly class ConsoleRunner implements RunnerInterface
 
         $ret = 0;
 
-        EventLoop::setErrorHandler(static function (\Throwable $e) use ($application, $output, &$ret) {
+        EventLoop::setErrorHandler(static function (\Throwable $e) use ($application, $output, &$ret): void {
             $application->renderThrowable($e, $output);
             $ret = Command::FAILURE;
         });
 
-        EventLoop::queue(static function () use ($application, $input, $output, &$ret) {
+        EventLoop::queue(static function () use ($application, $input, $output, &$ret): void {
             $ret = $application->run($input, $output);
         });
 

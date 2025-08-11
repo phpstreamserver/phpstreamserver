@@ -10,7 +10,6 @@ use PHPStreamServer\Core\Console\Options;
 use PHPStreamServer\Core\Internal\Console\OptionDefinition;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
-use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Runtime\RunnerInterface;
 
@@ -71,10 +70,6 @@ final readonly class ServerRunner implements RunnerInterface
             appLoader: $this->appLoader,
         ));
 
-        if (\class_exists(SchedulerPlugin::class)) {
-            $this->server->addPlugin(new SchedulerPlugin());
-        }
-
         $configFile = $this->appLoader->getServerConfigFile();
 
         if (!\is_file($configFile)) {
@@ -84,10 +79,12 @@ final readonly class ServerRunner implements RunnerInterface
         $configfurator = include $configFile;
 
         if (!$configfurator instanceof \Closure) {
-            throw new \TypeError(\sprintf('Invalid return value: "Closure" object expected, "%s" returned from "%s"', \get_debug_type($configfurator), $configFile));
+            throw new \TypeError(\sprintf('Invalid return value: "Closure" expected, "%s" returned from "%s"', \get_debug_type($configfurator), $configFile));
         }
 
-        $configfurator(...\array_map($this->resolveConfigArgument(...), (new \ReflectionFunction($configfurator))->getParameters()));
+        $params = (new \ReflectionFunction($configfurator))->getParameters();
+        $args = \array_map($this->resolveConfigArgument(...), $params);
+        $configfurator(...$args);
 
         return $this->server->run();
     }
@@ -96,24 +93,25 @@ final readonly class ServerRunner implements RunnerInterface
     {
         /** @psalm-suppress UndefinedMethod */
         $type = $parameter->getType()?->getName();
+        $name = $parameter->name;
 
-        if ($type === Server::class && $parameter->name === 'server') {
+        if ($type === Server::class && $name === 'server') {
             return $this->server;
-        } elseif ($type === 'array' && $parameter->name === 'context') {
+        } elseif ($type === 'array' && $name === 'context') {
             return $_SERVER;
-        } elseif ($type === 'string' && $parameter->name === 'projectDir') {
+        } elseif ($type === 'string' && $name === 'projectDir') {
             return $this->appLoader->options['project_dir'];
-        } elseif ($type === 'string' && $parameter->name === 'env') {
+        } elseif ($type === 'string' && $name === 'env') {
             /** @psalm-suppress PossiblyInvalidCast */
             return (string) $_SERVER[$this->appLoader->options['env_var_name']];
-        } elseif ($type === 'bool' && $parameter->name === 'debug') {
+        } elseif ($type === 'bool' && $name === 'debug') {
             return $_SERVER[$this->appLoader->options['debug_var_name']] === '1';
         }
 
         throw new \InvalidArgumentException(\sprintf(
             'Cannot resolve argument "%s $%s" in "%s" on line "%d"',
             $type ?? 'mixed',
-            $parameter->name,
+            $name,
             $parameter->getDeclaringFunction()->getFileName(),
             $parameter->getDeclaringFunction()->getStartLine(),
         ));
