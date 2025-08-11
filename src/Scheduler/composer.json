@@ -22,7 +22,7 @@
         "ext-posix": "*",
         "amphp/amp": "^3.0",
         "revolt/event-loop": "^1.0",
-        "phpstreamserver/core": "^0.5",
+        "phpstreamserver/core": "^0.7",
         "dragonmantank/cron-expression": "^3.4"
     },
     "autoload": {
