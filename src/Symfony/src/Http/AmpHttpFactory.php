@@ -17,7 +17,9 @@ final class AmpHttpFactory
     {
         if ($symfonyResponse instanceof BinaryFileResponse && !$symfonyResponse->headers->has('Content-Range')) {
             $path = $symfonyResponse->getFile()->getPathname();
-            $body = new ReadableResourceStream(\fopen($path, 'r'));
+            /** @psalm-suppress PossiblyNullFunctionCall, UndefinedThisPropertyFetch */
+            $chunkSize = (fn(): int => $this->chunkSize)->bindTo($symfonyResponse, $symfonyResponse)();
+            $body = new ReadableResourceStream(\fopen($path, 'r'), $chunkSize);
         } elseif ($symfonyResponse instanceof BinaryFileResponse) {
             $callback = static function () use ($symfonyResponse): void {
                 $symfonyResponse->sendContent();
