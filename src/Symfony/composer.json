@@ -28,7 +28,8 @@
         "symfony/dependency-injection": "^7.0",
         "symfony/http-kernel": "^7.0",
         "symfony/runtime": "^7.0",
-        "symfony/dotenv": "^7.0"
+        "symfony/dotenv": "^7.0",
+        "amphp/pipeline": "^1.2"
     },
     "autoload": {
         "psr-4": {
