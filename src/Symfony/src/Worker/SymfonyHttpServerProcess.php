@@ -32,7 +32,7 @@ final class SymfonyHttpServerProcess extends HttpServerProcess
         bool $gzip = false,
         int|null $connectionLimit = null,
         int|null $connectionLimitPerIp = null,
-        int|null $concurrencyLimit = null,
+        int|null $concurrencyLimit = 1,
     ) {
         parent::__construct(
             listen: $listen,
