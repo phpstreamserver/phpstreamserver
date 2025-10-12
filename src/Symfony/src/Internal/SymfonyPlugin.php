@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
+use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\Process;
 use PHPStreamServer\Symfony\Command\StartCommand;
@@ -45,18 +46,31 @@ final class SymfonyPlugin extends Plugin
     private function initializeSymfonyServerProcess(SymfonyHttpServerProcess $process): void
     {
         $appLoader = $this->appLoader;
+        $workerContainer = $this->workerContainer;
+        $isBooted = false;
 
-        $process->onStart(priority: -1, onStart: static function (SymfonyHttpServerProcess $worker) use ($appLoader): void {
+        $process->onStart(priority: -1, onStart: static function (SymfonyHttpServerProcess $worker) use ($appLoader, $workerContainer, &$isBooted): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1&web=1';
-            $kernel = $appLoader->loadApp();
-            $kernel->boot();
 
-            /** @var EventDispatcherInterface $eventDispatcher */
-            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+            try {
+                $kernel = $appLoader->loadApp();
+                $kernel->boot();
+
+                /** @var EventDispatcherInterface $eventDispatcher */
+                $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+                $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+                $isBooted = true;
+            } catch (\Throwable $e) {
+                ErrorHandler::handleException($e);
+                $workerContainer->setService('request_handler', static fn(): never => throw $e);
+            }
         });
 
-        $process->onStop(priority: 1000, onStop: static function (SymfonyHttpServerProcess $worker): void {
+        $process->onStop(priority: 1000, onStop: static function (SymfonyHttpServerProcess $worker) use (&$isBooted): void {
+            if (!$isBooted) {
+                return;
+            }
+
             /** @var KernelInterface $kernel */
             $kernel = $worker->container->getService('kernel');
 
@@ -65,7 +79,11 @@ final class SymfonyPlugin extends Plugin
             $eventDispatcher->dispatch(new ProcessStopEvent($worker));
         });
 
-        $process->onReload(priority: 1000, onReload: static function (SymfonyHttpServerProcess $worker): void {
+        $process->onReload(priority: 1000, onReload: static function (SymfonyHttpServerProcess $worker) use (&$isBooted): void {
+            if (!$isBooted) {
+                return;
+            }
+
             /** @var KernelInterface $kernel */
             $kernel = $worker->container->getService('kernel');
 
