@@ -22,7 +22,8 @@ final readonly class HttpErrorHandler implements ErrorHandler
 
     public function handleError(int $status, string|null $reason = null, Request|null $request = null): Response
     {
-        $errorPage = new ErrorPage(status: $status, reason: $reason ?? HttpStatus::getReason($status));
+        $reason ??= HttpStatus::getReason($status);
+        $errorPage = new ErrorPage(status: $status, reason: $reason);
 
         return $this->createResponse($errorPage);
     }

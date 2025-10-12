@@ -25,7 +25,7 @@ use function PHPStreamServer\Core\getCpuCount;
 
 class HttpServerProcess extends WorkerProcess
 {
-    private HttpServer $httpServer;
+    private HttpServer|null $httpServer = null;
 
     /**
      * @param Listen|string|array<Listen> $listen
@@ -158,7 +158,8 @@ class HttpServerProcess extends WorkerProcess
 
     private function stopServer(): void
     {
-        $this->httpServer->stop();
+        $this->httpServer?->stop();
+        $this->httpServer = null;
     }
 
     /**
