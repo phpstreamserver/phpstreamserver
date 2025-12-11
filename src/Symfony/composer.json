@@ -24,11 +24,11 @@
         "ext-posix": "*",
         "phpstreamserver/core": "^0.7",
         "phpstreamserver/http-server": "^0.7",
-        "symfony/config": "^7.0",
-        "symfony/dependency-injection": "^7.0",
-        "symfony/http-kernel": "^7.0",
-        "symfony/runtime": "^7.0",
-        "symfony/dotenv": "^7.0",
+        "symfony/config": "^7.0|^8.0",
+        "symfony/dependency-injection": "^7.0|^8.0",
+        "symfony/http-kernel": "^7.0|^8.0",
+        "symfony/runtime": "^7.0|^8.0",
+        "symfony/dotenv": "^7.0|^8.0",
         "amphp/pipeline": "^1.2"
     },
     "autoload": {

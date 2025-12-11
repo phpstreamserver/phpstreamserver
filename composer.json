@@ -31,11 +31,11 @@
         "psr/http-message": "^2.0",
         "psr/log": "^3.0",
         "revolt/event-loop": "^1.0",
-        "symfony/config": "^7.0",
-        "symfony/dependency-injection": "^7.0",
-        "symfony/dotenv": "^7.0",
-        "symfony/http-kernel": "^7.0",
-        "symfony/runtime": "^7.0"
+        "symfony/config": "^7.0|^8.0",
+        "symfony/dependency-injection": "^7.0|^8.0",
+        "symfony/dotenv": "^7.0|^8.0",
+        "symfony/http-kernel": "^7.0|^8.0",
+        "symfony/runtime": "^7.0|^8.0"
     },
     "require-dev": {
         "amphp/http-client": "^5.3.3",
