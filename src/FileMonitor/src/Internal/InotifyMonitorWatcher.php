@@ -92,8 +92,10 @@ final class InotifyMonitorWatcher
 
     private function watchDir(string $path): void
     {
-        $wd = \inotify_add_watch($this->fd, $path, IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_TO);
-        $this->pathByWd[$wd] = $path;
+        if (\is_dir($path)) {
+            $wd = \inotify_add_watch($this->fd, $path, IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_TO);
+            $this->pathByWd[$wd] = $path;
+        }
     }
 
     private function isFlagSet(int $check, int $flag): bool
