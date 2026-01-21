@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony\Internal;
 
 use Revolt\EventLoop;
-use Symfony\Bridge\Monolog\Handler\ConsoleHandler;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\ArgvInput;
@@ -62,7 +61,6 @@ final readonly class ConsoleRunner implements RunnerInterface
 
             $container = $application->getKernel()->getContainer();
             if ($container->has('monolog.handler.console')) {
-                /** @var ConsoleHandler $monologHandler */
                 $monologHandler = $container->get('monolog.handler.console');
                 $monologHandler->setInput($input);
                 $monologHandler->setOutput($output);
