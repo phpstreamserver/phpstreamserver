@@ -23,7 +23,7 @@
         "ext-posix": "*",
         "amphp/amp": "^3.0",
         "revolt/event-loop": "^1.0",
-        "phpstreamserver/core": "^0.7",
+        "phpstreamserver/core": "^0.8",
         "amphp/http-server": "^3.3",
         "amphp/socket": "^2.3",
         "psr/http-message": "^2.0",
