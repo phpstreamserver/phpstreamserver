@@ -2,19 +2,14 @@
 
 $rules = [
     // Rules that follow PSR-12 standard.
-    '@PER-CS2.0' => true,
+
+    '@PER-CS2x0' => true,
 
     // Rules that follow PSR-12 standard. This set contains rules that are risky.
-    '@PER-CS2.0:risky' => true,
-
-    // PHP arrays should be declared using the short syntax.
-    'array_syntax' => ['syntax' => 'short'],
+    '@PER-CS2x0:risky' => true,
 
     // Each line of multi-line DocComments must have an asterisk [PSR-5] and must be aligned with the first one.
     'align_multiline_comment' => true,
-
-    // A single space or none should be between cast and variable.
-    'cast_spaces' => true,
 
     // There should not be any empty comments.
     'no_empty_comment' => true,
@@ -51,9 +46,6 @@ $rules = [
         'imports_order' => ['class', 'function', 'const'],
         'sort_algorithm' => 'alpha',
     ],
-
-    // Replace get_class calls on object variables with class keyword syntax.
-    'get_class_to_class_keyword' => true,
 
     // Removes @param, @return and @var tags that don’t provide any useful information.
     'no_superfluous_phpdoc_tags' => true,
@@ -96,9 +88,9 @@ $rules = [
     ]],
 ];
 
-return (new PhpCsFixer\Config())
+return (new \PhpCsFixer\Config())
     ->setCacheFile(__DIR__ . '/var/.php-cs-fixer.cache')
-    ->setFinder(PhpCsFixer\Finder::create()
+    ->setFinder(\PhpCsFixer\Finder::create()
         ->in(__DIR__ . '/src')
         ->in(__DIR__ . '/tests')
     )
