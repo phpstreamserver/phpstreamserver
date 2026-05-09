@@ -14,10 +14,9 @@ final class PHPStreamServerBundle extends AbstractBundle implements CompilerPass
 {
     protected string $extensionAlias = 'phpstreamserver';
 
-    public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
+    public function loadExtension(array $config, ContainerConfigurator $configurator, ContainerBuilder $container): void
     {
-        $configurator = require __DIR__ . '/config/services.php';
-        $configurator($config, $container);
+        (require __DIR__ . '/config/services.php')($config, $configurator);
     }
 
     public function process(ContainerBuilder $container): void

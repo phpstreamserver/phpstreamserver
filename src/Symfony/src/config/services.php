@@ -21,9 +21,9 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\inline_se
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return static function (array $config, ContainerConfigurator $container) {
-    $services = $container->services();
-    $parameters = $container->parameters();
+return static function (array $config, ContainerConfigurator $configurator) {
+    $services = $configurator->services();
+    $parameters = $configurator->parameters();
 
     $services
         ->set('phpss.http_handler', HttpRequestHandler::class)

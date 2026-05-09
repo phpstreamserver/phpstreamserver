@@ -39,13 +39,13 @@
     },
     "require-dev": {
         "amphp/http-client": "^5.3.4",
-        "friendsofphp/php-cs-fixer": "^3.93.1",
+        "friendsofphp/php-cs-fixer": "^3.95.1",
         "monolog/monolog": "^3.10.0",
-        "phpunit/phpunit": "^11.5.53",
-        "symfony/framework-bundle": "^7.4.5",
-        "symfony/var-dumper": "^6.4.32",
-        "symplify/monorepo-builder": "^11.2.23",
-        "vimeo/psalm": "^6.15.1"
+        "phpunit/phpunit": "^11.5.55",
+        "symfony/framework-bundle": "^8.0.8",
+        "symfony/var-dumper": "^8.0.8",
+        "symplify/monorepo-builder": "^12.7.0",
+        "vimeo/psalm": "^6.16.1"
     },
     "replace": {
         "phpstreamserver/core": "self.version",

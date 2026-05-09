@@ -15,8 +15,9 @@ function phpss_create_command(string $command): string
 function phpss_start(): void
 {
     $descriptor = [1 => ['pipe', 'w'], 2 => ['pipe', 'w']];
-    \proc_open(\phpss_create_command('start -d'), $descriptor, $pipes);
+    $process = \proc_open(\phpss_create_command('start -d'), $descriptor, $pipes);
     \usleep(100000);
+    \proc_close($process);
 }
 
 function phpss_stop(): void
