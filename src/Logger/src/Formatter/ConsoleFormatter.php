@@ -95,24 +95,24 @@ final readonly class ConsoleFormatter implements Formatter
             return \str_replace(
                 ['[exception(', '[previous(', ']: '],
                 ['<color;fg=' . self::EXCEPTION_COLOR . '>[exception(', '<color;fg=' . self::EXCEPTION_COLOR . '>[previous(', ']</>: '],
-                $data->toString(),
+                $data->__toString(),
             );
         }
 
         if ($data instanceof FlattenDateTime) {
-            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->toString($this->dateTimeFormat));
+            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->withFormat($this->dateTimeFormat)->__toString());
         }
 
         if ($data instanceof FlattenObject) {
-            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->toString());
+            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->__toString());
         }
 
         if ($data instanceof FlattenEnum) {
-            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->toString());
+            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->__toString());
         }
 
         if ($data instanceof FlattenResource) {
-            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->toString());
+            return \sprintf('<color;fg=%s>%s</>', self::OBJECT_COLOR, $data->__toString());
         }
 
         return 'unknown';

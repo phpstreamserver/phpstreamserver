@@ -59,23 +59,23 @@ final readonly class StringFormatter implements Formatter
         }
 
         if ($data instanceof FlattenException) {
-            return $data->toString();
+            return $data->__toString();
         }
 
         if ($data instanceof FlattenDateTime) {
-            return $data->format($this->dateTimeFormat);
+            return $data->dt->format($this->dateTimeFormat);
         }
 
         if ($data instanceof FlattenObject) {
-            return $data->toString();
+            return $data->__toString();
         }
 
         if ($data instanceof FlattenResource) {
-            return $data->toString();
+            return $data->__toString();
         }
 
         if ($data instanceof FlattenEnum) {
-            return $data->toString();
+            return $data->__toString();
         }
 
         return 'unknown';

@@ -7,7 +7,7 @@ namespace PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer;
 /**
  * @internal
  */
-final readonly class FlattenEnum
+final readonly class FlattenEnum implements \Stringable
 {
     private function __construct(
         public string $class,
@@ -20,7 +20,7 @@ final readonly class FlattenEnum
         return new self($enum::class, $enum->name);
     }
 
-    public function toString(): string
+    public function __toString()
     {
         return \sprintf('[enum(%s): %s]', $this->class, $this->value);
     }

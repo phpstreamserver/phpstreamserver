@@ -66,19 +66,19 @@ final readonly class JsonFormatter implements Formatter
         }
 
         if ($data instanceof FlattenDateTime) {
-            return $data->format(\DateTimeInterface::RFC3339);
+            return $data->dt->format(\DateTimeInterface::RFC3339);
         }
 
         if ($data instanceof FlattenObject) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         if ($data instanceof FlattenResource) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         if ($data instanceof FlattenEnum) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         return 'unknown';

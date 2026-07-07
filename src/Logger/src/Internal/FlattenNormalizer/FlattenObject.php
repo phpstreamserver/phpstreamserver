@@ -7,7 +7,7 @@ namespace PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer;
 /**
  * @internal
  */
-final readonly class FlattenObject
+final readonly class FlattenObject implements \Stringable
 {
     /**
      * @param class-string $class
@@ -22,7 +22,7 @@ final readonly class FlattenObject
         return new self(self::parseAnonymousClass($object::class));
     }
 
-    public function toString(): string
+    public function __toString()
     {
         return \sprintf('[object(%s)]', $this->class);
     }

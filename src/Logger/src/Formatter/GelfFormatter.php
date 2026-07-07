@@ -47,7 +47,7 @@ final readonly class GelfFormatter implements Formatter
 
         foreach ($record->context as $contextKey => $contextData) {
             if ($this->includeStacktraces && $contextData instanceof FlattenException && $message['full_message'] === null) {
-                $message['full_message'] = (string) $contextData;
+                $message['full_message'] = $contextData->getFullTextMessageWithTrace();
             }
 
             $message['_' . $contextKey] = $this->normalize($contextData);
@@ -77,19 +77,19 @@ final readonly class GelfFormatter implements Formatter
         }
 
         if ($data instanceof FlattenDateTime) {
-            return $data->format(\DateTimeInterface::RFC3339);
+            return $data->dt->format(\DateTimeInterface::RFC3339);
         }
 
         if ($data instanceof FlattenObject) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         if ($data instanceof FlattenResource) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         if ($data instanceof FlattenEnum) {
-            return \trim($data->toString(), '[]');
+            return \trim($data->__toString(), '[]');
         }
 
         return 'unknown';

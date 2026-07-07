@@ -7,11 +7,13 @@ namespace PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer;
 /**
  * @internal
  */
-final readonly class FlattenDateTime
+final class FlattenDateTime implements \Stringable
 {
+    private string $format = \DateTimeInterface::RFC3339;
+
     private function __construct(
-        public \DateTimeImmutable $dt,
-        public string $class,
+        public readonly \DateTimeImmutable $dt,
+        public readonly string $class,
     ) {
     }
 
@@ -20,13 +22,15 @@ final readonly class FlattenDateTime
         return new self(\DateTimeImmutable::createFromInterface($dt), $dt::class);
     }
 
-    public function toString(string $format = \DateTimeInterface::RFC3339): string
+    public function withFormat(string $format): self
     {
-        return \sprintf('[datetime(%s): %s]', $this->class, $this->dt->format($format));
+        $that = clone $this;
+        $that->format = $format;
+        return $that;
     }
 
-    public function format(string $format): string
+    public function __toString()
     {
-        return $this->dt->format($format);
+        return \sprintf('[datetime(%s): %s]', $this->class, $this->dt->format($this->format));
     }
 }

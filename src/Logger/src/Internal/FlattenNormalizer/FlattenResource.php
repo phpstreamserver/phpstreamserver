@@ -7,7 +7,7 @@ namespace PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer;
 /**
  * @internal
  */
-final readonly class FlattenResource
+final readonly class FlattenResource implements \Stringable
 {
     private function __construct(
         public string $type,
@@ -15,6 +15,7 @@ final readonly class FlattenResource
         public string|null $streamType,
         public string|null $mode,
         public string|null $uri,
+        public bool $closed,
     ) {
     }
 
@@ -35,11 +36,16 @@ final readonly class FlattenResource
             streamType: $meta['stream_type'] ?? null,
             mode: $meta['mode'] ?? null,
             uri: $meta['uri'] ?? null,
+            closed: \get_debug_type($resource) === 'resource (closed)',
         );
     }
 
-    public function toString(): string
+    public function __toString()
     {
+        if ($this->closed) {
+            return '[resource (closed)]';
+        }
+
         $attr = '';
         if ($this->uri !== null) {
             $attr = ': ' . $this->uri;
