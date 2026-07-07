@@ -38,13 +38,13 @@
         "symfony/runtime": "^7.0|^8.0"
     },
     "require-dev": {
-        "amphp/http-client": "^5.3.4",
-        "friendsofphp/php-cs-fixer": "^3.95.1",
+        "amphp/http-client": "^5.3.6",
+        "friendsofphp/php-cs-fixer": "^3.95.11",
         "monolog/monolog": "^3.10.0",
-        "phpunit/phpunit": "^11.5.55",
-        "symfony/framework-bundle": "^8.0.8",
-        "symfony/var-dumper": "^8.0.8",
-        "symplify/monorepo-builder": "^12.7.0",
+        "phpunit/phpunit": "^11.5.56",
+        "symfony/framework-bundle": "^8.1.1",
+        "symfony/var-dumper": "^8.1.1",
+        "symplify/monorepo-builder": "^12.7.1",
         "vimeo/psalm": "^6.16.1"
     },
     "replace": {

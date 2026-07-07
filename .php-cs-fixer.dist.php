@@ -1,12 +1,8 @@
 <?php
 
 $rules = [
-    // Rules that follow PSR-12 standard.
-
-    '@PER-CS2x0' => true,
-
-    // Rules that follow PSR-12 standard. This set contains rules that are risky.
-    '@PER-CS2x0:risky' => true,
+    // Rule set @PER-CS3x0
+    '@PER-CS3x0' => true,
 
     // Each line of multi-line DocComments must have an asterisk [PSR-5] and must be aligned with the first one.
     'align_multiline_comment' => true,
@@ -86,6 +82,17 @@ $rules = [
     'class_attributes_separation' => ['elements' => [
         'method' => 'one',
     ]],
+
+    // Use explicit null union for nullable type.
+    'nullable_type_declaration' => [
+        'syntax' => 'union',
+    ],
+
+    // Sort union types and intersection types using configured order.
+    'ordered_types' => [
+        'null_adjustment' => 'none',
+        'sort_algorithm' => 'none'
+    ],
 ];
 
 return (new \PhpCsFixer\Config())

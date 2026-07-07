@@ -41,7 +41,7 @@ final readonly class Listen
 
     public function getAddress(): string
     {
-        return ($this->tls ? 'https://' : 'http://') . $this->host .
-            (($this->tls && $this->port === 443) || (!$this->tls && $this->port === 80) ? '' : ':' . $this->port);
+        return ($this->tls ? 'https://' : 'http://') . $this->host
+            . (($this->tls && $this->port === 443) || (!$this->tls && $this->port === 80) ? '' : ':' . $this->port);
     }
 }

@@ -51,10 +51,10 @@ final class GelfHandler extends AbstractHandler
     private function parseAddress(string $address): array
     {
         if (
-            !\str_starts_with($address, 'udp://') &&
-            !\str_starts_with($address, 'tcp://') &&
-            !\str_starts_with($address, 'http://') &&
-            !\str_starts_with($address, 'https://')
+            !\str_starts_with($address, 'udp://')
+            && !\str_starts_with($address, 'tcp://')
+            && !\str_starts_with($address, 'http://')
+            && !\str_starts_with($address, 'https://')
         ) {
             throw new \InvalidArgumentException('Invalid address format: must begin with one of the following schemes: udp://, tcp://, http://, https://');
         }
