@@ -62,5 +62,10 @@
                 <directory name="src" />
             </errorLevel>
         </ClassMustBeFinal>
+        <DeprecatedInterface>
+            <errorLevel type="suppress">
+                <file name="src/Symfony/src/PHPStreamServerBundle.php" />
+            </errorLevel>
+        </DeprecatedInterface>
     </issueHandlers>
 </psalm>
