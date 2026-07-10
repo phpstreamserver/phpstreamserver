@@ -28,13 +28,15 @@ final readonly class HttpRequestHandler
         $kernel = $this->kernel;
         $kernel->boot();
 
+        $httpFoundationFactory = $this->httpFoundationFactory;
         $symfonyRequest = $this->httpFoundationFactory->createRequest($request);
         $symfonyResponse = $kernel->handle($symfonyRequest);
         $response = $this->ampHttpFactory->createResponse($symfonyResponse);
 
         if ($kernel instanceof TerminableInterface) {
-            $response->onDispose(static function () use ($kernel, $symfonyRequest, $symfonyResponse): void {
+            $response->onDispose(static function () use ($kernel, $httpFoundationFactory, $request, $symfonyRequest, $symfonyResponse): void {
                 $kernel->terminate($symfonyRequest, $symfonyResponse);
+                $httpFoundationFactory->disposeTempArtifacts($request);
             });
         }
 

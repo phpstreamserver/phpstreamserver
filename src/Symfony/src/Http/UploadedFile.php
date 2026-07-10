@@ -14,9 +14,8 @@ final class UploadedFile extends BaseUploadedFile
 {
     private int $error;
 
-    public function __construct(private readonly Multipart $multipart)
+    public function __construct(string $path, private readonly Multipart $multipart)
     {
-        $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
         $filename = $multipart->getFileName();
         $contentType = $multipart->getHeaderValue('content-type');
         \assert(\is_string($filename));
@@ -69,7 +68,7 @@ final class UploadedFile extends BaseUploadedFile
         $target = $this->getTargetFile($directory, $name);
 
         try {
-            \set_error_handler(static fn(int $errno, string $errstr): never => throw new \Error($errstr));
+            \set_error_handler(static fn(int $errno, string $errstr): never => throw new \Error($errstr, $errno));
             $file = new WritableResourceStream(\fopen($target->getPathname(), 'w'));
         } finally {
             \restore_error_handler();

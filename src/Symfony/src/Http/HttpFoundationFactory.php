@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Http;
 
-use Amp\ByteStream\ReadableStream;
 use Amp\ByteStream\StreamException;
 use Amp\Http\Server\Request as AmpRequest;
 use PHPStreamServer\Symfony\Http\Multipart\InvalidMultipartContentException;
@@ -15,6 +14,13 @@ use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
 
 final class HttpFoundationFactory
 {
+    private \SplObjectStorage $multipartResources;
+
+    public function __construct()
+    {
+        $this->multipartResources = new \SplObjectStorage();
+    }
+
     public function createRequest(AmpRequest $request): SymfonyRequest
     {
         $server = [];
@@ -95,7 +101,7 @@ final class HttpFoundationFactory
         } elseif ($contentType === 'multipart/form-data') {
             $content = '';
             try {
-                [$parsedBody, $parsedFiles] = $this->parseMultiPartPayload($request->getBody(), (string) $request->getHeader('content-type'));
+                [$parsedBody, $parsedFiles] = $this->parseMultiPartPayload($request);
             } catch (InvalidMultipartHeaderException|InvalidMultipartContentException|StreamException) {
                 $parsedBody = [];
                 $parsedFiles = [];
@@ -115,14 +121,16 @@ final class HttpFoundationFactory
      * @throws InvalidMultipartContentException
      * @throws StreamException
      */
-    private function parseMultiPartPayload(ReadableStream $stream, string $contentType): array
+    private function parseMultiPartPayload(AmpRequest $request): array
     {
         $resource = \fopen('php://temp', 'r+');
-        while (null !== $chunk = $stream->read()) {
+        while (null !== $chunk = $request->getBody()->read()) {
             \fwrite($resource, $chunk);
+            unset($chunk);
         }
 
-        $multipartParser = new MultipartParser($resource, $contentType);
+        $tempArtifatcs = [$resource];
+        $multipartParser = new MultipartParser($resource, (string) $request->getHeader('content-type'));
 
         $payload = [];
         $payloadStructureStr = '';
@@ -141,7 +149,9 @@ final class HttpFoundationFactory
                 $filename = $part->getFilename();
                 if ($filename !== null && $filename !== '') {
                     $fileStructureStr .= "$name&";
-                    $fileStructureList[] = new UploadedFile($part);
+                    $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
+                    $tempArtifatcs[] = $path;
+                    $fileStructureList[] = new UploadedFile($path, $part);
                 }
             } else {
                 $payloadStructureStr .= "$name&";
@@ -165,6 +175,26 @@ final class HttpFoundationFactory
             });
         }
 
+        $this->multipartResources->offsetSet($request, $tempArtifatcs);
+
         return [$payload, $files];
+    }
+
+    public function disposeTempArtifacts(AmpRequest $request): void
+    {
+        if (!$this->multipartResources->offsetExists($request)) {
+            return;
+        }
+
+        $tempArtifatcs = $this->multipartResources->offsetGet($request);
+        $this->multipartResources->offsetUnset($request);
+
+        foreach ($tempArtifatcs as $tempArtifatc) {
+            if (\is_resource($tempArtifatc)) {
+                \fclose($tempArtifatc);
+            } elseif (\is_string($tempArtifatc) && \file_exists($tempArtifatc)) {
+                \unlink($tempArtifatc);
+            }
+        }
     }
 }

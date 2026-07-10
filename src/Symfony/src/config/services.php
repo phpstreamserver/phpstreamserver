@@ -6,7 +6,6 @@ use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Symfony\Event\ProcessStartEvent;
-use PHPStreamServer\Symfony\Http\DeleteUploadedFilesListener;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
 use PHPStreamServer\Symfony\Internal\ExceptionListener;
@@ -80,14 +79,6 @@ return static function (array $config, ContainerConfigurator $configurator) {
     $services->alias(ContainerInterface::class, 'phpss.container');
     $services->alias(MessageBusInterface::class, 'phpss.bus');
     $services->alias(LoggerInterface::class, 'phpss.logger');
-
-    $services
-        ->set('phpss.delete_uploaded_files_listener', DeleteUploadedFilesListener::class)
-        ->tag('kernel.event_listener', [
-            'event' => TerminateEvent::class,
-            'priority' => -2048,
-        ])
-    ;
 
     $services
         ->set('phpss.monolog_handler', PhpSSMonologHandler::class)
