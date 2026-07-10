@@ -38,15 +38,15 @@ final class WorkerPool
     public function addChild(PeriodicProcess $worker, int $pid): void
     {
         if (!isset($this->pool[\spl_object_id($worker)])) {
-            throw new PHPStreamServerException('PeriodicProcess is not fount in pool');
+            throw new PHPStreamServerException('PeriodicProcess is not found in pool');
         }
 
-        $this->pidMap[$worker] = $pid;
+        $this->pidMap->offsetSet($worker, $pid);
     }
 
     public function deleteChild(PeriodicProcess $worker): void
     {
-        unset($this->pidMap[$worker]);
+        $this->pidMap->offsetUnset($worker);
     }
 
     public function getWorkerByPid(int $pid): PeriodicProcess|null
@@ -60,9 +60,18 @@ final class WorkerPool
         return null;
     }
 
+    public function getPidByWorker(PeriodicProcess $worker): int|null
+    {
+        if ($this->pidMap->offsetExists($worker)) {
+            return $this->pidMap->offsetGet($worker);
+        } else {
+            return null;
+        }
+    }
+
     public function isWorkerRun(PeriodicProcess $worker): bool
     {
-        return isset($this->pidMap[$worker]);
+        return $this->pidMap->offsetExists($worker);
     }
 
     /**

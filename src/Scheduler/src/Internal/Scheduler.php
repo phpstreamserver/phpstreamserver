@@ -31,7 +31,7 @@ final class Scheduler
     private Suspension $suspension;
     private DeferredFuture|null $stopFuture = null;
 
-    public function __construct()
+    public function __construct(private readonly int $stopTimeout)
     {
         $this->pool = new WorkerPool();
     }
@@ -142,6 +142,26 @@ final class Scheduler
 
         if ($this->pool->getProcessesCount() === 0) {
             $this->stopFuture->complete();
+        } else {
+            $stopTimeout = $this->stopTimeout;
+            $pool = $this->pool;
+            $logger = $this->logger;
+            $stopFuture = $this->stopFuture;
+            $stopCallbackId = EventLoop::delay($stopTimeout, static function () use ($stopTimeout, $pool, $logger, $stopFuture): void {
+                // Send SIGKILL signal to all running periodic processes after timeout
+                foreach ($pool->getWorkers() as $worker) {
+                    if (null === $pid = $pool->getPidByWorker($worker)) {
+                        continue;
+                    }
+                    \posix_kill($pid, SIGKILL);
+                    $logger->notice(\sprintf('Periodic Worker %s[pid:%s] killed after %ss timeout', $worker->name, $pid, $stopTimeout));
+                }
+                $stopFuture->complete();
+            });
+
+            $this->stopFuture->getFuture()->finally(static function () use ($stopCallbackId) {
+                EventLoop::cancel($stopCallbackId);
+            });
         }
 
         return $this->stopFuture->getFuture();

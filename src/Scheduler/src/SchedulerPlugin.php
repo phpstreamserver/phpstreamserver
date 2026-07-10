@@ -32,7 +32,9 @@ final class SchedulerPlugin extends Plugin
 
     protected function beforeStart(): void
     {
-        $this->scheduler = new Scheduler();
+        /** @var int $stopTimeout */
+        $stopTimeout = $this->masterContainer->getParameter('stop_timeout');
+        $this->scheduler = new Scheduler($stopTimeout);
         $this->schedulerStatus = new SchedulerStatus();
     }
 
