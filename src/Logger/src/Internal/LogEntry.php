@@ -26,7 +26,7 @@ final readonly class LogEntry implements MessageInterface
     public function __serialize(): array
     {
         return [
-            0 => $this->time->getTimestamp(),
+            0 => $this->time->format('Uu'),
             1 => $this->pid,
             2 => $this->level->value,
             3 => $this->channel,
@@ -38,7 +38,7 @@ final readonly class LogEntry implements MessageInterface
     public function __unserialize(array $data): void
     {
         /** @psalm-suppress PossiblyFalsePropertyAssignmentValue */
-        $this->time = \DateTimeImmutable::createFromFormat('U', (string) $data[0]);
+        $this->time = \DateTimeImmutable::createFromFormat('U.u', \substr($data[0], 0, -6) . '.' . \substr($data[0], -6));
         $this->pid = $data[1];
         $this->level = LogLevel::from($data[2]);
         $this->channel = $data[3];

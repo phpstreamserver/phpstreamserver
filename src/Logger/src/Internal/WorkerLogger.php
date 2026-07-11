@@ -64,4 +64,10 @@ final class WorkerLogger implements LoggerInterface
             $bus->dispatch(new CompositeMessage($logsToSend));
         });
     }
+
+    public function __clone()
+    {
+        $this->logs = [];
+        $this->callbackId = '';
+    }
 }
