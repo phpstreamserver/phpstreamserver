@@ -72,9 +72,9 @@ class HttpServerProcess extends WorkerProcess
             reloadStrategies: $reloadStrategies,
         );
 
-        $this->onStart($this->startServer(...));
-        $this->onStop($this->stopServer(...), -1000);
-        $this->onReload($this->stopServer(...), -1000);
+        $this->onStart(static fn(self $worker) => self::startServer($worker));
+        $this->onStop(static fn(self $worker) => self::stopServer($worker), -1000);
+        $this->onReload(static fn(self $worker) => self::stopServer($worker), -1000);
     }
 
     public static function handledBy(): array
@@ -82,16 +82,16 @@ class HttpServerProcess extends WorkerProcess
         return [...parent::handledBy(), HttpServerPlugin::class];
     }
 
-    private function startServer(): void
+    private static function startServer(self $worker): void
     {
         $requestHandler = match (true) {
-            $this->onRequest !== null => $this->onRequest,
-            $this->container->has('request_handler') => $this->container->get('request_handler'),
+            $worker->onRequest !== null => $worker->onRequest,
+            $worker->container->has('request_handler') => $worker->container->get('request_handler'),
             default => new ClosureRequestHandler(static fn(): never => throw new HttpErrorException(404)),
         };
 
         if ($requestHandler instanceof \Closure) {
-            $requestHandler = new class ($requestHandler, $this) implements RequestHandler {
+            $requestHandler = new class ($requestHandler, $worker) implements RequestHandler {
                 public function __construct(private readonly \Closure $handler, private readonly WorkerProcess $worker)
                 {
                 }
@@ -105,61 +105,61 @@ class HttpServerProcess extends WorkerProcess
 
         $middleware = [];
 
-        if ($this->gzip) {
+        if ($worker->gzip) {
             /** @psalm-suppress InvalidArgument */
-            $gzipMinLength = $this->container->getParameter('httpServerPlugin.gzipMinLength');
+            $gzipMinLength = $worker->container->getParameter('httpServerPlugin.gzipMinLength');
             /** @psalm-suppress InvalidArgument */
-            $gzipTypesRegex = $this->container->getParameter('httpServerPlugin.gzipTypesRegex');
+            $gzipTypesRegex = $worker->container->getParameter('httpServerPlugin.gzipTypesRegex');
             /** @psalm-suppress InvalidArgument */
             $middleware[] = new Middleware\CompressionMiddleware($gzipMinLength, $gzipTypesRegex);
         }
 
         if (\interface_exists(RegistryInterface::class)) {
             try {
-                $registry = $this->container->getService(RegistryInterface::class);
+                $registry = $worker->container->getService(RegistryInterface::class);
                 $middleware[] = new MetricsMiddleware($registry);
             } catch (ServiceNotFoundException) {
                 // no action
             }
         }
 
-        $networkTrafficCounter = new NetworkTrafficCounter($this->container->getService(MessageBusInterface::class));
+        $networkTrafficCounter = new NetworkTrafficCounter($worker->container->getService(MessageBusInterface::class));
 
         $serverDir = match (true) {
-            $this->serverDir !== null => $this->serverDir,
-            $this->container->hasParameter('server_dir') => $this->container->getParameter('server_dir'),
+            $worker->serverDir !== null => $worker->serverDir,
+            $worker->container->hasParameter('server_dir') => $worker->container->getParameter('server_dir'),
             default => null,
         };
 
         /** @var \Closure $reloadStrategyEmitter */
-        $reloadStrategyEmitter = $this->container->getService('reload_strategy_emitter');
+        $reloadStrategyEmitter = $worker->container->getService('reload_strategy_emitter');
 
         /** @psalm-suppress InvalidArgument */
-        $this->httpServer = new HttpServer(
-            listen: self::normalizeListenList($this->listen),
+        $worker->httpServer = new HttpServer(
+            listen: self::normalizeListenList($worker->listen),
             requestHandler: $requestHandler,
-            middleware: [...$middleware, ...$this->middleware],
-            connectionLimit: $this->connectionLimit,
-            connectionLimitPerIp: $this->connectionLimitPerIp,
-            concurrencyLimit: $this->concurrencyLimit,
-            http2Enabled: $this->container->getParameter('httpServerPlugin.http2Enable'),
-            connectionTimeout: $this->container->getParameter('httpServerPlugin.httpConnectionTimeout'),
-            headerSizeLimit: $this->container->getParameter('httpServerPlugin.httpHeaderSizeLimit'),
-            bodySizeLimit: $this->container->getParameter('httpServerPlugin.httpBodySizeLimit'),
-            logger: $this->logger->withChannel('http'),
+            middleware: [...$middleware, ...$worker->middleware],
+            connectionLimit: $worker->connectionLimit,
+            connectionLimitPerIp: $worker->connectionLimitPerIp,
+            concurrencyLimit: $worker->concurrencyLimit,
+            http2Enabled: $worker->container->getParameter('httpServerPlugin.http2Enable'),
+            connectionTimeout: $worker->container->getParameter('httpServerPlugin.httpConnectionTimeout'),
+            headerSizeLimit: $worker->container->getParameter('httpServerPlugin.httpHeaderSizeLimit'),
+            bodySizeLimit: $worker->container->getParameter('httpServerPlugin.httpBodySizeLimit'),
+            logger: $worker->logger->withChannel('http'),
             networkTrafficCounter: $networkTrafficCounter,
             reloadStrategyTrigger: $reloadStrategyEmitter,
-            accessLog: $this->accessLog,
+            accessLog: $worker->accessLog,
             serveDir: $serverDir,
         );
 
-        $this->httpServer->start();
+        $worker->httpServer->start();
     }
 
-    private function stopServer(): void
+    private static function stopServer(self $worker): void
     {
-        $this->httpServer?->stop();
-        $this->httpServer = null;
+        $worker->httpServer?->stop();
+        $worker->httpServer = null;
     }
 
     /**

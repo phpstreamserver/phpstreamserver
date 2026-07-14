@@ -7,6 +7,8 @@ namespace PHPStreamServer\Plugin\Scheduler\Internal;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 
+use function PHPStreamServer\Core\generateWorkerId;
+
 /**
  * @internal
  */
@@ -24,27 +26,50 @@ final class WorkerPool
 
     public function __construct()
     {
-        /**
-         * @var \WeakMap<PeriodicProcess, int>
-         */
+        /** @var \WeakMap<PeriodicProcess, int> */
         $this->pidMap = new \WeakMap();
     }
 
-    public function addWorker(PeriodicProcess $worker): void
+    public function registerWorker(PeriodicProcess $worker): void
     {
-        $this->pool[\spl_object_id($worker)] = $worker;
+        /** @psalm-suppress RedundantCondition */
+        if (isset($worker->id)) {
+            throw new PHPStreamServerException('Worker already registered in the pool');
+        }
+
+        $workerId = generateWorkerId();
+
+        /**
+         * Assign unique sequential id and name if not set
+         * @psalm-suppress PossiblyNullFunctionCall, UndefinedThisPropertyFetch, UndefinedThisPropertyAssignment
+         */
+        \Closure::bind(function () use ($workerId): void {
+            $this->id = $workerId;
+            $this->name ??= 'periodic worker ' . $this->id;
+        }, $worker, $worker)();
+
+        $this->pool[$workerId] = $worker;
+    }
+
+    public function unregisterWorker(PeriodicProcess $worker): void
+    {
+        if (!isset($this->workerPool[$worker->id])) {
+            throw new PHPStreamServerException('Worker not registered in the pool');
+        }
+
+        unset($this->pool[$worker->id]);
     }
 
     public function addChild(PeriodicProcess $worker, int $pid): void
     {
-        if (!isset($this->pool[\spl_object_id($worker)])) {
-            throw new PHPStreamServerException('PeriodicProcess is not found in pool');
+        if (!isset($this->pool[$worker->id])) {
+            throw new PHPStreamServerException('Worker is not found in pool');
         }
 
         $this->pidMap->offsetSet($worker, $pid);
     }
 
-    public function deleteChild(PeriodicProcess $worker): void
+    public function removeChild(PeriodicProcess $worker): void
     {
         $this->pidMap->offsetUnset($worker);
     }

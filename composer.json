@@ -26,6 +26,7 @@
         "amphp/socket": "^2.3",
         "dragonmantank/cron-expression": "^3.4",
         "luzrain/polyfill-inotify": "^1.0",
+        "opis/closure": "^4.5",
         "promphp/prometheus_client_php": "^2.12",
         "psr/container": "^2.0",
         "psr/http-message": "^2.0",

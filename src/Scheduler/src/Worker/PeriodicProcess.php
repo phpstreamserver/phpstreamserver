@@ -57,12 +57,8 @@ class PeriodicProcess implements Process
         private string|null $group = null,
         \Closure|null $onStart = null,
     ) {
-        static $nextId = 0;
-        $this->id = ++$nextId;
-
-        if ($name === '') {
-            $this->name = 'periodic_worker_' . $this->id;
-        } else {
+        $name = \trim($name);
+        if ($name !== '') {
             $this->name = $name;
         }
 

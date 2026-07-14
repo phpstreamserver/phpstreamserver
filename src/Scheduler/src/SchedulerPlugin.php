@@ -38,7 +38,7 @@ final class SchedulerPlugin extends Plugin
         $this->schedulerStatus = new SchedulerStatus();
     }
 
-    public function handleWorker(Process $worker): void
+    public function registerWorker(Process $worker): void
     {
         \assert($worker instanceof PeriodicProcess);
         $this->scheduler->addWorker($worker);
@@ -71,6 +71,7 @@ final class SchedulerPlugin extends Plugin
                 $registry = $this->masterContainer->getService(RegistryInterface::class);
                 $this->masterContainer->setService(MetricsHandler::class, new MetricsHandler($registry, $this->schedulerStatus, $this->handler));
             } catch (ServiceNotFoundException) {
+                // no action
             }
         }
     }
