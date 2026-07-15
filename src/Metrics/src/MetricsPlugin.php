@@ -18,6 +18,7 @@ use PHPStreamServer\Core\Logger\NullLogger;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
+use PHPStreamServer\Core\Process;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpErrorHandler;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\Listen;
@@ -26,6 +27,9 @@ use PHPStreamServer\Plugin\Metrics\Internal\MessageBusRegistryHandler;
 use PHPStreamServer\Plugin\Metrics\Internal\NotFoundPage;
 use Revolt\EventLoop;
 
+/**
+ * @extends Plugin<Process>
+ */
 final class MetricsPlugin extends Plugin
 {
     public function __construct(

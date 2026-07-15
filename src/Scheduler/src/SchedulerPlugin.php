@@ -19,6 +19,9 @@ use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Revolt\EventLoop\Suspension;
 
+/**
+ * @extends Plugin<PeriodicProcess>
+ */
 final class SchedulerPlugin extends Plugin
 {
     private Scheduler $scheduler;
@@ -37,7 +40,6 @@ final class SchedulerPlugin extends Plugin
 
     public function registerWorker(Process $worker): void
     {
-        \assert($worker instanceof PeriodicProcess);
         $this->scheduler->registerWorker($worker);
     }
 

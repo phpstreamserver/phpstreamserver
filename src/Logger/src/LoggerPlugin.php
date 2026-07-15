@@ -9,11 +9,15 @@ use PHPStreamServer\Core\Logger\LoggerInterface as CoreLoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
+use PHPStreamServer\Core\Process;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 use PHPStreamServer\Plugin\Logger\Internal\MasterLogger;
 use PHPStreamServer\Plugin\Logger\Internal\WorkerLogger;
 use Revolt\EventLoop;
 
+/**
+ * @extends Plugin<Process>
+ */
 final class LoggerPlugin extends Plugin
 {
     /**

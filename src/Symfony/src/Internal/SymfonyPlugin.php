@@ -22,6 +22,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @internal
+ * @extends Plugin<SymfonyHttpServerProcess|SymfonyPeriodicProcess|SymfonyWorkerProcess>
  */
 final class SymfonyPlugin extends Plugin
 {
