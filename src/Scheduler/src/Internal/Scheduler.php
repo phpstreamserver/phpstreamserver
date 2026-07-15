@@ -9,8 +9,11 @@ use Amp\Future;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Internal\SIGCHLDHandler;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
+use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
+use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessScheduledEvent;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
+use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
@@ -27,16 +30,19 @@ use function PHPStreamServer\Core\generateWorkerId;
 final class Scheduler
 {
     private bool $running = false;
-    private MessageBusInterface $messageBus;
-    private WorkerPool $pool;
-    private \WeakMap $triggerMap;
     private LoggerInterface $logger;
+    public MessageBusInterface $messageBus;
+    public MessageHandlerInterface $messageHandler;
+    private WorkerPool $pool;
+    public readonly SchedulerStatus $schedulerStatus;
+    private \WeakMap $triggerMap;
     private Suspension $suspension;
     private DeferredFuture|null $stopFuture = null;
 
     public function __construct(private readonly int $stopTimeout)
     {
         $this->pool = new WorkerPool();
+        $this->schedulerStatus = new SchedulerStatus();
         $this->triggerMap = new \WeakMap();
     }
 
@@ -46,6 +52,7 @@ final class Scheduler
         $worker->assignId($workerId);
 
         $this->pool->registerWorker($worker);
+        $this->schedulerStatus->addWorker($worker);
 
         if ($this->running) {
             $this->scheduleWorker($worker);
@@ -53,14 +60,23 @@ final class Scheduler
         }
     }
 
-    public function start(Suspension $suspension, LoggerInterface $logger, MessageBusInterface $messageBus): void
+    public function start(Suspension $suspension, LoggerInterface &$logger, MessageBusInterface &$messageBus, MessageHandlerInterface &$messageHandler): void
     {
         $this->running = true;
         $this->suspension = $suspension;
-        $this->logger = $logger;
-        $this->messageBus = $messageBus;
+        $this->logger = &$logger;
+        $this->messageBus = &$messageBus;
+        $this->messageHandler = &$messageHandler;
 
         SIGCHLDHandler::onChildProcessExit(weakClosure($this->onChildStop(...)));
+
+        $this->schedulerStatus->subscribeToWorkerMessages($this->messageHandler);
+
+        $schedulerStatus = $this->schedulerStatus;
+
+        $this->messageHandler->subscribe(GetSchedulerStatusCommand::class, static function () use ($schedulerStatus): SchedulerStatus {
+            return $schedulerStatus;
+        });
 
         foreach ($this->pool->getWorkers() as $worker) {
             $this->scheduleWorker($worker);

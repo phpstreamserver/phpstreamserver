@@ -15,14 +15,12 @@ use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Scheduler\Command\SchedulerCommand;
 use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
 use PHPStreamServer\Plugin\Scheduler\Internal\Scheduler;
-use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
 use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Revolt\EventLoop\Suspension;
 
 final class SchedulerPlugin extends Plugin
 {
-    private SchedulerStatus $schedulerStatus;
     private Scheduler $scheduler;
     private MessageHandlerInterface $handler;
 
@@ -35,19 +33,17 @@ final class SchedulerPlugin extends Plugin
         /** @var int $stopTimeout */
         $stopTimeout = $this->masterContainer->getParameter('stop_timeout');
         $this->scheduler = new Scheduler($stopTimeout);
-        $this->schedulerStatus = new SchedulerStatus();
     }
 
     public function registerWorker(Process $worker): void
     {
         \assert($worker instanceof PeriodicProcess);
         $this->scheduler->registerWorker($worker);
-        $this->schedulerStatus->addWorker($worker);
     }
 
     public function onStart(): void
     {
-        $this->masterContainer->setService(SchedulerStatus::class, $this->schedulerStatus);
+        $this->masterContainer->setService(SchedulerStatus::class, $this->scheduler->schedulerStatus);
 
         /** @var Suspension $suspension */
         $suspension = $this->masterContainer->getService('main_suspension');
@@ -55,13 +51,7 @@ final class SchedulerPlugin extends Plugin
         $bus = &$this->masterContainer->getService(MessageBusInterface::class);
         $this->handler = &$this->masterContainer->getService(MessageHandlerInterface::class);
 
-        $this->schedulerStatus->subscribeToWorkerMessages($this->handler);
-        $this->scheduler->start($suspension, $logger, $bus);
-
-        $schedulerStatus = $this->schedulerStatus;
-        $this->handler->subscribe(GetSchedulerStatusCommand::class, static function () use ($schedulerStatus): SchedulerStatus {
-            return $schedulerStatus;
-        });
+        $this->scheduler->start($suspension, $logger, $bus, $this->handler);
     }
 
     public function afterStart(): void
@@ -69,7 +59,7 @@ final class SchedulerPlugin extends Plugin
         if (\interface_exists(RegistryInterface::class)) {
             try {
                 $registry = $this->masterContainer->getService(RegistryInterface::class);
-                $this->masterContainer->setService(MetricsHandler::class, new MetricsHandler($registry, $this->schedulerStatus, $this->handler));
+                $this->masterContainer->setService(MetricsHandler::class, new MetricsHandler($registry, $this->scheduler->schedulerStatus, $this->handler));
             } catch (ServiceNotFoundException) {
                 // no action
             }
