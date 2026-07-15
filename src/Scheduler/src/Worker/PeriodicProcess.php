@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
+use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Exception\UserChangeException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Internal\ProcessUserChange;
@@ -65,6 +66,20 @@ class PeriodicProcess implements Process
         if ($onStart !== null) {
             $this->onStart($onStart);
         }
+    }
+
+    /**
+     * @internal
+     * @psalm-suppress RedundantPropertyInitializationCheck
+     */
+    final public function assignId(int $id): void
+    {
+        if (isset($this->id)) {
+            throw new PHPStreamServerException('Worker id has already been assigned');
+        }
+
+        $this->id = $id;
+        $this->name ??= 'periodic worker ' . $id;
     }
 
     /**

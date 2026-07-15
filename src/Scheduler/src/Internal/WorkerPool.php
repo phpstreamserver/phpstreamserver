@@ -7,8 +7,6 @@ namespace PHPStreamServer\Plugin\Scheduler\Internal;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 
-use function PHPStreamServer\Core\generateWorkerId;
-
 /**
  * @internal
  */
@@ -32,23 +30,7 @@ final class WorkerPool
 
     public function registerWorker(PeriodicProcess $worker): void
     {
-        /** @psalm-suppress RedundantCondition */
-        if (isset($worker->id)) {
-            throw new PHPStreamServerException('Worker already registered in the pool');
-        }
-
-        $workerId = generateWorkerId();
-
-        /**
-         * Assign unique sequential id and name if not set
-         * @psalm-suppress PossiblyNullFunctionCall, UndefinedThisPropertyFetch, UndefinedThisPropertyAssignment
-         */
-        \Closure::bind(function () use ($workerId): void {
-            $this->id = $workerId;
-            $this->name ??= 'periodic worker ' . $this->id;
-        }, $worker, $worker)();
-
-        $this->pool[$workerId] = $worker;
+        $this->pool[$worker->id] = $worker;
     }
 
     public function unregisterWorker(PeriodicProcess $worker): void

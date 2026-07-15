@@ -19,6 +19,7 @@ use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
 
 use function Amp\weakClosure;
+use function PHPStreamServer\Core\generateWorkerId;
 
 /**
  * @internal
@@ -39,8 +40,11 @@ final class Scheduler
         $this->triggerMap = new \WeakMap();
     }
 
-    public function addWorker(PeriodicProcess $worker): void
+    public function registerWorker(PeriodicProcess $worker): void
     {
+        $workerId = generateWorkerId();
+        $worker->assignId($workerId);
+
         $this->pool->registerWorker($worker);
 
         if ($this->running) {
