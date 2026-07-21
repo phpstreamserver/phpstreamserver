@@ -35,7 +35,7 @@ final class WorkerPool
 
     public function unregisterWorker(PeriodicProcess $worker): void
     {
-        if (!isset($this->workerPool[$worker->id])) {
+        if (!isset($this->pool[$worker->id])) {
             throw new PHPStreamServerException('Worker not registered in the pool');
         }
 

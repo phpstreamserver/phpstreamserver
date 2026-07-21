@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Core\Message\GetSupervisorStatusCommand;
+use PHPStreamServer\Core\Message\GetProcessesCommand;
+use PHPStreamServer\Core\Message\GetWorkersCommand;
 use PHPStreamServer\Core\Message\ReloadServerCommand;
-use PHPStreamServer\Core\Plugin\Supervisor\Status\ProcessInfo;
-use PHPStreamServer\Core\Plugin\Supervisor\Status\WorkerInfo;
+use PHPStreamServer\Core\Plugin\Supervisor\ProcessInfo;
+use PHPStreamServer\Core\Plugin\Supervisor\WorkerInfo;
 use PHPStreamServer\Test\data\PHPSSTestCase;
 use PHPUnit\Framework\Attributes\Depends;
 
@@ -16,11 +17,11 @@ final class SupervisorTest extends PHPSSTestCase
     public function testProcessesAreRegistered(): void
     {
         // Arrange
-        $supervisorStatus = $this->dispatch(new GetSupervisorStatusCommand());
-        $names = \array_map(array: $supervisorStatus->getWorkers(), callback: static fn(WorkerInfo $w) => $w->name);
+        $workers = $this->dispatch(new GetWorkersCommand());
+        $names = \array_map(array: $workers, callback: static fn(WorkerInfo $w) => $w->name);
 
         // Assert
-        $this->assertSame(5, $supervisorStatus->getWorkersCount());
+        $this->assertCount(5, $workers);
         $this->assertContains('Worker Process 1', $names);
         $this->assertContains('Worker Process 2', $names);
         $this->assertContains('External Process 1', $names);
@@ -34,18 +35,18 @@ final class SupervisorTest extends PHPSSTestCase
     public function testProcessesAreSpawned(): array
     {
         // Arrange
-        $supervisorStatus = $this->dispatch(new GetSupervisorStatusCommand());
-        $names = \array_map(array: $supervisorStatus->getProcesses(), callback: static fn(ProcessInfo $p) => $p->name);
+        $processes = $this->dispatch(new GetProcessesCommand());
+        $names = \array_map(array: $processes, callback: static fn(ProcessInfo $p) => $p->name);
 
         // Assert
-        $this->assertSame(6, $supervisorStatus->getProcessesCount());
+        $this->assertCount(6, $processes);
         $this->assertContains('Worker Process 1', $names);
         $this->assertContains('Worker Process 2', $names);
         $this->assertContains('External Process 1', $names);
         $this->assertContains('External Process 2', $names);
         $this->assertContains('HTTP Server', $names);
 
-        return $this->getPids($supervisorStatus->getProcesses());
+        return $this->getPids($processes);
     }
 
     #[Depends('testProcessesAreSpawned')]
@@ -56,21 +57,20 @@ final class SupervisorTest extends PHPSSTestCase
         \usleep(400000);
 
         // Assert
-        $newSupervisorStatus = $this->dispatch(new GetSupervisorStatusCommand());
-        $newProcesses = $newSupervisorStatus->getProcesses();
+        $processes = $this->dispatch(new GetProcessesCommand());
 
-        $this->assertCount(6, $newProcesses);
-        $this->assertNotSame($pids, $this->getPids($newProcesses));
+        $this->assertCount(6, $processes);
+        $this->assertNotSame($pids, $this->getPids($processes));
     }
 
     #[Depends('testProcessIsRestartedAfterKill')]
     public function testProcessesAreReloadedByCommand(): void
     {
         // Arrange
-        $supervisorStatus = $this->dispatch(new GetSupervisorStatusCommand());
+        $processes = $this->dispatch(new GetProcessesCommand());
         $reloadablePids = [];
         $notReloadablePids = [];
-        foreach ($supervisorStatus->getProcesses() as $process) {
+        foreach ($processes as $process) {
             $process->reloadable ? $reloadablePids[] = $process->pid : $notReloadablePids[] = $process->pid;
         }
         \sort($reloadablePids, SORT_NUMERIC);
@@ -81,8 +81,8 @@ final class SupervisorTest extends PHPSSTestCase
         \usleep(400000);
 
         // Assert
-        $newSupervisorStatus = $this->dispatch(new GetSupervisorStatusCommand());
-        $newPids = $this->getPids($newSupervisorStatus->getProcesses());
+        $newProcesses = $this->dispatch(new GetProcessesCommand());
+        $newPids = $this->getPids($newProcesses);
 
         $this->assertSame($notReloadablePids, \array_values(\array_intersect($newPids, $notReloadablePids)), 'Not reloadable worker was reloaded');
         $this->assertEmpty(\array_intersect($newPids, $reloadablePids), 'Reloadable worker was not reloaded');
