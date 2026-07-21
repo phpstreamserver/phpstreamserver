@@ -19,6 +19,7 @@ final readonly class RegisterMetricMessage implements MessageInterface
         public string $help,
         public array $labels,
         public array|null $buckets = null,
+        public array|null $quantiles = null,
     ) {
     }
 
@@ -34,11 +35,11 @@ final readonly class RegisterMetricMessage implements MessageInterface
 
     public static function histogram(string $namespace, string $name, string $help, array $labels, array $buckets): self
     {
-        return new self('histogram', $namespace, $name, $help, $labels, $buckets);
+        return new self('histogram', $namespace, $name, $help, $labels, buckets: $buckets);
     }
 
-    public static function summary(string $namespace, string $name, string $help, array $labels, array|null $buckets = null): self
+    public static function summary(string $namespace, string $name, string $help, array $labels, array|null $quantiles = null): self
     {
-        return new self('summary', $namespace, $name, $help, $labels, $buckets);
+        return new self('summary', $namespace, $name, $help, $labels, quantiles: $quantiles);
     }
 }

@@ -72,7 +72,7 @@ final class MessageBusRegistryHandler
                     $message->help,
                     $message->labels,
                     600,
-                    $message->buckets,
+                    $message->quantiles,
                 ),
             };
         } catch (PrometheusMetricRegistrationException) {

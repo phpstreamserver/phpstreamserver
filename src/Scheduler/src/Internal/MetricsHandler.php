@@ -20,22 +20,22 @@ final readonly class MetricsHandler
         SchedulerStatus $schedulerStatus,
         MessageHandlerInterface $handler,
     ) {
-        $workersTotal = $registry->registerGauge(
+        $tasksGauge = $registry->registerGauge(
             namespace: Server::SHORTNAME,
-            name: 'scheduler_tasks_total',
-            help: 'Total number of tasks',
+            name: 'scheduler_tasks',
+            help: 'Current number of registered tasks',
         );
 
-        $runsTotal = $registry->registerCounter(
+        $runsCounter = $registry->registerCounter(
             namespace: Server::SHORTNAME,
             name: 'scheduler_task_runs_total',
-            help: 'Total number of tasks call',
+            help: 'Total number of task executions',
         );
 
-        $handler->subscribe(ProcessStartedEvent::class, static function (ProcessStartedEvent $message) use ($runsTotal): void {
-            $runsTotal->inc();
+        $handler->subscribe(ProcessStartedEvent::class, static function (ProcessStartedEvent $message) use ($runsCounter): void {
+            $runsCounter->inc();
         });
 
-        $workersTotal->set($schedulerStatus->getPeriodicTasksCount());
+        $tasksGauge->set($schedulerStatus->getPeriodicTasksCount());
     }
 }

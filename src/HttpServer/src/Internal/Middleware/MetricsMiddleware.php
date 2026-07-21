@@ -27,13 +27,14 @@ final readonly class MetricsMiddleware implements Middleware
             namespace: Server::SHORTNAME,
             name: 'http_requests_total',
             help: 'Total number of handled HTTP requests',
-            labels: ['code'],
+            labels: ['status'],
         );
 
         $this->requestDuration = $registry->registerHistogram(
             namespace: Server::SHORTNAME,
-            name: 'http_duration_seconds',
+            name: 'http_request_duration_seconds',
             help: 'HTTP request duration',
+            labels: ['status'],
             buckets: [0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
         );
     }
@@ -45,8 +46,8 @@ final readonly class MetricsMiddleware implements Middleware
         $handleTimeSeconds = (\hrtime(true) - $tsStart) * 1e-9;
         $statusCode = $response->getStatus();
 
-        $this->requestCounter->inc(['code' => (string) $statusCode]);
-        $this->requestDuration->observe($handleTimeSeconds);
+        $this->requestCounter->inc(['status' => (string) $statusCode]);
+        $this->requestDuration->observe($handleTimeSeconds, ['status' => (string) $statusCode]);
 
         return $response;
     }
