@@ -4,8 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 
-final class TriggerFactory
+final readonly class TriggerFactory
 {
+    private function __construct()
+    {
+    }
+
     /**
      * Creates a trigger from a schedule expression. Supported formats include:
      *
@@ -25,17 +29,21 @@ final class TriggerFactory
      */
     public static function create(string|int|\DateInterval|\DateTimeImmutable $expression, int $jitter = 0): TriggerInterface
     {
-        if (\is_string($expression)) {
-            $expression = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $expression) ?: $expression;
+        if (\is_string($expression) && false !== $iso8601DateTime = \DateTimeImmutable::createFromFormat(\DateTimeInterface::ATOM, $expression)) {
+            $expression = $iso8601DateTime;
         }
 
         $trigger = match (true) {
             $expression instanceof \DateTimeImmutable => new DateTimeTrigger($expression),
-            \is_string($expression) && \count(\explode(' ', $expression)) === 5 && \str_contains($expression, '*'),
-            \is_string($expression) && \str_starts_with($expression, '@') => new CronExpressionTrigger($expression),
+            \is_string($expression) && self::isCronExpression($expression) => new CronExpressionTrigger($expression),
             default => new PeriodicTrigger($expression),
         };
 
         return $jitter > 0 ? new JitterTrigger($trigger, $jitter) : $trigger;
+    }
+
+    private static function isCronExpression(string $expression): bool
+    {
+        return \preg_match('~\A(?:@(?:yearly|annually|monthly|weekly|daily|midnight|hourly)|(?:[\d*/,-]+\h+){4}[\d*/,-]+)\z~', $expression) === 1;
     }
 }

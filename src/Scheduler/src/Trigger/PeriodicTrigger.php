@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 
-final class PeriodicTrigger implements TriggerInterface
+final readonly class PeriodicTrigger implements TriggerInterface
 {
     private \DateInterval $interval;
     private string $description;

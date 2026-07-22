@@ -6,7 +6,7 @@ namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 
 use Cron\CronExpression;
 
-final class CronExpressionTrigger implements TriggerInterface
+final readonly class CronExpressionTrigger implements TriggerInterface
 {
     private CronExpression $expression;
 

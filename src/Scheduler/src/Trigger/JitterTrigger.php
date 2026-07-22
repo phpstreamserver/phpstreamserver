@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 
-final class JitterTrigger implements TriggerInterface
+final readonly class JitterTrigger implements TriggerInterface
 {
-    public function __construct(private readonly TriggerInterface $trigger, private readonly int $jitter)
+    public function __construct(private TriggerInterface $trigger, private int $jitter)
     {
     }
 
