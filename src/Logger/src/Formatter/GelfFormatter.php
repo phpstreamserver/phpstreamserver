@@ -47,7 +47,7 @@ final readonly class GelfFormatter implements Formatter
 
         foreach ($record->context as $contextKey => $contextData) {
             if ($this->includeStacktraces && $contextData instanceof FlattenException && $message['full_message'] === null) {
-                $message['full_message'] = $contextData->getFullTextMessageWithTrace();
+                $message['full_message'] = $contextData->getFullExceptionTextWithTrace();
             }
 
             $message['_' . $contextKey] = $this->normalize($contextData);

@@ -45,7 +45,7 @@ final readonly class GelfUdpTransport implements GelfTransport
         $chunksCount = \count($chunks);
 
         if ($chunksCount > self::MAX_CHUNKS) {
-            \trigger_error('Message is too big', E_USER_WARNING);
+            \trigger_error('Message is too large', E_USER_WARNING);
             return;
         }
 

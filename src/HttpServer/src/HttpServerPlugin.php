@@ -15,7 +15,7 @@ use PHPStreamServer\Core\Process;
 final class HttpServerPlugin extends Plugin
 {
     public function __construct(
-        private readonly bool $http2Enable = true,
+        private readonly bool $http2Enabled = true,
         private readonly int $httpConnectionTimeout = HttpDriver::DEFAULT_CONNECTION_TIMEOUT,
         private readonly int $httpHeaderSizeLimit = HttpDriver::DEFAULT_HEADER_SIZE_LIMIT,
         private readonly int $httpBodySizeLimit = HttpDriver::DEFAULT_BODY_SIZE_LIMIT,
@@ -26,7 +26,7 @@ final class HttpServerPlugin extends Plugin
 
     public function onStart(): void
     {
-        $this->workerContainer->setParameter('httpServerPlugin.http2Enable', $this->http2Enable);
+        $this->workerContainer->setParameter('httpServerPlugin.http2Enabled', $this->http2Enabled);
         $this->workerContainer->setParameter('httpServerPlugin.httpConnectionTimeout', $this->httpConnectionTimeout);
         $this->workerContainer->setParameter('httpServerPlugin.httpHeaderSizeLimit', $this->httpHeaderSizeLimit);
         $this->workerContainer->setParameter('httpServerPlugin.httpBodySizeLimit', $this->httpBodySizeLimit);

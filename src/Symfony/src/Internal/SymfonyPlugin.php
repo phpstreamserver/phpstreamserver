@@ -36,7 +36,7 @@ final class SymfonyPlugin extends Plugin
     public function registerWorker(Process $worker): void
     {
         if ($worker instanceof SymfonyHttpServerProcess) {
-            $this->initializeSymfonyServerProcess($worker);
+            $this->initializeSymfonyHttpServerProcess($worker);
         } elseif ($worker instanceof SymfonyPeriodicProcess) {
             $this->initializeSymfonyPeriodicProcess($worker);
         } elseif ($worker instanceof SymfonyWorkerProcess) {
@@ -44,7 +44,7 @@ final class SymfonyPlugin extends Plugin
         }
     }
 
-    private function initializeSymfonyServerProcess(SymfonyHttpServerProcess $process): void
+    private function initializeSymfonyHttpServerProcess(SymfonyHttpServerProcess $process): void
     {
         $appLoader = $this->appLoader;
         $workerContainer = $this->workerContainer;
@@ -105,8 +105,8 @@ final class SymfonyPlugin extends Plugin
             $application = new Application($kernel);
             $application->setAutoExit(false);
 
-            if (!$application->has($worker->commandWithoutArguments)) {
-                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandWithoutArguments));
+            if (!$application->has($worker->commandName)) {
+                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandName));
                 $worker->setExitCode(1);
                 return;
             }
@@ -114,7 +114,7 @@ final class SymfonyPlugin extends Plugin
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
 
-            $input = new StringInput($worker->command);
+            $input = new StringInput($worker->commandInput);
             $output = new NullOutput();
 
             $eventDispatcher->dispatch(new ProcessStartEvent($worker));
@@ -136,8 +136,8 @@ final class SymfonyPlugin extends Plugin
             $application = new Application($kernel);
             $application->setAutoExit(false);
 
-            if (!$application->has($worker->commandWithoutArguments)) {
-                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandWithoutArguments));
+            if (!$application->has($worker->commandName)) {
+                $worker->logger->error(\sprintf('Command "%s" is not defined', $worker->commandName));
                 $worker->stop(1);
                 return;
             }
@@ -145,7 +145,7 @@ final class SymfonyPlugin extends Plugin
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
 
-            $input = new StringInput($worker->command);
+            $input = new StringInput($worker->commandInput);
             $output = new NullOutput();
 
             $eventDispatcher->dispatch(new ProcessStartEvent($worker));

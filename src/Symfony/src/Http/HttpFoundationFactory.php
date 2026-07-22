@@ -101,7 +101,7 @@ final class HttpFoundationFactory
         } elseif ($contentType === 'multipart/form-data') {
             $content = '';
             try {
-                [$parsedBody, $parsedFiles] = $this->parseMultiPartPayload($request);
+                [$parsedBody, $parsedFiles] = $this->parseMultipartPayload($request);
             } catch (InvalidMultipartHeaderException|InvalidMultipartContentException|StreamException) {
                 $parsedBody = [];
                 $parsedFiles = [];
@@ -121,7 +121,7 @@ final class HttpFoundationFactory
      * @throws InvalidMultipartContentException
      * @throws StreamException
      */
-    private function parseMultiPartPayload(AmpRequest $request): array
+    private function parseMultipartPayload(AmpRequest $request): array
     {
         $resource = \fopen('php://temp', 'r+');
         while (null !== $chunk = $request->getBody()->read()) {
@@ -129,7 +129,7 @@ final class HttpFoundationFactory
             unset($chunk);
         }
 
-        $tempArtifatcs = [$resource];
+        $tempArtifacts = [$resource];
         $multipartParser = new MultipartParser($resource, (string) $request->getHeader('content-type'));
 
         $payload = [];
@@ -150,7 +150,7 @@ final class HttpFoundationFactory
                 if ($filename !== null && $filename !== '') {
                     $fileStructureStr .= "$name&";
                     $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
-                    $tempArtifatcs[] = $path;
+                    $tempArtifacts[] = $path;
                     $fileStructureList[] = new UploadedFile($path, $part);
                 }
             } else {
@@ -175,7 +175,7 @@ final class HttpFoundationFactory
             });
         }
 
-        $this->multipartResources->offsetSet($request, $tempArtifatcs);
+        $this->multipartResources->offsetSet($request, $tempArtifacts);
 
         return [$payload, $files];
     }
@@ -186,14 +186,14 @@ final class HttpFoundationFactory
             return;
         }
 
-        $tempArtifatcs = $this->multipartResources->offsetGet($request);
+        $tempArtifacts = $this->multipartResources->offsetGet($request);
         $this->multipartResources->offsetUnset($request);
 
-        foreach ($tempArtifatcs as $tempArtifatc) {
-            if (\is_resource($tempArtifatc)) {
-                \fclose($tempArtifatc);
-            } elseif (\is_string($tempArtifatc) && \file_exists($tempArtifatc)) {
-                \unlink($tempArtifatc);
+        foreach ($tempArtifacts as $tempArtifact) {
+            if (\is_resource($tempArtifact)) {
+                \fclose($tempArtifact);
+            } elseif (\is_string($tempArtifact) && \file_exists($tempArtifact)) {
+                \unlink($tempArtifact);
             }
         }
     }

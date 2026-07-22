@@ -23,7 +23,7 @@ final class SchedulerCommand extends Command
 
     public static function getDescription(): string
     {
-        return 'Show scheduler map';
+        return 'Show scheduler status';
     }
 
     public function execute(string $pidFile, string $socketFile): int

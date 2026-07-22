@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Metrics;
 
-use PHPStreamServer\Plugin\Metrics\Exception\LabelsNotMatchException;
+use PHPStreamServer\Plugin\Metrics\Exception\LabelMismatchException;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\SetGaugeMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Metric;
 use Revolt\EventLoop;
@@ -20,7 +20,7 @@ final class Gauge extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function set(float $value, array $labels = []): void
     {
@@ -51,7 +51,7 @@ final class Gauge extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function inc(array $labels = []): void
     {
@@ -60,7 +60,7 @@ final class Gauge extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function dec(array $labels = []): void
     {
@@ -69,7 +69,7 @@ final class Gauge extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function add(float $value, array $labels = []): void
     {
@@ -100,7 +100,7 @@ final class Gauge extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function sub(float $value, array $labels = []): void
     {

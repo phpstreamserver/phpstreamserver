@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Metrics;
 
-use PHPStreamServer\Plugin\Metrics\Exception\LabelsNotMatchException;
+use PHPStreamServer\Plugin\Metrics\Exception\LabelMismatchException;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveSummaryMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Metric;
 use Revolt\EventLoop;
@@ -17,7 +17,7 @@ final class Summary extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function observe(float $value, array $labels = []): void
     {

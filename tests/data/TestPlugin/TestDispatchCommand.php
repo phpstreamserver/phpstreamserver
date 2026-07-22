@@ -19,12 +19,12 @@ final class TestDispatchCommand extends Command
 
     public static function getDescription(): string
     {
-        return 'For testing purposes';
+        return 'Dispatch a message for testing';
     }
 
     public function configure(): void
     {
-        $this->addOptionDefinition('message', null, 'Serialized base64 string with MessageInterface instance');
+        $this->addOptionDefinition('message', null, 'Base64-encoded serialization of a MessageInterface instance');
     }
 
     public function execute(string $pidFile, string $socketFile): int

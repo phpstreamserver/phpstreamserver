@@ -8,7 +8,7 @@ use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\GetMetricMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\GetMetricResponse;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\IncreaseCounterMessage;
-use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveHistorgamMessage;
+use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveHistogramMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveSummaryMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\RegisterMetricMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Message\RemoveMetricMessage;
@@ -38,7 +38,7 @@ final class MessageBusRegistryHandler
         $messageHandler->subscribe(GetMetricMessage::class, weakClosure($this->getMetric(...)));
         $messageHandler->subscribe(IncreaseCounterMessage::class, weakClosure($this->increaseCounter(...)));
         $messageHandler->subscribe(SetGaugeMessage::class, weakClosure($this->setGauge(...)));
-        $messageHandler->subscribe(ObserveHistorgamMessage::class, weakClosure($this->observeHistogram(...)));
+        $messageHandler->subscribe(ObserveHistogramMessage::class, weakClosure($this->observeHistogram(...)));
         $messageHandler->subscribe(ObserveSummaryMessage::class, weakClosure($this->observeSummary(...)));
         $messageHandler->subscribe(RemoveMetricMessage::class, weakClosure($this->removeMetric(...)));
     }
@@ -130,7 +130,7 @@ final class MessageBusRegistryHandler
         $message->increase ? $gauge->incBy($message->value, $labels) : $gauge->set($message->value, $labels);
     }
 
-    private function observeHistogram(ObserveHistorgamMessage $message): void
+    private function observeHistogram(ObserveHistogramMessage $message): void
     {
         $histogram = $this->registry->getHistogram($message->namespace, $message->name);
         $labels = [...\array_flip($histogram->getLabelNames()), ...$message->labels];

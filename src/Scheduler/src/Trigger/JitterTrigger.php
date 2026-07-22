@@ -12,7 +12,7 @@ final class JitterTrigger implements TriggerInterface
 
     public function __toString(): string
     {
-        return \sprintf('%s with 0-%d second jitter', $this->trigger, $this->jitter);
+        return \sprintf('%s with 0-%d seconds of jitter', $this->trigger, $this->jitter);
     }
 
     public function getNextRunDate(\DateTimeImmutable $now): \DateTimeImmutable|null

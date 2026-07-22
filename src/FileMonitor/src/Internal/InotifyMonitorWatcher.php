@@ -11,17 +11,23 @@ use Revolt\EventLoop;
  */
 final class InotifyMonitorWatcher
 {
-    private const REBOOT_DELAY = 0.3;
+    private const RELOAD_DELAY = 0.3;
 
-    /** @var resource */
+    /**
+     * @var resource
+     */
     private mixed $fd;
-    /** @var array<int, string> */
+
+    /**
+     * @var array<int, string>
+     */
     private array $pathByWd = [];
-    private \Closure|null $delayedRebootCallback = null;
+
+    private \Closure|null $delayedReloadCallback = null;
 
     public function __construct(
         private readonly string $sourceDir,
-        private readonly array $filePattern,
+        private readonly array $filePatterns,
         private readonly bool $recursive,
         private readonly \Closure $reloadCallback,
     ) {
@@ -60,7 +66,7 @@ final class InotifyMonitorWatcher
             $events = [];
         }
 
-        if ($this->delayedRebootCallback !== null) {
+        if ($this->delayedReloadCallback !== null) {
             return;
         }
 
@@ -75,16 +81,16 @@ final class InotifyMonitorWatcher
                 continue;
             }
 
-            if (!$this->isPatternMatch($event['name'])) {
+            if (!$this->isPatternMatches($event['name'])) {
                 continue;
             }
 
-            $this->delayedRebootCallback = function (): void {
-                $this->delayedRebootCallback = null;
+            $this->delayedReloadCallback = function (): void {
+                $this->delayedReloadCallback = null;
                 ($this->reloadCallback)();
             };
 
-            EventLoop::delay(self::REBOOT_DELAY, $this->delayedRebootCallback);
+            EventLoop::delay(self::RELOAD_DELAY, $this->delayedReloadCallback);
 
             return;
         }
@@ -103,9 +109,9 @@ final class InotifyMonitorWatcher
         return ($check & $flag) === $flag;
     }
 
-    private function isPatternMatch(string $filename): bool
+    private function isPatternMatches(string $filename): bool
     {
-        foreach ($this->filePattern as $pattern) {
+        foreach ($this->filePatterns as $pattern) {
             if (\fnmatch($pattern, $filename)) {
                 return true;
             }

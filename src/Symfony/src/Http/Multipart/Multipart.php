@@ -29,7 +29,7 @@ final class Multipart
         $endOfHeaders = false;
 
         while (false !== ($line = \stream_get_line($this->stream, self::BUFFER_SIZE, "\r\n"))) {
-            // Empty line cause by double new line, we reached the end of the headers section
+            // An empty line caused by a double newline marks the end of the headers section
             if ($line === '') {
                 $this->headersSize = \ftell($this->stream) - $offset - 2;
                 $endOfHeaders = true;
@@ -45,7 +45,7 @@ final class Multipart
         }
 
         if ($endOfHeaders === false) {
-            throw new \InvalidArgumentException('Header is not valid');
+            throw new \InvalidArgumentException('Invalid multipart header');
         }
     }
 
@@ -71,7 +71,7 @@ final class Multipart
         return $this->getHeaderOption('Content-Disposition', 'filename') !== null;
     }
 
-    public function getFileName(): string|null
+    public function getFilename(): string|null
     {
         return $this->getHeaderOption('Content-Disposition', 'filename');
     }

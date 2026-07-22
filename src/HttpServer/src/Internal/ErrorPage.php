@@ -81,7 +81,7 @@ final readonly class ErrorPage
             <h1>{$this->status} {$this->reason}</h1>
             <div style="margin: 1rem 0; display: flex; flex-direction: column; gap: 0.33rem;">
                 <div>
-                    <div>Exception {$exceptionClass}({$exception->getCode()}): "{$exception->getMessage()}"</div>
+                    <div>{$exceptionClass}({$exception->getCode()}): "{$exception->getMessage()}"</div>
                     <div style="font-size:0.85em;">in <b>{$exception->getFile()}</b> on line <b>{$exception->getLine()}</b></div>
                 </div>
                 {$previousHtml}

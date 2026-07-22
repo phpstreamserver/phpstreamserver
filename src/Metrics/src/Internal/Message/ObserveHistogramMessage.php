@@ -10,7 +10,7 @@ use PHPStreamServer\Core\MessageBus\MessageInterface;
  * @implements MessageInterface<null>
  * @internal
  */
-final readonly class ObserveHistorgamMessage implements MessageInterface
+final readonly class ObserveHistogramMessage implements MessageInterface
 {
     /**
      * @param array<string, string> $labels

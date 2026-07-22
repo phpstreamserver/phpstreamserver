@@ -36,7 +36,7 @@ final class SymfonyHttpServerProcess extends HttpServerProcess
     ) {
         parent::__construct(
             listen: $listen,
-            name: 'Symfony webserver',
+            name: 'Symfony HTTP server',
             count: $count,
             reloadable: $reloadable,
             user: $user,

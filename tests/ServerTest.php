@@ -14,6 +14,6 @@ final class ServerTest extends PHPSSTestCase
     {
         $serverStatus = $this->dispatch(new GetServerStatusCommand());
 
-        $this->assertInstanceOf(ServerStatus::class, $serverStatus, 'Server is not running');
+        $this->assertInstanceOf(ServerStatus::class, $serverStatus, 'Server did not return a ServerStatus instance');
     }
 }

@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 
-final class PeriodicalTrigger implements TriggerInterface
+final class PeriodicTrigger implements TriggerInterface
 {
     private \DateInterval $interval;
     private string $description;
@@ -33,7 +33,7 @@ final class PeriodicalTrigger implements TriggerInterface
 
     public function getNextRunDate(\DateTimeImmutable $now): \DateTimeImmutable|null
     {
-        $period = new \DatePeriod($now, $this->interval, $now->modify('+1000 year'));
+        $period = new \DatePeriod($now, $this->interval, $now->modify('+1000 years'));
         $iterator = $period->getIterator();
         $iterator->next();
         $date = $iterator->current();

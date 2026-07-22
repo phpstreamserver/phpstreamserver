@@ -56,7 +56,7 @@ final class Scheduler
 
         if ($this->running) {
             $this->scheduleWorker($worker);
-            $this->logger->info(\sprintf('Worker "%s" was registered in scheduler with', $worker->name));
+            $this->logger->info(\sprintf('Worker "%s" was registered with the scheduler', $worker->name));
         }
     }
 
@@ -105,7 +105,7 @@ final class Scheduler
         try {
             $trigger = $this->getTriggerForWorker($worker);
         } catch (\InvalidArgumentException) {
-            $this->logger->warning(\sprintf('Periodic process "%s" skipped. Schedule "%s" is not in valid format', $worker->name, $worker->schedule));
+            $this->logger->warning(\sprintf('Periodic process "%s" was skipped; schedule "%s" is invalid', $worker->name, $worker->schedule));
 
             return false;
         }
@@ -131,9 +131,9 @@ final class Scheduler
     private function callWorker(PeriodicProcess $worker): void
     {
         // Reschedule a task without running it if the previous task is still running
-        if ($this->pool->isWorkerRun($worker)) {
+        if ($this->pool->isWorkerRunning($worker)) {
             if ($this->scheduleWorker($worker)) {
-                $this->logger->info(\sprintf('Periodic process "%s" is already running. Rescheduled', $worker->name));
+                $this->logger->info(\sprintf('Periodic process "%s" is already running; scheduling the next run', $worker->name));
             }
 
             return;
@@ -144,7 +144,7 @@ final class Scheduler
             return;
         }
 
-        $this->logger->info(\sprintf('Periodic process "%s"[pid:%s] started', $worker->name, $pid));
+        $this->logger->info(\sprintf('Periodic process "%s" [PID: %d] started', $worker->name, $pid));
         $this->scheduleWorker($worker);
 
         $bus = $this->messageBus;
@@ -165,7 +165,7 @@ final class Scheduler
             $this->suspension->resume($worker);
             return 0;
         } else {
-            throw new PHPStreamServerException('fork fail');
+            throw new PHPStreamServerException('Fork failed');
         }
     }
 
@@ -176,9 +176,9 @@ final class Scheduler
         }
 
         $this->pool->removeChild($worker);
-        $this->logger->info(\sprintf('Periodic process "%s"[pid:%s] exit with code %s', $worker->name, $pid, $exitCode));
+        $this->logger->info(\sprintf('Periodic process "%s" [PID: %d] exited with code %d', $worker->name, $pid, $exitCode));
 
-        if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && $this->pool->getProcessesCount() === 0) {
+        if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && $this->pool->getProcessCount() === 0) {
             $this->stopFuture->complete();
         }
     }
@@ -187,7 +187,7 @@ final class Scheduler
     {
         $this->stopFuture = new DeferredFuture();
 
-        if ($this->pool->getProcessesCount() === 0) {
+        if ($this->pool->getProcessCount() === 0) {
             $this->stopFuture->complete();
         } else {
             $stopTimeout = $this->stopTimeout;
@@ -195,13 +195,13 @@ final class Scheduler
             $logger = $this->logger;
             $stopFuture = $this->stopFuture;
             $stopCallbackId = EventLoop::delay($stopTimeout, static function () use ($stopTimeout, $pool, $logger, $stopFuture): void {
-                // Send SIGKILL signal to all running periodic processes after timeout
+                // Send the SIGKILL signal to all running periodic processes after the timeout
                 foreach ($pool->getWorkers() as $worker) {
                     if (null === $pid = $pool->getPidByWorker($worker)) {
                         continue;
                     }
                     \posix_kill($pid, SIGKILL);
-                    $logger->notice(\sprintf('Periodic process "%s"[pid:%s] killed after %ss timeout', $worker->name, $pid, $stopTimeout));
+                    $logger->notice(\sprintf('Periodic process "%s" [PID: %d] was killed after a %d-second timeout', $worker->name, $pid, $stopTimeout));
                 }
                 $stopFuture->complete();
             });

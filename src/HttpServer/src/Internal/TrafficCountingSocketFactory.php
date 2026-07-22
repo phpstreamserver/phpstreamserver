@@ -18,14 +18,14 @@ use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 final readonly class TrafficCountingSocketFactory implements ServerSocketFactory
 {
     public function __construct(
-        private ServerSocketFactory $socketServerFactory,
+        private ServerSocketFactory $serverSocketFactory,
         private NetworkTrafficCounter $networkTrafficCounter,
     ) {
     }
 
     public function listen(SocketAddress|string $address, BindContext|null $bindContext = null): ServerSocket
     {
-        $serverSocket = $this->socketServerFactory->listen($address, $bindContext);
+        $serverSocket = $this->serverSocketFactory->listen($address, $bindContext);
 
         return new class ($serverSocket, $this->networkTrafficCounter) implements ServerSocket {
             public function __construct(private readonly ServerSocket $serverSocket, private readonly NetworkTrafficCounter $networkTrafficCounter)

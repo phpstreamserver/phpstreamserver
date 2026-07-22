@@ -8,16 +8,16 @@ use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
 if (!\class_exists(PeriodicProcess::class)) {
-    throw new \RuntimeException(\sprintf('You cannot use "%s\SymfonyCommandPeriodicProcess" as the "scheduler" package is not installed. Try running "composer require phpstreamserver/scheduler"', __NAMESPACE__));
+    throw new \RuntimeException(\sprintf('You cannot use "%s\SymfonyPeriodicProcess" because the "scheduler" package is not installed. Try running "composer require phpstreamserver/scheduler"', __NAMESPACE__));
 }
 
 final class SymfonyPeriodicProcess extends PeriodicProcess
 {
-    public readonly string $command;
-    public readonly string $commandWithoutArguments;
+    public readonly string $commandInput;
+    public readonly string $commandName;
 
     /**
-     * @param string $command Symfony console command name with optional parameters
+     * @param string $command Symfony Console command name with optional arguments and options
      */
     public function __construct(
         string $command,
@@ -27,11 +27,11 @@ final class SymfonyPeriodicProcess extends PeriodicProcess
         string|null $user = null,
         string|null $group = null,
     ) {
-        $this->command = $command;
-        $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
+        $this->commandInput = $command;
+        $this->commandName = \strstr($command, ' ', true) ?: $command;
 
         parent::__construct(
-            name: $name ?: $this->commandWithoutArguments,
+            name: $name ?: $this->commandName,
             schedule: $schedule,
             jitter: $jitter,
             user: $user,

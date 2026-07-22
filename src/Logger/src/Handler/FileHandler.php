@@ -26,8 +26,8 @@ final class FileHandler extends AbstractHandler
     /**
      * @param string $filename Log file name
      * @param bool $rotate Rotate log files
-     * @param bool $compress gzip archived log files
-     * @param int $maxFiles The maximal amount of files to keep (0 means unlimited)
+     * @param bool $compress Whether to gzip archived log files
+     * @param int $maxFiles Maximum number of archived log files to keep (0 means unlimited)
      * @param int $permission Permissions for created files
      */
     public function __construct(
@@ -41,7 +41,7 @@ final class FileHandler extends AbstractHandler
         private readonly Formatter $formatter = new StringFormatter(),
     ) {
         if ($compress && !\extension_loaded('zlib')) {
-            throw new \RuntimeException('Install zlib extension to use compression');
+            throw new \RuntimeException('Install the zlib extension to use compression');
         }
 
         parent::__construct($level, $channels);

@@ -40,9 +40,9 @@ class PeriodicProcess implements Process
     /**
      * $schedule can be one of the following formats:
      *
-     *  * An integer representing the frequency in seconds;
-     *  * An ISO8601 datetime format;
-     *  * An ISO8601 duration format;
+     *  * An integer or numeric string representing the frequency in seconds;
+     *  * An ISO 8601 date-time format;
+     *  * An ISO 8601 duration format;
      *  * A relative date format as supported by \DateInterval;
      *  * A cron expression;
      *
@@ -75,7 +75,7 @@ class PeriodicProcess implements Process
     final public function assignId(int $id): void
     {
         if (isset($this->id)) {
-            throw new PHPStreamServerException('Worker id has already been assigned');
+            throw new PHPStreamServerException('Worker ID has already been assigned');
         }
 
         $this->id = $id;
@@ -87,9 +87,9 @@ class PeriodicProcess implements Process
      */
     final public function run(ContainerInterface $workerContainer): int
     {
-        // some command line SAPIs (e.g., phpdbg) don't have that function
+        // Some command-line SAPIs (e.g., phpdbg) don't have this function.
         if (\function_exists('cli_set_process_title')) {
-            \cli_set_process_title(\sprintf('%s: perriodic process  %s', Server::NAME, $this->name));
+            \cli_set_process_title(\sprintf('%s: periodic process %s', Server::NAME, $this->name));
         }
 
         EventLoop::setDriver((new DriverFactory())->create());

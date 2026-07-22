@@ -13,7 +13,7 @@ use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
 use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 
 /**
- * Formats a log records into string
+ * Formats a log record as a string
  */
 final readonly class StringFormatter implements Formatter
 {

@@ -20,12 +20,12 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
 {
     use ReadableStreamIteratorAggregate;
 
-    public function __construct(private Socket $socket, private NetworkTrafficCounter $trafficStatisticStore)
+    public function __construct(private Socket $socket, private NetworkTrafficCounter $networkTrafficCounter)
     {
-        $this->trafficStatisticStore->addConnection($this);
+        $this->networkTrafficCounter->addConnection($this);
 
         $socket->onClose(function (): void {
-            $this->trafficStatisticStore->removeConnection($this);
+            $this->networkTrafficCounter->removeConnection($this);
         });
     }
 
@@ -54,7 +54,7 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
         $bytes = $this->socket->read($cancellation, $limit);
 
         if ($bytes !== null) {
-            $this->trafficStatisticStore->incRx($this, \strlen($bytes));
+            $this->networkTrafficCounter->incRx($this, \strlen($bytes));
         }
 
         return $bytes;
@@ -98,7 +98,7 @@ final readonly class TrafficCountingSocket implements Socket, \IteratorAggregate
     public function write(string $bytes): void
     {
         $this->socket->write($bytes);
-        $this->trafficStatisticStore->incTx($this, \strlen($bytes));
+        $this->networkTrafficCounter->incTx($this, \strlen($bytes));
     }
 
     public function end(): void

@@ -38,7 +38,7 @@ final readonly class NotFoundPage
             </head>
             <body>
             <h1>{$this->status} {$this->reason}</h1>
-            <div style="margin: 0.5rem auto;">Prometheus metrics link: <a href="/metrics">/metrics</a></div>
+            <div style="margin: 0.5rem auto;">Prometheus metrics endpoint: <a href="/metrics">/metrics</a></div>
             <hr>
             <div>{$this->server}</div>
             </body>

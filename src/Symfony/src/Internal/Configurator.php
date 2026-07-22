@@ -36,6 +36,6 @@ final readonly class Configurator
             return $symfonyHttpRequestHandler($request);
         });
 
-        $workerContainer->setParameter('server_dir', $this->kernel->getProjectDir() . '/public');
+        $workerContainer->setParameter('document_root', $this->kernel->getProjectDir() . '/public');
     }
 }

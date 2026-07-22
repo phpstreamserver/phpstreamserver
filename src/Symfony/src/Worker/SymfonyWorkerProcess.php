@@ -10,11 +10,11 @@ use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
 final class SymfonyWorkerProcess extends WorkerProcess
 {
-    public readonly string $command;
-    public readonly string $commandWithoutArguments;
+    public readonly string $commandInput;
+    public readonly string $commandName;
 
     /**
-     * @param string $command Symfony console command name, with optional parameters
+     * @param string $command Symfony Console command name with optional arguments and options
      * @param array<ReloadStrategy> $reloadStrategies
      */
     public function __construct(
@@ -26,11 +26,11 @@ final class SymfonyWorkerProcess extends WorkerProcess
         string|null $group = null,
         array $reloadStrategies = [],
     ) {
-        $this->command = $command;
-        $this->commandWithoutArguments = \strstr($command, ' ', true) ?: $command;
+        $this->commandInput = $command;
+        $this->commandName = \strstr($command, ' ', true) ?: $command;
 
         parent::__construct(
-            name: $name ?: $this->commandWithoutArguments,
+            name: $name ?: $this->commandName,
             count: $count,
             reloadable: $reloadable,
             user: $user,

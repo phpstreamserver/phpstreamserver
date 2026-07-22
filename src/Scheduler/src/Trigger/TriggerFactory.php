@@ -7,11 +7,11 @@ namespace PHPStreamServer\Plugin\Scheduler\Trigger;
 final class TriggerFactory
 {
     /**
-     * Sets the trigger frequency. Supported formats include:
+     * Creates a trigger from a schedule expression. Supported formats include:
      *
      *  * An integer or string representing the frequency in seconds;
-     *  * An ISO8601 datetime format;
-     *  * An ISO8601 duration format;
+     *  * An ISO 8601 date-time format;
+     *  * An ISO 8601 duration format;
      *  * A relative date format supported by \DateInterval;
      *  * A \DateInterval instance;
      *  * A \DateTimeImmutable instance;
@@ -33,7 +33,7 @@ final class TriggerFactory
             $expression instanceof \DateTimeImmutable => new DateTimeTrigger($expression),
             \is_string($expression) && \count(\explode(' ', $expression)) === 5 && \str_contains($expression, '*'),
             \is_string($expression) && \str_starts_with($expression, '@') => new CronExpressionTrigger($expression),
-            default => new PeriodicalTrigger($expression),
+            default => new PeriodicTrigger($expression),
         };
 
         return $jitter > 0 ? new JitterTrigger($trigger, $jitter) : $trigger;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Metrics;
 
-use PHPStreamServer\Plugin\Metrics\Exception\LabelsNotMatchException;
-use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveHistorgamMessage;
+use PHPStreamServer\Plugin\Metrics\Exception\LabelMismatchException;
+use PHPStreamServer\Plugin\Metrics\Internal\Message\ObserveHistogramMessage;
 use PHPStreamServer\Plugin\Metrics\Internal\Metric;
 use Revolt\EventLoop;
 
@@ -17,7 +17,7 @@ final class Histogram extends Metric
 
     /**
      * @param array<string, string> $labels
-     * @throws LabelsNotMatchException
+     * @throws LabelMismatchException
      */
     public function observe(float $value, array $labels = []): void
     {
@@ -42,21 +42,21 @@ final class Histogram extends Metric
         $bufferCallbackId = EventLoop::delay(self::FLUSH_TIMEOUT, static function () use ($bus, &$buffer, $labels, &$bufferValue, $key, $namespace, $name): void {
             $values = $bufferValue;
             unset($buffer[$key]);
-            $bus->dispatch(new ObserveHistorgamMessage($namespace, $name, $labels, $values));
+            $bus->dispatch(new ObserveHistogramMessage($namespace, $name, $labels, $values));
         });
     }
 
     /**
-     * Creates count buckets, where the lowest bucket has an upper bound of start, and each following bucket's upper
+     * Creates $count buckets, where the lowest bucket has an upper bound of start, and each following bucket's upper
      * bound is factor times the previous bucket's upper bound.
-     * The returned array is meant to be used for the Buckets field of HistogramOpts.
+     * The returned array is meant to be used for the RegistryInterface::registerHistogram() $buckets argument.
      *
      * @return list<float>
      */
     public static function exponentialBuckets(float $start, float $factor, int $count): array
     {
-        $start > 0 ?: throw new \InvalidArgumentException('$start must be a positive integer');
-        $factor > 0 ?: throw new \InvalidArgumentException('$factor must greater than 1');
+        $start > 0 ?: throw new \InvalidArgumentException('$start must be a positive number');
+        $factor > 1 ?: throw new \InvalidArgumentException('$factor must be greater than 1');
         $count >= 1 ?: throw new \InvalidArgumentException('$count must be a positive integer');
 
         $buckets = [];
@@ -69,14 +69,14 @@ final class Histogram extends Metric
     }
 
     /**
-     * Creates count buckets, each with the given width, where the lowest bucket has an upper bound of start.
-     * The returned array is meant to be used for the Buckets field of HistogramOpts.
+     * Creates $count buckets, each with the given width, where the lowest bucket has an upper bound of start.
+     * The returned array is meant to be used for the RegistryInterface::registerHistogram() $buckets argument.
      *
      * @return list<float>
      */
     public static function linearBuckets(float $start, float $width, int $count): array
     {
-        $width > 0 ?: throw new \InvalidArgumentException('$width must greater than 1');
+        $width > 0 ?: throw new \InvalidArgumentException('$width must be greater than 0');
         $count >= 1 ?: throw new \InvalidArgumentException('$count must be a positive integer');
 
         $buckets = [];

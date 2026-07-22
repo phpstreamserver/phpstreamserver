@@ -44,9 +44,9 @@ final readonly class FlattenException implements \Stringable
     }
 
     /**
-     * Gets a multiline string representation of the thrown object with a stack trace, identical to the original exception __toString representation
+     * Gets a multiline string representation of the thrown object with a stack trace, identical to the original exception's __toString() representation.
      */
-    public function getFullTextMessageWithTrace(): string
+    public function getFullExceptionTextWithTrace(): string
     {
         $out = \sprintf("%s: %s in %s:%d\nStack trace:\n", self::parseAnonymousClass($this->class), $this->message, $this->file, $this->line);
         $i = 0;

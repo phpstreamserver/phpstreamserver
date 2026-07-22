@@ -8,13 +8,13 @@ use Amp\Http\Server\Request;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 
 /**
- * Reload worker on every $maxRequests requests.
- * To prevent all workers from restarting at the same time, you can set a $dispersionPercentage.
- * With $maxRequests = 1000 and $dispersionPercentage = 20, workers will restart after a random number of requests between 800 and 1000
+ * Reloads the worker after it handles $maxRequests requests.
+ * To prevent all workers from restarting at the same time, set $dispersionPercentage.
+ * With $maxRequests = 1000 and $dispersionPercentage = 20, each worker restarts after a random number of requests between 800 and 1000.
  */
 final class MaxRequestsReloadStrategy implements ReloadStrategy
 {
-    private int $requestsCount = 0;
+    private int $requestCount = 0;
     private readonly int $maxRequests;
 
     public function __construct(int $maxRequests, int $dispersionPercentage = 0)
@@ -25,6 +25,6 @@ final class MaxRequestsReloadStrategy implements ReloadStrategy
 
     public function shouldReload(mixed $eventObject = null): bool
     {
-        return $eventObject instanceof Request && ++$this->requestsCount > $this->maxRequests;
+        return $eventObject instanceof Request && ++$this->requestCount >= $this->maxRequests;
     }
 }

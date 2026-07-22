@@ -53,7 +53,7 @@ class HttpServerProcess extends WorkerProcess
         \Closure|null $onReload = null,
         private readonly array $middleware = [],
         array $reloadStrategies = [],
-        private readonly string|null $serverDir = null,
+        private readonly string|null $documentRoot = null,
         private readonly bool $accessLog = true,
         private readonly bool $gzip = false,
         private readonly int|null $connectionLimit = null,
@@ -125,9 +125,9 @@ class HttpServerProcess extends WorkerProcess
 
         $networkTrafficCounter = new NetworkTrafficCounter($worker->container->getService(MessageBusInterface::class));
 
-        $serverDir = match (true) {
-            $worker->serverDir !== null => $worker->serverDir,
-            $worker->container->hasParameter('server_dir') => $worker->container->getParameter('server_dir'),
+        $documentRoot = match (true) {
+            $worker->documentRoot !== null => $worker->documentRoot,
+            $worker->container->hasParameter('document_root') => $worker->container->getParameter('document_root'),
             default => null,
         };
 
@@ -142,7 +142,7 @@ class HttpServerProcess extends WorkerProcess
             connectionLimit: $worker->connectionLimit,
             connectionLimitPerIp: $worker->connectionLimitPerIp,
             concurrencyLimit: $worker->concurrencyLimit,
-            http2Enabled: $worker->container->getParameter('httpServerPlugin.http2Enable'),
+            http2Enabled: $worker->container->getParameter('httpServerPlugin.http2Enabled'),
             connectionTimeout: $worker->container->getParameter('httpServerPlugin.httpConnectionTimeout'),
             headerSizeLimit: $worker->container->getParameter('httpServerPlugin.httpHeaderSizeLimit'),
             bodySizeLimit: $worker->container->getParameter('httpServerPlugin.httpBodySizeLimit'),
@@ -150,7 +150,7 @@ class HttpServerProcess extends WorkerProcess
             networkTrafficCounter: $networkTrafficCounter,
             reloadStrategyTrigger: $reloadStrategyEmitter,
             accessLog: $worker->accessLog,
-            serveDir: $serverDir,
+            documentRoot: $documentRoot,
         );
 
         $worker->httpServer->start();
@@ -175,7 +175,7 @@ class HttpServerProcess extends WorkerProcess
             } elseif (\is_string($listenItem)) {
                 $ret[] = new Listen($listenItem);
             } else {
-                throw new \InvalidArgumentException('Invalid listen');
+                throw new \InvalidArgumentException('Invalid listen value: expected a string or an instance of Listen');
             }
         }
 

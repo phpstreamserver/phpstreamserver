@@ -36,7 +36,7 @@ final class WorkerPool
     public function unregisterWorker(PeriodicProcess $worker): void
     {
         if (!isset($this->pool[$worker->id])) {
-            throw new PHPStreamServerException('Worker not registered in the pool');
+            throw new PHPStreamServerException('Worker is not registered in the pool');
         }
 
         unset($this->pool[$worker->id]);
@@ -45,7 +45,7 @@ final class WorkerPool
     public function addChild(PeriodicProcess $worker, int $pid): void
     {
         if (!isset($this->pool[$worker->id])) {
-            throw new PHPStreamServerException('Worker is not found in pool');
+            throw new PHPStreamServerException('Worker is not registered in the pool');
         }
 
         $this->pidMap->offsetSet($worker, $pid);
@@ -76,7 +76,7 @@ final class WorkerPool
         }
     }
 
-    public function isWorkerRun(PeriodicProcess $worker): bool
+    public function isWorkerRunning(PeriodicProcess $worker): bool
     {
         return $this->pidMap->offsetExists($worker);
     }
@@ -94,7 +94,7 @@ final class WorkerPool
         return \count($this->pool);
     }
 
-    public function getProcessesCount(): int
+    public function getProcessCount(): int
     {
         return $this->pidMap->count();
     }

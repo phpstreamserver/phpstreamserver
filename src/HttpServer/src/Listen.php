@@ -24,7 +24,7 @@ final readonly class Listen
         $port = $p['port'] ?? ($tls ? 443 : 80);
 
         if (\str_contains($listen, '://')) {
-            throw new \InvalidArgumentException('Listen address should not contain schema');
+            throw new \InvalidArgumentException('The listen address must not contain a URI scheme');
         }
 
         if ($port < 0 || $port > 65535) {

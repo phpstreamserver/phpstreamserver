@@ -21,7 +21,7 @@ final class SchedulerTest extends PHPSSTestCase
         $this->assertContains('Periodic Process 1', $names);
     }
 
-    public function testScheduledWorkerIsExecutes(): void
+    public function testPeriodicWorkerExecutes(): void
     {
         // Arrange
         $tmpFile = \sys_get_temp_dir() . '/phpss-test-9af00c2f.txt';
@@ -31,6 +31,6 @@ final class SchedulerTest extends PHPSSTestCase
         \usleep(1500000);
 
         // Assert
-        $this->assertFileExists($tmpFile, 'Scheduler is not working');
+        $this->assertFileExists($tmpFile, 'Periodic worker did not execute');
     }
 }

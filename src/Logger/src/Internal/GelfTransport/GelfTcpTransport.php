@@ -57,7 +57,7 @@ final class GelfTcpTransport implements GelfTransport
             $this->socket->write($buffer . "\0");
         } catch (StreamException) {
             $this->start();
-            // try to send second time after connect
+            // Try to send a second time after reconnecting
             try {
                 $this->socket->write($buffer . "\0");
             } catch (StreamException) {

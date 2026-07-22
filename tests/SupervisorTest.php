@@ -14,7 +14,7 @@ use PHPUnit\Framework\Attributes\Depends;
 
 final class SupervisorTest extends PHPSSTestCase
 {
-    public function testProcessesAreRegistered(): void
+    public function testWorkersAreRegistered(): void
     {
         // Arrange
         $workers = $this->dispatch(new GetWorkersCommand());
@@ -50,7 +50,7 @@ final class SupervisorTest extends PHPSSTestCase
     }
 
     #[Depends('testProcessesAreSpawned')]
-    public function testProcessIsRestartedAfterKill(array $pids): void
+    public function testProcessIsRestartedAfterBeingKilled(array $pids): void
     {
         // Act
         \posix_kill($pids[0], SIGKILL);
@@ -63,7 +63,7 @@ final class SupervisorTest extends PHPSSTestCase
         $this->assertNotSame($pids, $this->getPids($processes));
     }
 
-    #[Depends('testProcessIsRestartedAfterKill')]
+    #[Depends('testProcessIsRestartedAfterBeingKilled')]
     public function testProcessesAreReloadedByCommand(): void
     {
         // Arrange
@@ -84,8 +84,8 @@ final class SupervisorTest extends PHPSSTestCase
         $newProcesses = $this->dispatch(new GetProcessesCommand());
         $newPids = $this->getPids($newProcesses);
 
-        $this->assertSame($notReloadablePids, \array_values(\array_intersect($newPids, $notReloadablePids)), 'Not reloadable worker was reloaded');
-        $this->assertEmpty(\array_intersect($newPids, $reloadablePids), 'Reloadable worker was not reloaded');
+        $this->assertSame($notReloadablePids, \array_values(\array_intersect($newPids, $notReloadablePids)), 'At least one non-reloadable process was reloaded');
+        $this->assertEmpty(\array_intersect($newPids, $reloadablePids), 'At least one reloadable process was not reloaded');
     }
 
     /**

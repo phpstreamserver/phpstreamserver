@@ -16,28 +16,28 @@ use Symfony\Component\Runtime\RuntimeInterface;
  *  A runtime for running applications in PHPStreamServer.
  *
  *  It supports the following options:
- *   - "env_var_name" and "debug_var_name" define the name of the env vars that hold the Symfony env and the debug flag respectively;
- *   - "env" to define the name of the environment the app runs in;
- *   - "debug" toggles displaying errors and defaults to the "APP_DEBUG" environment variable;
- *   - "disable_dotenv" to disable looking for .env files;
- *   - "dotenv_path" to define the path of dot-env files - defaults to ".env";
- *   - "prod_envs" to define the names of the production envs - defaults to ["prod"];
- *   - "test_envs" to define the names of the test envs - defaults to ["test"];
- *   - "dotenv_overload" to tell Dotenv to override existing vars
- *   - "dotenv_extra_paths" to define a list of additional dot-env files
+ *   - "env_var_name" and "debug_var_name": define the names of the environment variables that hold the Symfony environment and the debug flag, respectively;
+ *   - "env": defines the name of the environment the application runs in;
+ *   - "debug": toggles debug mode and defaults to the "APP_DEBUG" environment variable;
+ *   - "disable_dotenv": disables looking for .env files;
+ *   - "dotenv_path": defines the path of the .env file - defaults to ".env";
+ *   - "prod_envs": defines the names of the production environments - defaults to ["prod"];
+ *   - "test_envs": defines the names of the test environments - defaults to ["test"];
+ *   - "dotenv_overload": tells Dotenv to override existing variables;
+ *   - "dotenv_extra_paths": defines a list of additional .env files;
  *
- *  PHPStreamServer specific options:
- *   - "config_file" Path to the phpss config file - defaults to "config/phpss.config.php";
- *   - "pid_file" Path to the pid file - defaults to "var/run/phpss.pid";
- *   - "socket_file" Path to the Unix socket file - defaults to "var/run/phpss.socket";
- *   - "stop_timeout" Time to wait (in seconds) before forcefully terminating workers during shutdown - defaults to "10";
- *   - "restart_delay" Delay between worker restarts - defaults to "0.25";
- *   - "http2_enable" Enables support for HTTP/2 protocol - defaults to "true";
- *   - "http_connection_timeout" Timeout duration for idle HTTP connections - defaults to "60";
- *   - "http_header_size_limit" Maximum allowed size for HTTP headers - defaults to "32768";
- *   - "http_body_size_limit" Maximum allowed size for the HTTP request body - defaults to min of ini options "post_max_size" and "upload_max_filesize";
- *   - "gzip_min_length" Minimum response size required to enable gzip compression - defaults to "860";
- *   - "gzip_types_regex" Regular expression to match content types that will be gzipped;
+ *  PHPStreamServer-specific options:
+ *   - "config_file": path to the PHPStreamServer configuration file - defaults to "config/phpss.config.php";
+ *   - "pid_file": path to the PID file - defaults to "var/run/phpss.pid";
+ *   - "socket_file": path to the Unix socket file - defaults to "var/run/phpss.socket";
+ *   - "stop_timeout": time to wait (in seconds) before forcefully terminating workers during shutdown - defaults to "10";
+ *   - "restart_delay": delay (in seconds) between worker restarts - defaults to "0.25";
+ *   - "http2_enabled": enables support for the HTTP/2 protocol - defaults to "true";
+ *   - "http_connection_timeout": timeout duration (in seconds) for idle HTTP connections - defaults to "60";
+ *   - "http_header_size_limit": maximum allowed size for HTTP headers - defaults to "32768";
+ *   - "http_body_size_limit": maximum allowed size for the HTTP request body - defaults to the smaller of the "post_max_size" and "upload_max_filesize" PHP INI values;
+ *   - "gzip_min_length": minimum response size required to enable gzip compression - defaults to "860";
+ *   - "gzip_types_regex": regular expression to match content types that will be gzipped;
  */
 final class PHPStreamServerRuntime implements RuntimeInterface
 {

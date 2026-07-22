@@ -24,7 +24,7 @@ final class GelfHandler extends AbstractHandler
     private GelfTransport $transport;
 
     /**
-     * @param string $address Gelf server address. Must begin with one of the following schemes: udp://, tcp://, http://, https://
+     * @param string $address GELF server address. Must begin with one of the following schemes: udp://, tcp://, http://, https://
      * @throws \InvalidArgumentException
      */
     public function __construct(

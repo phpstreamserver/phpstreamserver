@@ -16,7 +16,7 @@ final class UploadedFile extends BaseUploadedFile
 
     public function __construct(string $path, private readonly Multipart $multipart)
     {
-        $filename = $multipart->getFileName();
+        $filename = $multipart->getFilename();
         $contentType = $multipart->getHeaderValue('content-type');
         \assert(\is_string($filename));
         \assert(\is_string($contentType));
@@ -54,7 +54,7 @@ final class UploadedFile extends BaseUploadedFile
     public function getErrorMessage(): string
     {
         return match ($this->error) {
-            \UPLOAD_ERR_CANT_WRITE => \sprintf('The file "%s" could not be written on disk.', $this->getClientOriginalName()),
+            \UPLOAD_ERR_CANT_WRITE => \sprintf('Failed to write file "%s" to disk', $this->getClientOriginalName()),
             default => '',
         };
     }

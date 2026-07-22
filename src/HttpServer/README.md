@@ -10,7 +10,7 @@
 ![Version](https://img.shields.io/github/v/tag/phpstreamserver/http-server?label=Version&filter=v*.*.*&sort=semver&color=374151)
 ![Downloads](https://img.shields.io/packagist/dt/phpstreamserver/http-server?label=Downloads&color=f28d1a)
 
-Asynchronous HTTP server with support for HTTP/2, HTTPS, static file serving, and Gzip compression. 
+Asynchronous HTTP server with support for HTTP/2, HTTPS, static file serving, and gzip compression.
 
 ### Resources
 - [Documentation](https://phpstreamserver.dev/docs/plugins/http-server)

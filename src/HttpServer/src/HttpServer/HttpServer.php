@@ -58,7 +58,7 @@ final readonly class HttpServer
         private NetworkTrafficCounter $networkTrafficCounter,
         private \Closure $reloadStrategyTrigger,
         private bool $accessLog,
-        private string|null $serveDir,
+        private string|null $documentRoot,
     ) {
         $middleware = [];
         $this->errorHandler = new HttpErrorHandler($this->logger);
@@ -88,8 +88,8 @@ final readonly class HttpServer
         $middleware[] = new PhpSSMiddleware($this->errorHandler, $this->networkTrafficCounter, $this->reloadStrategyTrigger);
 
         // StaticMiddleware must be at the end of the chain
-        if ($this->serveDir !== null) {
-            $middleware[] = new StaticMiddleware($this->serveDir);
+        if ($this->documentRoot !== null) {
+            $middleware[] = new StaticMiddleware($this->documentRoot);
         }
 
         $this->socketHttpServer = new SocketHttpServer(

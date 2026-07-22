@@ -9,7 +9,7 @@ use PHPStreamServer\Test\data\PHPSSTestCase;
 
 final class HttpServerTest extends PHPSSTestCase
 {
-    public function testWebserverIsAvailableOnHttpPort(): void
+    public function testHttpServerIsAvailableOnHttpPort(): void
     {
         // Arrange
         $client = $this->createHttpClient();
@@ -22,7 +22,7 @@ final class HttpServerTest extends PHPSSTestCase
         $this->assertSame('Hello world', $response->getBody()->buffer());
     }
 
-    public function testWebserverIsAvailableOnHttpsPort(): void
+    public function testHttpServerIsAvailableOnHttpsPort(): void
     {
         // Arrange
         $client = $this->createHttpClient();
@@ -35,7 +35,7 @@ final class HttpServerTest extends PHPSSTestCase
         $this->assertSame('Hello world', $response->getBody()->buffer());
     }
 
-    public function testInternalServerErrorPage(): void
+    public function testInternalServerErrorIsReturned(): void
     {
         // Arrange
         $client = $this->createHttpClient();
@@ -47,7 +47,7 @@ final class HttpServerTest extends PHPSSTestCase
         $this->assertSame(500, $response->getStatus());
     }
 
-    public function testNotFoundPage(): void
+    public function testNotFoundIsReturned(): void
     {
         // Arrange
         $client = $this->createHttpClient();

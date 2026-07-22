@@ -58,7 +58,7 @@ final readonly class ServerRunner implements RunnerInterface
         );
 
         $this->server->addPlugin(new HttpServerPlugin(
-            http2Enable: (bool) ($options['http2_enable'] ?? true),
+            http2Enabled: (bool) ($options['http2_enabled'] ?? true),
             httpConnectionTimeout: (int) ($options['http_connection_timeout'] ?? HttpDriver::DEFAULT_CONNECTION_TIMEOUT),
             httpHeaderSizeLimit: (int) ($options['http_header_size_limit'] ?? HttpDriver::DEFAULT_HEADER_SIZE_LIMIT),
             httpBodySizeLimit: (int) ($options['http_body_size_limit'] ?? UploadedFile::getMaxFilesize()),
@@ -76,15 +76,15 @@ final readonly class ServerRunner implements RunnerInterface
             throw new \LogicException(\sprintf('Config file "%s" is missing', $configFile));
         }
 
-        $configfurator = include $configFile;
+        $configurator = include $configFile;
 
-        if (!$configfurator instanceof \Closure) {
-            throw new \TypeError(\sprintf('Invalid return value: "Closure" expected, "%s" returned from "%s"', \get_debug_type($configfurator), $configFile));
+        if (!$configurator instanceof \Closure) {
+            throw new \TypeError(\sprintf('Invalid return value: "Closure" expected, "%s" returned from "%s"', \get_debug_type($configurator), $configFile));
         }
 
-        $params = (new \ReflectionFunction($configfurator))->getParameters();
+        $params = (new \ReflectionFunction($configurator))->getParameters();
         $args = \array_map($this->resolveConfigArgument(...), $params);
-        $configfurator(...$args);
+        $configurator(...$args);
 
         return $this->server->run();
     }
