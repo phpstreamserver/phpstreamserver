@@ -7,9 +7,8 @@ namespace PHPStreamServer\Plugin\Scheduler\Command;
 use PHPStreamServer\Core\Console\Command;
 use PHPStreamServer\Core\Console\Table;
 use PHPStreamServer\Core\MessageBus\ExternalProcessMessageBus;
-use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
-use PHPStreamServer\Plugin\Scheduler\Status\PeriodicWorkerInfo;
-use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
+use PHPStreamServer\Plugin\Scheduler\Message\GetWorkersCommand;
+use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
 
 /**
  * @internal
@@ -32,10 +31,9 @@ final class SchedulerCommand extends Command
 
         echo "❯ Scheduler\n";
 
-        $status = $bus->dispatch(new GetSchedulerStatusCommand())->await();
-        \assert($status instanceof SchedulerStatus);
+        $workers = $bus->dispatch(new GetWorkersCommand())->await();
 
-        if ($status->getPeriodicTasksCount() > 0) {
+        if (\count($workers) > 0) {
             echo (new Table(indent: 1))
                 ->setHeaderRow([
                     'User',
@@ -44,14 +42,14 @@ final class SchedulerCommand extends Command
                     'Next run',
                     'Status',
                 ])
-                ->addRows(\array_map(array: $status->getPeriodicWorkers(), callback: static fn(PeriodicWorkerInfo $w): array => [
+                ->addRows(\array_map(array: $workers, callback: static fn(WorkerInfo $w): array => [
                     $w->user === 'root' ? $w->user : "<color;fg=gray>{$w->user}</>",
                     $w->name,
                     $w->schedule ?: '-',
-                    $w->nextRunDate?->format('Y-m-d H:i:s') ?? '<color;fg=gray>-</>',
-                    match (true) {
-                        $w->nextRunDate !== null => '[<color;fg=green>OK</>]',
-                        default => '[<color;fg=red>ERROR</>]',
+                    $w->nextRunDateTime->format(\DateTimeInterface::RFC7231),
+                    match ($w->status) {
+                        WorkerInfo::STATUS_SCHEDULED => '[<color;fg=green>SCHEDULED</>]',
+                        default => '[<color;fg=green>RUNNING</>]',
                     },
                 ]));
         } else {

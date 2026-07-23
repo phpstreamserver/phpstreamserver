@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Core\Plugin\Supervisor;
+namespace PHPStreamServer\Plugin\Scheduler;
 
 final class WorkerInfo
 {
-    public const STATUS_STARTING = 'starting';
+    public const STATUS_SCHEDULED = 'scheduled';
     public const STATUS_RUNNING = 'running';
-    public const STATUS_STOPPING = 'stopping';
+    public const STATUS_CANCEL = 'cancel';
 
     /**
      * @param self::STATUS_* $status
@@ -17,9 +17,9 @@ final class WorkerInfo
         public readonly int $id,
         public readonly string $name,
         public readonly string $user,
+        public readonly string $schedule,
         public string $status,
-        public readonly int $processCount,
-        public readonly bool $reloadable,
+        public \DateTimeInterface $nextRunDateTime,
     ) {
     }
 }

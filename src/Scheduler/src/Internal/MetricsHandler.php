@@ -8,18 +8,17 @@ use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
-use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
+use Revolt\EventLoop;
 
 /**
  * @internal
  */
 final readonly class MetricsHandler
 {
-    public function __construct(
-        RegistryInterface $registry,
-        SchedulerStatus $schedulerStatus,
-        MessageHandlerInterface $handler,
-    ) {
+    private const UPDATE_INTERVAL_SECONDS = 5;
+
+    public function __construct(RegistryInterface $registry, WorkerPool $pool, MessageHandlerInterface $handler)
+    {
         $tasksGauge = $registry->registerGauge(
             namespace: Server::SHORTNAME,
             name: 'scheduler_tasks',
@@ -36,6 +35,12 @@ final readonly class MetricsHandler
             $runsCounter->inc();
         });
 
-        $tasksGauge->set($schedulerStatus->getPeriodicTasksCount());
+        $heartbeat = static function () use ($pool, $tasksGauge): void {
+            $workers = $pool->getWorkerInfos();
+            $tasksGauge->set(\count($workers));
+        };
+
+        EventLoop::unreference(EventLoop::delay(0.1, $heartbeat));
+        EventLoop::unreference(EventLoop::repeat(self::UPDATE_INTERVAL_SECONDS, $heartbeat));
     }
 }

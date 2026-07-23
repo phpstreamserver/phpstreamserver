@@ -10,18 +10,13 @@ use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Internal\SIGCHLDHandler;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
-use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
-use PHPStreamServer\Plugin\Scheduler\Message\ProcessScheduledEvent;
+use PHPStreamServer\Plugin\Scheduler\Message\GetWorkersCommand;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
-use PHPStreamServer\Plugin\Scheduler\Status\SchedulerStatus;
-use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
-use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
 
-use function Amp\weakClosure;
 use function PHPStreamServer\Core\generateWorkerId;
 
 /**
@@ -29,21 +24,32 @@ use function PHPStreamServer\Core\generateWorkerId;
  */
 final class Scheduler
 {
-    private bool $running = false;
     private LoggerInterface $logger;
     public MessageBusInterface $messageBus;
     public MessageHandlerInterface $messageHandler;
-    private WorkerPool $pool;
-    public readonly SchedulerStatus $schedulerStatus;
-    private \WeakMap $triggerMap;
+    public readonly WorkerPool $pool;
     private Suspension $suspension;
     private DeferredFuture|null $stopFuture = null;
+    private array $scheduledDelaysById = [];
 
     public function __construct(private readonly int $stopTimeout)
     {
         $this->pool = new WorkerPool();
-        $this->schedulerStatus = new SchedulerStatus();
-        $this->triggerMap = new \WeakMap();
+    }
+
+    public function start(Suspension $suspension, LoggerInterface &$logger, MessageBusInterface &$messageBus, MessageHandlerInterface &$messageHandler): void
+    {
+        $this->suspension = $suspension;
+        $this->logger = &$logger;
+        $this->messageBus = &$messageBus;
+        $this->messageHandler = &$messageHandler;
+
+        SIGCHLDHandler::onChildProcessExit($this->onChildStop(...));
+
+        $pool = $this->pool;
+        $this->messageHandler->subscribe(GetWorkersCommand::class, static function () use ($pool): array {
+            return $pool->getWorkerInfos();
+        });
     }
 
     public function registerWorker(PeriodicProcess $worker): void
@@ -51,49 +57,30 @@ final class Scheduler
         $workerId = generateWorkerId();
         $worker->assignId($workerId);
 
-        $this->pool->registerWorker($worker);
-        $this->schedulerStatus->addWorker($worker);
+        try {
+            $this->pool->addWorker($worker);
+        } catch (\InvalidArgumentException) {
+            $this->logger->warning(\sprintf('Periodic process "%s" was not registered; schedule "%s" is invalid', $worker->name, $worker->schedule));
 
-        if ($this->running) {
-            $this->scheduleWorker($worker);
-            $this->logger->info(\sprintf('Worker "%s" was registered with the scheduler', $worker->name));
+            return;
         }
+
+        $this->logger->info(\sprintf('Periodic process "%s" was registered with the scheduler', $worker->name));
+        $this->scheduleWorker($worker);
     }
 
-    public function start(Suspension $suspension, LoggerInterface &$logger, MessageBusInterface &$messageBus, MessageHandlerInterface &$messageHandler): void
+    public function unregisterWorker(int $workerId): void
     {
-        $this->running = true;
-        $this->suspension = $suspension;
-        $this->logger = &$logger;
-        $this->messageBus = &$messageBus;
-        $this->messageHandler = &$messageHandler;
-
-        SIGCHLDHandler::onChildProcessExit(weakClosure($this->onChildStop(...)));
-
-        $this->schedulerStatus->subscribeToWorkerMessages($this->messageHandler);
-
-        $schedulerStatus = $this->schedulerStatus;
-
-        $this->messageHandler->subscribe(GetSchedulerStatusCommand::class, static function () use ($schedulerStatus): SchedulerStatus {
-            return $schedulerStatus;
-        });
-
-        foreach ($this->pool->getWorkers() as $worker) {
-            $this->scheduleWorker($worker);
-        }
-    }
-
-    /**
-     * @throws \InvalidArgumentException
-     */
-    private function getTriggerForWorker(PeriodicProcess $worker): TriggerInterface
-    {
-        if (!$this->triggerMap->offsetExists($worker)) {
-            $trigger = TriggerFactory::create($worker->schedule, $worker->jitter);
-            $this->triggerMap->offsetSet($worker, $trigger);
+        if (null === $worker = $this->pool->getWorkerInfoById($workerId)) {
+            return;
         }
 
-        return $this->triggerMap->offsetGet($worker);
+        $this->pool->removeWorker($worker->id);
+
+        if (isset($this->scheduledDelaysById[$worker->id])) {
+            EventLoop::cancel($this->scheduledDelaysById[$worker->id]);
+            unset($this->scheduledDelaysById[$worker->id]);
+        }
     }
 
     private function scheduleWorker(PeriodicProcess $worker): bool
@@ -102,27 +89,24 @@ final class Scheduler
             return false;
         }
 
-        try {
-            $trigger = $this->getTriggerForWorker($worker);
-        } catch (\InvalidArgumentException) {
-            $this->logger->warning(\sprintf('Periodic process "%s" was skipped; schedule "%s" is invalid', $worker->name, $worker->schedule));
+        if (isset($this->scheduledDelaysById[$worker->id])) {
+            EventLoop::cancel($this->scheduledDelaysById[$worker->id]);
+        }
+
+        $currentDate = new \DateTimeImmutable('now');
+        $nextRunDate = $this->pool->calculateNextRunDate($worker->id, $currentDate);
+
+        if ($nextRunDate === null) {
+            $this->unregisterWorker($worker->id);
 
             return false;
         }
 
-        $currentDate = new \DateTimeImmutable();
-        $nextRunDate = $trigger->getNextRunDate($currentDate);
-
-        if ($nextRunDate !== null) {
-            $delay = $nextRunDate->getTimestamp() - $currentDate->getTimestamp();
-            EventLoop::delay($delay, weakClosure(function () use ($worker): void {
-                $this->callWorker($worker);
-            }));
-        }
-
-        $bus = $this->messageBus;
-        EventLoop::defer(static function () use ($bus, $worker, $nextRunDate): void {
-            $bus->dispatch(new ProcessScheduledEvent($worker->id, $nextRunDate));
+        $delay = (float) $nextRunDate->format('U.u') - (float) $currentDate->format('U.u');
+        $delay = \max(0.0, $delay);
+        $this->scheduledDelaysById[$worker->id] = EventLoop::delay($delay, function () use ($worker): void {
+            unset($this->scheduledDelaysById[$worker->id]);
+            $this->callWorker($worker);
         });
 
         return true;
@@ -130,8 +114,13 @@ final class Scheduler
 
     private function callWorker(PeriodicProcess $worker): void
     {
+        // Do not call if scheduler is stopping
+        if ($this->stopFuture !== null) {
+            return;
+        }
+
         // Reschedule a task without running it if the previous task is still running
-        if ($this->pool->isWorkerRunning($worker)) {
+        if ($this->pool->isWorkerRunning($worker->id)) {
             if ($this->scheduleWorker($worker)) {
                 $this->logger->info(\sprintf('Periodic process "%s" is already running; scheduling the next run', $worker->name));
             }
@@ -148,8 +137,8 @@ final class Scheduler
         $this->scheduleWorker($worker);
 
         $bus = $this->messageBus;
-        EventLoop::queue(static function () use ($bus, $worker): void {
-            $bus->dispatch(new ProcessStartedEvent($worker->id));
+        EventLoop::queue(static function () use ($bus, $worker, $pid): void {
+            $bus->dispatch(new ProcessStartedEvent($worker->id, $pid));
         });
     }
 
@@ -158,7 +147,7 @@ final class Scheduler
         $pid = \pcntl_fork();
         if ($pid > 0) {
             // Master process
-            $this->pool->addChild($worker, $pid);
+            $this->pool->addProcess($worker->id, $pid);
             return $pid;
         } elseif ($pid === 0) {
             // Child process
@@ -171,14 +160,14 @@ final class Scheduler
 
     private function onChildStop(int $pid, int $exitCode): void
     {
-        if (null === $worker = $this->pool->getWorkerByPid($pid)) {
+        if (null === $worker = $this->pool->getWorkerInfoByPid($pid)) {
             return;
         }
 
-        $this->pool->removeChild($worker);
+        $this->pool->removeProcess($pid);
         $this->logger->info(\sprintf('Periodic process "%s" [PID: %d] exited with code %d', $worker->name, $pid, $exitCode));
 
-        if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && $this->pool->getProcessCount() === 0) {
+        if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && !$this->pool->hasRunningWorkers()) {
             $this->stopFuture->complete();
         }
     }
@@ -187,7 +176,12 @@ final class Scheduler
     {
         $this->stopFuture = new DeferredFuture();
 
-        if ($this->pool->getProcessCount() === 0) {
+        foreach ($this->scheduledDelaysById as $callbackId) {
+            EventLoop::cancel($callbackId);
+        }
+        $this->scheduledDelaysById = [];
+
+        if (!$this->pool->hasRunningWorkers()) {
             $this->stopFuture->complete();
         } else {
             $stopTimeout = $this->stopTimeout;
@@ -196,8 +190,8 @@ final class Scheduler
             $stopFuture = $this->stopFuture;
             $stopCallbackId = EventLoop::delay($stopTimeout, static function () use ($stopTimeout, $pool, $logger, $stopFuture): void {
                 // Send the SIGKILL signal to all running periodic processes after the timeout
-                foreach ($pool->getWorkers() as $worker) {
-                    if (null === $pid = $pool->getPidByWorker($worker)) {
+                foreach ($pool->getWorkerInfos() as $worker) {
+                    if (null === $pid = $pool->getPidById($worker->id)) {
                         continue;
                     }
                     \posix_kill($pid, SIGKILL);

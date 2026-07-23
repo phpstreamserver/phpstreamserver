@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Plugin\Scheduler\Message\GetSchedulerStatusCommand;
-use PHPStreamServer\Plugin\Scheduler\Status\PeriodicWorkerInfo;
+use PHPStreamServer\Plugin\Scheduler\Message\GetWorkersCommand;
+use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
 use PHPStreamServer\Test\data\PHPSSTestCase;
 
 final class SchedulerTest extends PHPSSTestCase
@@ -13,11 +13,11 @@ final class SchedulerTest extends PHPSSTestCase
     public function testWorkersAreRegistered(): void
     {
         // Arrange
-        $schedulerStatus = $this->dispatch(new GetSchedulerStatusCommand());
-        $names = \array_map(array: $schedulerStatus->getPeriodicWorkers(), callback: static fn(PeriodicWorkerInfo $p) => $p->name);
+        $workers = $this->dispatch(new GetWorkersCommand());
+        $names = \array_map(array: $workers, callback: static fn(WorkerInfo $p) => $p->name);
 
         // Assert
-        $this->assertSame(1, $schedulerStatus->getPeriodicTasksCount());
+        $this->assertCount(1, $workers);
         $this->assertContains('Periodic Process 1', $names);
     }
 
