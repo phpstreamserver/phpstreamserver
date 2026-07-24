@@ -22,10 +22,10 @@ final class SupervisorTest extends PHPSSTestCase
 
         // Assert
         $this->assertCount(5, $workers);
-        $this->assertContains('Worker Process 1', $names);
-        $this->assertContains('Worker Process 2', $names);
-        $this->assertContains('External Process 1', $names);
-        $this->assertContains('External Process 2', $names);
+        $this->assertContains('Worker 1', $names);
+        $this->assertContains('Worker 2', $names);
+        $this->assertContains('External 1', $names);
+        $this->assertContains('External 2', $names);
         $this->assertContains('HTTP Server', $names);
     }
 
@@ -40,10 +40,10 @@ final class SupervisorTest extends PHPSSTestCase
 
         // Assert
         $this->assertCount(6, $processes);
-        $this->assertContains('Worker Process 1', $names);
-        $this->assertContains('Worker Process 2', $names);
-        $this->assertContains('External Process 1', $names);
-        $this->assertContains('External Process 2', $names);
+        $this->assertContains('Worker 1', $names);
+        $this->assertContains('Worker 2', $names);
+        $this->assertContains('External 1', $names);
+        $this->assertContains('External 2', $names);
         $this->assertContains('HTTP Server', $names);
 
         return $this->getPids($processes);

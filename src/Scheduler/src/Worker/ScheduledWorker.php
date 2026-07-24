@@ -175,7 +175,7 @@ class ScheduledWorker implements WorkerInterface
      */
     public function onStart(\Closure $onStart, int $priority = 0): void
     {
-        $this->onStartCallbacks[((string) $priority) . \uniqid()] = $onStart;
+        $this->onStartCallbacks[$priority . ':' . \uniqid()] = $onStart;
         \ksort($this->onStartCallbacks, SORT_NUMERIC);
     }
 
