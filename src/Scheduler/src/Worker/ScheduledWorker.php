@@ -8,7 +8,6 @@ use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Exception\UserChangeException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
-use PHPStreamServer\Core\Internal\ProcessUserChange;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Server;
@@ -19,11 +18,10 @@ use Revolt\EventLoop\DriverFactory;
 
 use function PHPStreamServer\Core\getCurrentGroup;
 use function PHPStreamServer\Core\getCurrentUser;
+use function PHPStreamServer\Core\setUserAndGroup;
 
 class ScheduledWorker implements WorkerInterface
 {
-    use ProcessUserChange;
-
     private int $exitCode = 0;
     public readonly int $id;
     public readonly int $pid;
@@ -107,9 +105,9 @@ class ScheduledWorker implements WorkerInterface
         });
 
         try {
-            $this->setUserAndGroup($this->user, $this->group);
+            setUserAndGroup($this->user, $this->group);
         } catch (UserChangeException $e) {
-            $this->logger->warning($e->getMessage(), [(new \ReflectionObject($this))->getShortName() => $this->name]);
+            $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->name, $e->getMessage()));
         }
 
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
