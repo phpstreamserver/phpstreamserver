@@ -17,6 +17,8 @@ use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
 
+use function PHPStreamServer\Core\strSignal;
+
 /**
  * @internal
  */
@@ -127,7 +129,7 @@ final class Scheduler
             return;
         }
 
-        $this->logger->info(\sprintf('Scheduled worker "%s" [PID: %d] started', $worker->name, $pid));
+        $this->logger->info(\sprintf('Scheduled worker "%s" [PID:%d] started', $worker->name, $pid));
         $this->scheduleWorker($worker);
 
         $bus = $this->messageBus;
@@ -152,14 +154,21 @@ final class Scheduler
         }
     }
 
-    private function onChildStop(int $pid, int $exitCode): void
+    private function onChildStop(int $pid, int $exitCode, int|null $terminationSignal): void
     {
         if (null === $workerInfo = $this->pool->getWorkerInfoByPid($pid)) {
             return;
         }
 
         $this->pool->removeProcess($pid);
-        $this->logger->info(\sprintf('Scheduled worker "%s" [PID: %d] exited with code %d', $workerInfo->name, $pid, $exitCode));
+
+        if ($terminationSignal !== null) {
+            $this->logger->warning(\sprintf('Scheduled worker "%s" [PID:%d] terminated with signal %s (%d)', $workerInfo->name, $pid, strSignal($terminationSignal), $terminationSignal));
+        } elseif ($exitCode === 0) {
+            $this->logger->info(\sprintf('Scheduled worker "%s" [PID:%d] exited with code %d', $workerInfo->name, $pid, $exitCode));
+        } else {
+            $this->logger->warning(\sprintf('Scheduled worker "%s" [PID:%d] exited with code %d', $workerInfo->name, $pid, $exitCode));
+        }
 
         if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && !$this->pool->hasRunningWorkers()) {
             $this->stopFuture->complete();
@@ -189,7 +198,7 @@ final class Scheduler
                         continue;
                     }
                     \posix_kill($pid, SIGKILL);
-                    $logger->notice(\sprintf('Scheduled worker "%s" [PID: %d] was killed after a %d-second timeout', $worker->name, $pid, $stopTimeout));
+                    $logger->notice(\sprintf('Scheduled worker "%s" [PID:%d] was killed after a %d-second timeout', $worker->name, $pid, $stopTimeout));
                 }
                 $stopFuture->complete();
             });
