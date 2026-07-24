@@ -36,16 +36,6 @@ final class SchedulerPlugin extends Plugin
         $this->scheduler = new Scheduler($stopTimeout);
     }
 
-    public function registerWorker(Process $worker): void
-    {
-        $this->scheduler->registerWorker($worker);
-    }
-
-    public function unregisterWorker(int $workerId): void
-    {
-        $this->scheduler->unregisterWorker($workerId);
-    }
-
     public function onStart(): void
     {
         $suspension = $this->masterContainer->getService(Suspension::class);
@@ -62,6 +52,16 @@ final class SchedulerPlugin extends Plugin
             $registry = $this->masterContainer->getService(RegistryInterface::class);
             new MetricsHandler($registry, $this->scheduler->pool, $this->handler);
         }
+    }
+
+    public function registerWorker(Process $worker): void
+    {
+        $this->scheduler->registerWorker($worker);
+    }
+
+    public function unregisterWorker(int $workerId): void
+    {
+        $this->scheduler->unregisterWorker($workerId);
     }
 
     public function onStop(): Future

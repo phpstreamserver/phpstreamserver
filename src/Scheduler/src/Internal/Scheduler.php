@@ -65,7 +65,6 @@ final class Scheduler
             return;
         }
 
-        $this->logger->info(\sprintf('Periodic process "%s" was registered with the scheduler', $worker->name));
         $this->scheduleWorker($worker);
     }
 
