@@ -7,10 +7,10 @@ namespace PHPStreamServer\Symfony\Worker;
 use Amp\Http\Server\Middleware;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 use PHPStreamServer\Plugin\HttpServer\Listen;
-use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerProcess;
+use PHPStreamServer\Plugin\HttpServer\Worker\HttpServerWorker;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
-final class SymfonyHttpServerProcess extends HttpServerProcess
+final class SymfonyHttpServerWorker extends HttpServerWorker
 {
     /**
      * @param Listen|string|array<Listen> $listen

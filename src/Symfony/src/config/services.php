@@ -5,7 +5,7 @@ declare(strict_types=1);
 use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Symfony\Event\ProcessStartEvent;
+use PHPStreamServer\Symfony\Event\WorkerStartEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
 use PHPStreamServer\Symfony\Internal\ExceptionListener;
@@ -34,7 +34,7 @@ return static function (array $config, ContainerConfigurator $configurator) {
         ->set('phpss.configurator', Configurator::class)
         ->args([service('kernel')])
         ->tag('kernel.event_listener', [
-            'event' => ProcessStartEvent::class,
+            'event' => WorkerStartEvent::class,
             'priority' => 8192,
         ])
     ;

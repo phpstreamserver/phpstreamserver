@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PHPStreamServer\Test\data\TestPlugin;
 
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Process;
+use PHPStreamServer\Core\WorkerInterface;
 
 /**
- * @extends Plugin<Process>
+ * @extends Plugin<WorkerInterface>
  */
 final class TestPlugin extends Plugin
 {

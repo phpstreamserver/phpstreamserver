@@ -6,14 +6,14 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Process;
+use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Symfony\Command\StartCommand;
-use PHPStreamServer\Symfony\Event\ProcessReloadEvent;
-use PHPStreamServer\Symfony\Event\ProcessStartEvent;
-use PHPStreamServer\Symfony\Event\ProcessStopEvent;
-use PHPStreamServer\Symfony\Worker\SymfonyHttpServerProcess;
-use PHPStreamServer\Symfony\Worker\SymfonyPeriodicProcess;
-use PHPStreamServer\Symfony\Worker\SymfonyWorkerProcess;
+use PHPStreamServer\Symfony\Event\WorkerReloadEvent;
+use PHPStreamServer\Symfony\Event\WorkerStartEvent;
+use PHPStreamServer\Symfony\Event\WorkerStopEvent;
+use PHPStreamServer\Symfony\Worker\SymfonyHttpServerWorker;
+use PHPStreamServer\Symfony\Worker\SymfonyScheduledCommandWorker;
+use PHPStreamServer\Symfony\Worker\SymfonySupervisedCommandWorker;
 use Symfony\Bundle\FrameworkBundle\Console\Application;
 use Symfony\Component\Console\Input\StringInput;
 use Symfony\Component\Console\Output\NullOutput;
@@ -22,7 +22,7 @@ use Symfony\Contracts\EventDispatcher\EventDispatcherInterface;
 
 /**
  * @internal
- * @extends Plugin<SymfonyHttpServerProcess|SymfonyPeriodicProcess|SymfonyWorkerProcess>
+ * @extends Plugin<SymfonyHttpServerWorker|SymfonyScheduledCommandWorker|SymfonySupervisedCommandWorker>
  */
 final class SymfonyPlugin extends Plugin
 {
@@ -33,24 +33,24 @@ final class SymfonyPlugin extends Plugin
     {
     }
 
-    public function registerWorker(Process $worker): void
+    public function registerWorker(WorkerInterface $worker): void
     {
-        if ($worker instanceof SymfonyHttpServerProcess) {
-            $this->initializeSymfonyHttpServerProcess($worker);
-        } elseif ($worker instanceof SymfonyPeriodicProcess) {
-            $this->initializeSymfonyPeriodicProcess($worker);
-        } elseif ($worker instanceof SymfonyWorkerProcess) {
-            $this->initializeSymfonyWorkerProcess($worker);
+        if ($worker instanceof SymfonyHttpServerWorker) {
+            $this->initializeSymfonyHttpServerWorker($worker);
+        } elseif ($worker instanceof SymfonyScheduledCommandWorker) {
+            $this->initializeSymfonyScheduledCommandWorker($worker);
+        } elseif ($worker instanceof SymfonySupervisedCommandWorker) {
+            $this->initializeSymfonySupervisedCommandWorker($worker);
         }
     }
 
-    private function initializeSymfonyHttpServerProcess(SymfonyHttpServerProcess $process): void
+    private function initializeSymfonyHttpServerWorker(SymfonyHttpServerWorker $worker): void
     {
         $appLoader = $this->appLoader;
         $workerContainer = $this->workerContainer;
         $isBooted = false;
 
-        $process->onStart(priority: -1, onStart: static function (SymfonyHttpServerProcess $worker) use ($appLoader, $workerContainer, &$isBooted): void {
+        $worker->onStart(priority: -1, onStart: static function (SymfonyHttpServerWorker $worker) use ($appLoader, $workerContainer, &$isBooted): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1&web=1';
 
             try {
@@ -59,7 +59,7 @@ final class SymfonyPlugin extends Plugin
 
                 /** @var EventDispatcherInterface $eventDispatcher */
                 $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-                $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+                $eventDispatcher->dispatch(new WorkerStartEvent($worker));
                 $isBooted = true;
             } catch (\Throwable $e) {
                 ErrorHandler::handleException($e);
@@ -67,7 +67,7 @@ final class SymfonyPlugin extends Plugin
             }
         });
 
-        $process->onStop(priority: 1000, onStop: static function (SymfonyHttpServerProcess $worker) use (&$isBooted): void {
+        $worker->onStop(priority: 1000, onStop: static function (SymfonyHttpServerWorker $worker) use (&$isBooted): void {
             if (!$isBooted) {
                 return;
             }
@@ -77,10 +77,10 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
+            $eventDispatcher->dispatch(new WorkerStopEvent($worker));
         });
 
-        $process->onReload(priority: 1000, onReload: static function (SymfonyHttpServerProcess $worker) use (&$isBooted): void {
+        $worker->onReload(priority: 1000, onReload: static function (SymfonyHttpServerWorker $worker) use (&$isBooted): void {
             if (!$isBooted) {
                 return;
             }
@@ -90,15 +90,15 @@ final class SymfonyPlugin extends Plugin
 
             /** @var EventDispatcherInterface $eventDispatcher */
             $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-            $eventDispatcher->dispatch(new ProcessReloadEvent($worker));
+            $eventDispatcher->dispatch(new WorkerReloadEvent($worker));
         });
     }
 
-    private function initializeSymfonyPeriodicProcess(SymfonyPeriodicProcess $process): void
+    private function initializeSymfonyScheduledCommandWorker(SymfonyScheduledCommandWorker $worker): void
     {
         $appLoader = $this->appLoader;
 
-        $process->onStart(priority: -1, onStart: static function (SymfonyPeriodicProcess $worker) use ($appLoader): void {
+        $worker->onStart(priority: -1, onStart: static function (SymfonyScheduledCommandWorker $worker) use ($appLoader): void {
             $kernel = $appLoader->loadApp();
             $kernel->boot();
 
@@ -117,18 +117,18 @@ final class SymfonyPlugin extends Plugin
             $input = new StringInput($worker->commandInput);
             $output = new NullOutput();
 
-            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+            $eventDispatcher->dispatch(new WorkerStartEvent($worker));
             $exitCode = $application->run($input, $output);
-            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
+            $eventDispatcher->dispatch(new WorkerStopEvent($worker));
             $worker->setExitCode($exitCode);
         });
     }
 
-    private function initializeSymfonyWorkerProcess(SymfonyWorkerProcess $process): void
+    private function initializeSymfonySupervisedCommandWorker(SymfonySupervisedCommandWorker $worker): void
     {
         $appLoader = $this->appLoader;
 
-        $process->onStart(priority: -1, onStart: static function (SymfonyWorkerProcess $worker) use ($appLoader): void {
+        $worker->onStart(priority: -1, onStart: static function (SymfonySupervisedCommandWorker $worker) use ($appLoader): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1';
             $kernel = $appLoader->loadApp();
             $kernel->boot();
@@ -148,9 +148,9 @@ final class SymfonyPlugin extends Plugin
             $input = new StringInput($worker->commandInput);
             $output = new NullOutput();
 
-            $eventDispatcher->dispatch(new ProcessStartEvent($worker));
+            $eventDispatcher->dispatch(new WorkerStartEvent($worker));
             $application->run($input, $output);
-            $eventDispatcher->dispatch(new ProcessStopEvent($worker));
+            $eventDispatcher->dispatch(new WorkerStopEvent($worker));
         });
     }
 

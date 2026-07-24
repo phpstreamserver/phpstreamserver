@@ -12,12 +12,10 @@ use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Plugin\Scheduler\Message\GetWorkersCommand;
 use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
-use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
-
-use function PHPStreamServer\Core\generateWorkerId;
 
 /**
  * @internal
@@ -52,15 +50,12 @@ final class Scheduler
         });
     }
 
-    public function registerWorker(PeriodicProcess $worker): void
+    public function registerWorker(ScheduledWorker $worker): void
     {
-        $workerId = generateWorkerId();
-        $worker->assignId($workerId);
-
         try {
             $this->pool->addWorker($worker);
         } catch (\InvalidArgumentException) {
-            $this->logger->warning(\sprintf('Periodic process "%s" was not registered; schedule "%s" is invalid', $worker->name, $worker->schedule));
+            $this->logger->warning(\sprintf('Scheduled worker "%s" was not registered; schedule "%s" is invalid', $worker->name, $worker->schedule));
 
             return;
         }
@@ -82,7 +77,7 @@ final class Scheduler
         }
     }
 
-    private function scheduleWorker(PeriodicProcess $worker): bool
+    private function scheduleWorker(ScheduledWorker $worker): bool
     {
         if ($this->stopFuture !== null) {
             return false;
@@ -111,7 +106,7 @@ final class Scheduler
         return true;
     }
 
-    private function callWorker(PeriodicProcess $worker): void
+    private function callWorker(ScheduledWorker $worker): void
     {
         // Do not call if scheduler is stopping
         if ($this->stopFuture !== null) {
@@ -121,7 +116,7 @@ final class Scheduler
         // Reschedule a task without running it if the previous task is still running
         if ($this->pool->isWorkerRunning($worker->id)) {
             if ($this->scheduleWorker($worker)) {
-                $this->logger->info(\sprintf('Periodic process "%s" is already running; scheduling the next run', $worker->name));
+                $this->logger->info(\sprintf('Scheduled worker "%s" is already running; scheduling the next run', $worker->name));
             }
 
             return;
@@ -132,7 +127,7 @@ final class Scheduler
             return;
         }
 
-        $this->logger->info(\sprintf('Periodic process "%s" [PID: %d] started', $worker->name, $pid));
+        $this->logger->info(\sprintf('Scheduled worker "%s" [PID: %d] started', $worker->name, $pid));
         $this->scheduleWorker($worker);
 
         $bus = $this->messageBus;
@@ -141,7 +136,7 @@ final class Scheduler
         });
     }
 
-    private function spawnWorker(PeriodicProcess $worker): int
+    private function spawnWorker(ScheduledWorker $worker): int
     {
         $pid = \pcntl_fork();
         if ($pid > 0) {
@@ -159,12 +154,12 @@ final class Scheduler
 
     private function onChildStop(int $pid, int $exitCode): void
     {
-        if (null === $worker = $this->pool->getWorkerInfoByPid($pid)) {
+        if (null === $workerInfo = $this->pool->getWorkerInfoByPid($pid)) {
             return;
         }
 
         $this->pool->removeProcess($pid);
-        $this->logger->info(\sprintf('Periodic process "%s" [PID: %d] exited with code %d', $worker->name, $pid, $exitCode));
+        $this->logger->info(\sprintf('Scheduled worker "%s" [PID: %d] exited with code %d', $workerInfo->name, $pid, $exitCode));
 
         if ($this->stopFuture !== null && !$this->stopFuture->isComplete() && !$this->pool->hasRunningWorkers()) {
             $this->stopFuture->complete();
@@ -188,13 +183,13 @@ final class Scheduler
             $logger = $this->logger;
             $stopFuture = $this->stopFuture;
             $stopCallbackId = EventLoop::delay($stopTimeout, static function () use ($stopTimeout, $pool, $logger, $stopFuture): void {
-                // Send the SIGKILL signal to all running periodic processes after the timeout
+                // Send the SIGKILL signal to all running scheduled worker processes after the timeout
                 foreach ($pool->getWorkerInfos() as $worker) {
                     if (null === $pid = $pool->getPidById($worker->id)) {
                         continue;
                     }
                     \posix_kill($pid, SIGKILL);
-                    $logger->notice(\sprintf('Periodic process "%s" [PID: %d] was killed after a %d-second timeout', $worker->name, $pid, $stopTimeout));
+                    $logger->notice(\sprintf('Scheduled worker "%s" [PID: %d] was killed after a %d-second timeout', $worker->name, $pid, $stopTimeout));
                 }
                 $stopFuture->complete();
             });

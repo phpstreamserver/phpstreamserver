@@ -7,7 +7,7 @@ namespace PHPStreamServer\Plugin\Scheduler\Internal;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
-use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
 
 /**
@@ -15,11 +15,6 @@ use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
  */
 final class WorkerPool
 {
-    /**
-     * @var array<int, PeriodicProcess>
-     */
-    private array $workersById = [];
-
     /**
      * @var array<int, WorkerInfo>
      */
@@ -42,7 +37,7 @@ final class WorkerPool
     /**
      * @throws \InvalidArgumentException
      */
-    public function addWorker(PeriodicProcess $worker): WorkerInfo
+    public function addWorker(ScheduledWorker $worker): WorkerInfo
     {
         $now = new \DateTimeImmutable('now');
         $trigger = TriggerFactory::create($worker->schedule, $worker->jitter);
@@ -61,7 +56,6 @@ final class WorkerPool
             nextRunDateTime: $nextRunDate,
         );
 
-        $this->workersById[$worker->id] = $worker;
         $this->workerInfosById[$worker->id] = $workerInfo;
         $this->triggersById[$worker->id] = $trigger;
 
@@ -80,7 +74,6 @@ final class WorkerPool
             return;
         }
 
-        unset($this->workersById[$worker->id]);
         unset($this->workerInfosById[$worker->id]);
         unset($this->triggersById[$worker->id]);
         unset($this->pids[$worker->id]);
@@ -105,17 +98,11 @@ final class WorkerPool
         unset($this->pids[$worker->id]);
 
         if ($worker->status === WorkerInfo::STATUS_CANCEL) {
-            unset($this->workersById[$worker->id]);
             unset($this->workerInfosById[$worker->id]);
             unset($this->triggersById[$worker->id]);
         } else {
             $worker->status = WorkerInfo::STATUS_SCHEDULED;
         }
-    }
-
-    public function getWorkerProcessById(int $workerId): PeriodicProcess|null
-    {
-        return $this->workersById[$workerId] ?? null;
     }
 
     public function calculateNextRunDate(int $workerId, \DateTimeImmutable $now): \DateTimeImmutable|null

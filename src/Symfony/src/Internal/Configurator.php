@@ -6,7 +6,7 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
-use PHPStreamServer\Symfony\Event\ProcessStartEvent;
+use PHPStreamServer\Symfony\Event\WorkerStartEvent;
 use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -19,7 +19,7 @@ final readonly class Configurator
     {
     }
 
-    public function __invoke(ProcessStartEvent $event): void
+    public function __invoke(WorkerStartEvent $event): void
     {
         $kernelContainer = $this->kernel->getContainer();
         $workerContainer = $event->worker->getContainer();

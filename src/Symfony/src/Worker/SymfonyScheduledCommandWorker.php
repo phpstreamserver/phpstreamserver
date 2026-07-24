@@ -4,14 +4,14 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Worker;
 
-use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
-if (!\class_exists(PeriodicProcess::class)) {
-    throw new \RuntimeException(\sprintf('You cannot use "%s\SymfonyPeriodicProcess" because the "scheduler" package is not installed. Try running "composer require phpstreamserver/scheduler"', __NAMESPACE__));
+if (!\class_exists(ScheduledWorker::class)) {
+    throw new \RuntimeException(\sprintf('You cannot use "%s\SymfonyScheduledCommandWorker" because the "scheduler" package is not installed. Try running "composer require phpstreamserver/scheduler"', __NAMESPACE__));
 }
 
-final class SymfonyPeriodicProcess extends PeriodicProcess
+final class SymfonyScheduledCommandWorker extends ScheduledWorker
 {
     public readonly string $commandInput;
     public readonly string $commandName;

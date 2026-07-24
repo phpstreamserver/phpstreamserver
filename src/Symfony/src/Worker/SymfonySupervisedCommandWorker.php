@@ -5,10 +5,10 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony\Worker;
 
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
-use PHPStreamServer\Core\Worker\WorkerProcess;
+use PHPStreamServer\Core\Worker\SupervisedWorker;
 use PHPStreamServer\Symfony\Internal\SymfonyPlugin;
 
-final class SymfonyWorkerProcess extends WorkerProcess
+final class SymfonySupervisedCommandWorker extends SupervisedWorker
 {
     public readonly string $commandInput;
     public readonly string $commandName;

@@ -11,8 +11,8 @@ use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Internal\ProcessUserChange;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Core\Process;
 use PHPStreamServer\Core\Server;
+use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Revolt\EventLoop;
 use Revolt\EventLoop\DriverFactory;
@@ -20,7 +20,7 @@ use Revolt\EventLoop\DriverFactory;
 use function PHPStreamServer\Core\getCurrentGroup;
 use function PHPStreamServer\Core\getCurrentUser;
 
-class PeriodicProcess implements Process
+class ScheduledWorker implements WorkerInterface
 {
     use ProcessUserChange;
 
@@ -79,7 +79,7 @@ class PeriodicProcess implements Process
         }
 
         $this->id = $id;
-        $this->name ??= 'periodic worker ' . $id;
+        $this->name ??= 'scheduled worker ' . $id;
     }
 
     /**
@@ -89,7 +89,7 @@ class PeriodicProcess implements Process
     {
         // Some command-line SAPIs (e.g., phpdbg) don't have this function.
         if (\function_exists('cli_set_process_title')) {
-            \cli_set_process_title(\sprintf('%s: periodic process %s', Server::NAME, $this->name));
+            \cli_set_process_title(\sprintf('%s: %s', Server::NAME, $this->name));
         }
 
         EventLoop::setDriver((new DriverFactory())->create());
@@ -128,6 +128,11 @@ class PeriodicProcess implements Process
     public static function handledBy(): array
     {
         return [SchedulerPlugin::class];
+    }
+
+    public function getId(): int
+    {
+        return $this->id;
     }
 
     public function getPid(): int

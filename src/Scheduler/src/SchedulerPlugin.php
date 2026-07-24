@@ -9,16 +9,16 @@ use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Process;
+use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 use PHPStreamServer\Plugin\Scheduler\Command\SchedulerCommand;
 use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
 use PHPStreamServer\Plugin\Scheduler\Internal\Scheduler;
-use PHPStreamServer\Plugin\Scheduler\Worker\PeriodicProcess;
+use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use Revolt\EventLoop\Suspension;
 
 /**
- * @extends Plugin<PeriodicProcess>
+ * @extends Plugin<ScheduledWorker>
  */
 final class SchedulerPlugin extends Plugin
 {
@@ -54,7 +54,7 @@ final class SchedulerPlugin extends Plugin
         }
     }
 
-    public function registerWorker(Process $worker): void
+    public function registerWorker(WorkerInterface $worker): void
     {
         $this->scheduler->registerWorker($worker);
     }

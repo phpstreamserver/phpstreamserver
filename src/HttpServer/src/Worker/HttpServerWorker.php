@@ -14,7 +14,7 @@ use PHPStreamServer\Core\Exception\ServiceNotFoundException;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
-use PHPStreamServer\Core\Worker\WorkerProcess;
+use PHPStreamServer\Core\Worker\SupervisedWorker;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\MetricsMiddleware;
@@ -23,7 +23,7 @@ use PHPStreamServer\Plugin\Metrics\RegistryInterface;
 
 use function PHPStreamServer\Core\getCpuCount;
 
-class HttpServerProcess extends WorkerProcess
+class HttpServerWorker extends SupervisedWorker
 {
     private HttpServer|null $httpServer = null;
 
@@ -92,7 +92,7 @@ class HttpServerProcess extends WorkerProcess
 
         if ($requestHandler instanceof \Closure) {
             $requestHandler = new class ($requestHandler, $worker) implements RequestHandler {
-                public function __construct(private readonly \Closure $handler, private readonly WorkerProcess $worker)
+                public function __construct(private readonly \Closure $handler, private readonly SupervisedWorker $worker)
                 {
                 }
 
