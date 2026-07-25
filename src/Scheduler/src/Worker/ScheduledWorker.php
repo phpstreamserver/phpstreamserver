@@ -6,8 +6,9 @@ namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
-use PHPStreamServer\Core\Exception\UserChangeException;
+use PHPStreamServer\Core\Exception\ProcessIdentityException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
+use PHPStreamServer\Core\Internal\ProcessIdentity;
 use PHPStreamServer\Core\Logger\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Server;
@@ -15,10 +16,6 @@ use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Revolt\EventLoop;
 use Revolt\EventLoop\DriverFactory;
-
-use function PHPStreamServer\Core\getCurrentGroup;
-use function PHPStreamServer\Core\getCurrentUser;
-use function PHPStreamServer\Core\setUserAndGroup;
 
 class ScheduledWorker implements WorkerInterface
 {
@@ -105,8 +102,8 @@ class ScheduledWorker implements WorkerInterface
         });
 
         try {
-            setUserAndGroup($this->user, $this->group);
-        } catch (UserChangeException $e) {
+            ProcessIdentity::switchTo($this->user, $this->group);
+        } catch (ProcessIdentityException $e) {
             $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->name, $e->getMessage()));
         }
 
@@ -145,12 +142,12 @@ class ScheduledWorker implements WorkerInterface
 
     final public function getUser(): string
     {
-        return $this->user ?? getCurrentUser();
+        return $this->user ?? ProcessIdentity::getEffectiveUser();
     }
 
     final public function getGroup(): string
     {
-        return $this->group ?? getCurrentGroup();
+        return $this->group ?? ProcessIdentity::getEffectiveGroup();
     }
 
     public function getContainer(): ContainerInterface
