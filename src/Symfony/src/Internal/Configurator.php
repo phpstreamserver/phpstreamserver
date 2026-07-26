@@ -6,6 +6,7 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Symfony\Internal\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\SymfonyEvent\WorkerStartEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -23,9 +24,10 @@ final readonly class Configurator
     {
         $kernelContainer = $this->kernel->getContainer();
         $workerContainer = $event->worker->getContainer();
+        $logger = $workerContainer->get(LoggerInterface::class);
 
         $kernelContainer->set('phpss.container', $workerContainer);
-        $kernelContainer->set('phpss.logger', $event->worker->getLogger());
+        $kernelContainer->set('phpss.logger', $logger);
 
         $workerContainer->setService('kernel', $this->kernel);
 

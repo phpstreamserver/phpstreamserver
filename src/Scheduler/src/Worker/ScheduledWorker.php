@@ -155,11 +155,6 @@ class ScheduledWorker implements WorkerInterface
         return $this->container;
     }
 
-    public function getLogger(): LoggerInterface
-    {
-        return $this->logger;
-    }
-
     public function getMessageBus(): MessageBusInterface
     {
         return $this->bus;
