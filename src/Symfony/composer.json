@@ -29,7 +29,8 @@
         "symfony/http-kernel": "^7.0|^8.0",
         "symfony/runtime": "^7.0|^8.0",
         "symfony/dotenv": "^7.0|^8.0",
-        "amphp/pipeline": "^1.2"
+        "amphp/pipeline": "^1.2",
+        "psr/log": "^3.0"
     },
     "autoload": {
         "psr-4": {

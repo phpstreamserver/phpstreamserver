@@ -25,7 +25,8 @@
         "phpstreamserver/core": "^0.8",
         "phpstreamserver/http-server": "^0.8",
         "amphp/http-server": "^3.3",
-        "promphp/prometheus_client_php": "^2.12"
+        "promphp/prometheus_client_php": "^2.12",
+        "psr/log": "^3.0"
     },
     "autoload": {
         "psr-4": {
