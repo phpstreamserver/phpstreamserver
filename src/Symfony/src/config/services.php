@@ -3,14 +3,14 @@
 declare(strict_types=1);
 
 use PHPStreamServer\Core\ContainerInterface;
-use PHPStreamServer\Core\Logger\LoggerInterface;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Symfony\Event\WorkerStartEvent;
-use PHPStreamServer\Symfony\Http\HttpRequestHandler;
 use PHPStreamServer\Symfony\Internal\Configurator;
 use PHPStreamServer\Symfony\Internal\ExceptionListener;
+use PHPStreamServer\Symfony\Internal\Http\HttpRequestHandler;
+use PHPStreamServer\Symfony\Internal\Logger\PhpSSMonologHandler;
 use PHPStreamServer\Symfony\Internal\MessageBusFactory;
-use PHPStreamServer\Symfony\Logger\PhpSSMonologHandler;
+use PHPStreamServer\Symfony\SymfonyEvent\WorkerStartEvent;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Event\TerminateEvent;

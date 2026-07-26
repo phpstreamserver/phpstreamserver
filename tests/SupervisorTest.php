@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Core\Message\GetProcessesCommand;
-use PHPStreamServer\Core\Message\GetWorkersCommand;
-use PHPStreamServer\Core\Message\ReloadServerCommand;
+use PHPStreamServer\Core\Command\GetProcessesCommand;
+use PHPStreamServer\Core\Command\GetWorkersCommand;
+use PHPStreamServer\Core\Command\ReloadServerCommand;
 use PHPStreamServer\Core\Plugin\Supervisor\ProcessInfo;
 use PHPStreamServer\Core\Plugin\Supervisor\WorkerInfo;
 use PHPStreamServer\Test\data\PHPSSTestCase;

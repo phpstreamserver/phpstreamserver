@@ -5,8 +5,8 @@ declare(strict_types=1);
 namespace PHPStreamServer\Test\data\TestPlugin;
 
 use PHPStreamServer\Core\Console\Command;
+use PHPStreamServer\Core\Internal\MessageBus\SocketFileMessageBus;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
-use PHPStreamServer\Core\MessageBus\SocketFileMessageBus;
 
 use function PHPStreamServer\Core\isRunning;
 

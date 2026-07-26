@@ -13,8 +13,7 @@ use Amp\Http\Server\Response;
 use Amp\Http\Server\SocketHttpServer;
 use Amp\Socket\ResourceServerSocketFactory;
 use PHPStreamServer\Core\ContainerInterface;
-use PHPStreamServer\Core\Logger\LoggerInterface;
-use PHPStreamServer\Core\Logger\NullLogger;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
@@ -25,6 +24,7 @@ use PHPStreamServer\Plugin\HttpServer\Listen;
 use PHPStreamServer\Plugin\Metrics\Internal\MessageBusRegistry;
 use PHPStreamServer\Plugin\Metrics\Internal\MessageBusRegistryHandler;
 use PHPStreamServer\Plugin\Metrics\Internal\NotFoundPage;
+use Psr\Log\NullLogger;
 use Revolt\EventLoop;
 
 /**

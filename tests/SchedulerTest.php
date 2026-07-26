@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Test;
 
-use PHPStreamServer\Plugin\Scheduler\Message\GetWorkersCommand;
+use PHPStreamServer\Plugin\Scheduler\Command\GetWorkersCommand;
 use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
 use PHPStreamServer\Test\data\PHPSSTestCase;
 

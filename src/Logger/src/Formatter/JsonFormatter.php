@@ -10,7 +10,7 @@ use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenEnum;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenException;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenObject;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
+use PHPStreamServer\Plugin\Logger\LogEntry;
 
 /**
  * Serializes a log record to JSON

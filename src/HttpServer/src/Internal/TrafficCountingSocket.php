@@ -10,7 +10,7 @@ use Amp\Socket\Socket;
 use Amp\Socket\SocketAddress;
 use Amp\Socket\TlsInfo;
 use Amp\Socket\TlsState;
-use PHPStreamServer\Core\Plugin\System\Connections\NetworkTrafficCounter;
+use PHPStreamServer\Core\Plugin\System\Connection\NetworkTrafficCounter;
 
 /**
  * @implements \IteratorAggregate<int, string>

@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger;
 
 use PHPStreamServer\Core\ContainerInterface;
-use PHPStreamServer\Core\Logger\LoggerInterface as CoreLoggerInterface;
+use PHPStreamServer\Core\LoggerInterface as CoreLoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 use PHPStreamServer\Plugin\Logger\Internal\MasterLogger;
 use PHPStreamServer\Plugin\Logger\Internal\WorkerLogger;
 use Revolt\EventLoop;

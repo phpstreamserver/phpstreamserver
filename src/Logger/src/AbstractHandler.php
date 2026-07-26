@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger;
 
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
-
 abstract class AbstractHandler implements Handler
 {
     private readonly LogLevel $level;

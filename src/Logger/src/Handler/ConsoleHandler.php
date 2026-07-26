@@ -9,7 +9,7 @@ use PHPStreamServer\Core\Internal\Console\StdoutHandler;
 use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\ConsoleFormatter;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
+use PHPStreamServer\Plugin\Logger\LogEntry;
 use PHPStreamServer\Plugin\Logger\LogLevel;
 
 final class ConsoleHandler extends AbstractHandler

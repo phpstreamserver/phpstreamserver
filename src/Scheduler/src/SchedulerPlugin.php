@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler;
 
 use Amp\Future;
-use PHPStreamServer\Core\Logger\LoggerInterface;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
-use PHPStreamServer\Plugin\Scheduler\Command\SchedulerCommand;
+use PHPStreamServer\Plugin\Scheduler\ConsoleCommand\SchedulerCommand;
 use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
 use PHPStreamServer\Plugin\Scheduler\Internal\Scheduler;
 use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;

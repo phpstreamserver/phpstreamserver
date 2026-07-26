@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony;
 
-use PHPStreamServer\Core\Logger\NullLogger;
+use PHPStreamServer\Symfony\Internal\Logger\NullLogger;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;

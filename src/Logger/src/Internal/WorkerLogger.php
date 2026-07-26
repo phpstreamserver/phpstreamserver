@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger\Internal;
 
-use PHPStreamServer\Core\Logger\LoggerInterface;
-use PHPStreamServer\Core\Message\CompositeMessage;
+use PHPStreamServer\Core\LoggerInterface;
+use PHPStreamServer\Core\MessageBus\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\ContextFlattenNormalizer;
+use PHPStreamServer\Plugin\Logger\ContextFlattenNormalizer;
+use PHPStreamServer\Plugin\Logger\LogEntry;
 use PHPStreamServer\Plugin\Logger\LogLevel;
 use Psr\Log\LoggerTrait;
 use Revolt\EventLoop;

@@ -1,0 +1,203 @@
+<?php
+
+declare(strict_types=1);
+
+namespace PHPStreamServer\Symfony\Internal\Http;
+
+use Amp\ByteStream\StreamException;
+use Amp\Http\Server\Request as AmpRequest;
+use PHPStreamServer\Symfony\Internal\Http\Multipart\InvalidMultipartContentException;
+use PHPStreamServer\Symfony\Internal\Http\Multipart\InvalidMultipartHeaderException;
+use PHPStreamServer\Symfony\Internal\Http\Multipart\Multipart;
+use PHPStreamServer\Symfony\Internal\Http\Multipart\MultipartParser;
+use Symfony\Component\HttpFoundation\Request as SymfonyRequest;
+
+/**
+ * @internal
+ */
+final class HttpFoundationFactory
+{
+    private \SplObjectStorage $multipartResources;
+
+    public function __construct()
+    {
+        $this->multipartResources = new \SplObjectStorage();
+    }
+
+    public function createRequest(AmpRequest $request): SymfonyRequest
+    {
+        $server = [];
+        $uri = $request->getUri();
+        $client = $request->getClient();
+
+        $serverAddress = $client->getLocalAddress()->toString();
+        $serverAddressDelimiterPosition = (int) \strrpos($serverAddress, ':');
+        $serverAddressHost = \substr($serverAddress, 0, $serverAddressDelimiterPosition);
+
+        $remoteAddress = $client->getRemoteAddress()->toString();
+        $remoteAddressDelimiterPosition = (int) \strrpos($remoteAddress, ':');
+        $remoteAddressHost = \substr($remoteAddress, 0, $remoteAddressDelimiterPosition);
+        $remoteAddressPort = \substr($remoteAddress, $remoteAddressDelimiterPosition + 1);
+
+        $server['SERVER_NAME'] = $uri->getHost();
+        $server['SERVER_ADDR'] = $serverAddressHost;
+        $server['SERVER_PORT'] = $uri->getPort() ?: ('https' === $uri->getScheme() ? 443 : 80);
+        $server['REMOTE_ADDR'] = $remoteAddressHost;
+        $server['REMOTE_PORT'] = (int) $remoteAddressPort;
+        $server['REQUEST_URI'] = $uri->getPath();
+        $server['REQUEST_METHOD'] = $request->getMethod();
+        $server['QUERY_STRING'] = $uri->getQuery();
+
+        if ($server['QUERY_STRING'] !== '') {
+            $server['REQUEST_URI'] .= '?' . $server['QUERY_STRING'];
+        }
+
+        if ($uri->getScheme() === 'https') {
+            $server['HTTPS'] = 'on';
+        }
+
+        $query = [];
+        \parse_str($uri->getQuery(), $query);
+
+        $cookies = [];
+        foreach ($request->getCookies() as $cookie) {
+            $cookies[$cookie->getName()] = $cookie->getValue();
+        }
+
+        [$content, $parsedBody, $parsedFiles] = $this->parsePayload($request);
+
+        $symfonyRequest = new SymfonyRequest(
+            query: $query,
+            request: $parsedBody,
+            attributes: $request->getAttributes(),
+            cookies: $cookies,
+            files: $parsedFiles,
+            server: $server,
+            content: $content,
+        );
+
+        $symfonyRequest->headers->add($request->getHeaders());
+
+        return $symfonyRequest;
+    }
+
+    /**
+     * @return array{0: string, 1: array, 2: array}
+     */
+    private function parsePayload(AmpRequest $request): array
+    {
+        $contentType = Multipart::parseHeaderContent($request->getHeader('content-type'))[0];
+
+        if (!\in_array($request->getMethod(), ['POST', 'PUT', 'PATCH'], true)) {
+            $content = '';
+            $parsedBody = [];
+            $parsedFiles = [];
+        } elseif ($contentType === 'application/x-www-form-urlencoded') {
+            $content = \trim($request->getBody()->buffer());
+            $parsedBody = [];
+            $parsedFiles = [];
+            \parse_str(\urldecode($content), $parsedBody);
+        } elseif ($contentType === 'application/json') {
+            $content = \trim($request->getBody()->buffer());
+            $parsedBody = (array) \json_decode($content, true);
+            $parsedFiles = [];
+        } elseif ($contentType === 'multipart/form-data') {
+            $content = '';
+            try {
+                [$parsedBody, $parsedFiles] = $this->parseMultipartPayload($request);
+            } catch (InvalidMultipartHeaderException|InvalidMultipartContentException|StreamException) {
+                $parsedBody = [];
+                $parsedFiles = [];
+            }
+        } else {
+            $content = '';
+            $parsedBody = [];
+            $parsedFiles = [];
+        }
+
+        return [$content, $parsedBody, $parsedFiles];
+    }
+
+    /**
+     * @return array{0: array, 1: array}
+     * @throws InvalidMultipartHeaderException
+     * @throws InvalidMultipartContentException
+     * @throws StreamException
+     */
+    private function parseMultipartPayload(AmpRequest $request): array
+    {
+        $resource = \fopen('php://temp', 'r+');
+        while (null !== $chunk = $request->getBody()->read()) {
+            \fwrite($resource, $chunk);
+            unset($chunk);
+        }
+
+        $tempArtifacts = [$resource];
+        $multipartParser = new MultipartParser($resource, (string) $request->getHeader('content-type'));
+
+        $payload = [];
+        $payloadStructureStr = '';
+        $payloadStructureList = [];
+
+        $files = [];
+        $fileStructureStr = '';
+        $fileStructureList = [];
+
+        foreach ($multipartParser as $part) {
+            if (null === $name = $part->getName()) {
+                continue;
+            }
+
+            if ($part->isFile()) {
+                $filename = $part->getFilename();
+                if ($filename !== null && $filename !== '') {
+                    $fileStructureStr .= "$name&";
+                    $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
+                    $tempArtifacts[] = $path;
+                    $fileStructureList[] = new UploadedFile($path, $part);
+                }
+            } else {
+                $payloadStructureStr .= "$name&";
+                $payloadStructureList[] = $part->getContents();
+            }
+        }
+
+        if ($fileStructureList !== []) {
+            $i = 0;
+            \parse_str($fileStructureStr, $files);
+            \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i): void {
+                $item = $fileStructureList[$i++];
+            });
+        }
+
+        if ($payloadStructureList !== []) {
+            $i = 0;
+            \parse_str($payloadStructureStr, $payload);
+            \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i): void {
+                $item = $payloadStructureList[$i++];
+            });
+        }
+
+        $this->multipartResources->offsetSet($request, $tempArtifacts);
+
+        return [$payload, $files];
+    }
+
+    public function disposeTempArtifacts(AmpRequest $request): void
+    {
+        if (!$this->multipartResources->offsetExists($request)) {
+            return;
+        }
+
+        $tempArtifacts = $this->multipartResources->offsetGet($request);
+        $this->multipartResources->offsetUnset($request);
+
+        foreach ($tempArtifacts as $tempArtifact) {
+            if (\is_resource($tempArtifact)) {
+                \fclose($tempArtifact);
+            } elseif (\is_string($tempArtifact) && \file_exists($tempArtifact)) {
+                \unlink($tempArtifact);
+            }
+        }
+    }
+}

@@ -7,7 +7,7 @@ namespace PHPStreamServer\Plugin\Scheduler\Internal;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\Metrics\RegistryInterface;
-use PHPStreamServer\Plugin\Scheduler\Message\ProcessStartedEvent;
+use PHPStreamServer\Plugin\Scheduler\Event\ProcessStartedEvent;
 use Revolt\EventLoop;
 
 /**

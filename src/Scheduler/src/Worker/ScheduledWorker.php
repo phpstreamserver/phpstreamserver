@@ -9,7 +9,7 @@ use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Exception\ProcessIdentityException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Internal\ProcessIdentity;
-use PHPStreamServer\Core\Logger\LoggerInterface;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Core\WorkerInterface;

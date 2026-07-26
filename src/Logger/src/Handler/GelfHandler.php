@@ -12,7 +12,7 @@ use PHPStreamServer\Plugin\Logger\Internal\GelfTransport\GelfHttpTransport;
 use PHPStreamServer\Plugin\Logger\Internal\GelfTransport\GelfTcpTransport;
 use PHPStreamServer\Plugin\Logger\Internal\GelfTransport\GelfTransport;
 use PHPStreamServer\Plugin\Logger\Internal\GelfTransport\GelfUdpTransport;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
+use PHPStreamServer\Plugin\Logger\LogEntry;
 use PHPStreamServer\Plugin\Logger\LogLevel;
 use Revolt\EventLoop;
 

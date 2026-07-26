@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger;
 
 use Amp\Future;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
 
 interface Handler
 {

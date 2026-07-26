@@ -10,7 +10,7 @@ use Amp\Future;
 use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\StringFormatter;
-use PHPStreamServer\Plugin\Logger\Internal\LogEntry;
+use PHPStreamServer\Plugin\Logger\LogEntry;
 use PHPStreamServer\Plugin\Logger\LogLevel;
 use Revolt\EventLoop;
 

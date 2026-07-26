@@ -6,8 +6,8 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Request;
 use Amp\Http\Server\Response;
-use PHPStreamServer\Symfony\Event\WorkerStartEvent;
-use PHPStreamServer\Symfony\Http\HttpRequestHandler;
+use PHPStreamServer\Symfony\Internal\Http\HttpRequestHandler;
+use PHPStreamServer\Symfony\SymfonyEvent\WorkerStartEvent;
 use Symfony\Component\HttpKernel\KernelInterface;
 
 /**
