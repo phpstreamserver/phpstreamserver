@@ -178,4 +178,9 @@ class ScheduledWorker implements WorkerInterface
     {
         $this->exitCode = $exitCode;
     }
+
+    public function isSerializable(): bool
+    {
+        return true;
+    }
 }

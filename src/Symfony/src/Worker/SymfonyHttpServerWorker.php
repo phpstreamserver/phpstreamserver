@@ -55,4 +55,9 @@ final class SymfonyHttpServerWorker extends HttpServerWorker
     {
         return [...parent::handledBy(), SymfonyPlugin::class];
     }
+
+    public function isSerializable(): bool
+    {
+        return false;
+    }
 }
