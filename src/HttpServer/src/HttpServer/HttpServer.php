@@ -17,7 +17,7 @@ use Amp\Socket\ResourceServerSocketFactory;
 use Amp\Socket\ServerTlsContext;
 use Amp\Sync\LocalSemaphore;
 use PHPStreamServer\Core\LoggerInterface;
-use PHPStreamServer\Core\Plugin\System\Connection\NetworkTrafficCounter;
+use PHPStreamServer\Core\Plugin\System\NetworkTrafficCounter;
 use PHPStreamServer\Plugin\HttpServer\Internal\ClientSocketFactory;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\AccessLoggerMiddleware;
 use PHPStreamServer\Plugin\HttpServer\Internal\Middleware\PhpSSMiddleware;

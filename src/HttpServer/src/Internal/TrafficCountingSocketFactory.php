@@ -10,7 +10,7 @@ use Amp\Socket\ServerSocket;
 use Amp\Socket\ServerSocketFactory;
 use Amp\Socket\Socket;
 use Amp\Socket\SocketAddress;
-use PHPStreamServer\Core\Plugin\System\Connection\NetworkTrafficCounter;
+use PHPStreamServer\Core\Plugin\System\NetworkTrafficCounter;
 
 /**
  * @internal

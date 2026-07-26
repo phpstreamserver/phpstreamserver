@@ -12,7 +12,7 @@ use Amp\Http\Server\RequestHandler\ClosureRequestHandler;
 use Amp\Http\Server\Response;
 use PHPStreamServer\Core\Exception\ServiceNotFoundException;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Core\Plugin\System\Connection\NetworkTrafficCounter;
+use PHPStreamServer\Core\Plugin\System\NetworkTrafficCounter;
 use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 use PHPStreamServer\Core\Worker\SupervisedWorker;
 use PHPStreamServer\Plugin\HttpServer\HttpServer\HttpServer;
