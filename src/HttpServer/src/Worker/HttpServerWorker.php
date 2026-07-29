@@ -60,6 +60,10 @@ class HttpServerWorker extends SupervisedWorker
         private readonly int|null $connectionLimitPerIp = null,
         private readonly int|null $concurrencyLimit = null,
     ) {
+        if ($gzip && !\extension_loaded('zlib')) {
+            throw new \RuntimeException('Install the zlib extension to use compression');
+        }
+
         parent::__construct(
             name: $name,
             count: $count ?? getCpuCount(),

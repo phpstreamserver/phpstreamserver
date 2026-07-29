@@ -46,16 +46,15 @@ class ScheduledWorker implements WorkerInterface
      * @param null|\Closure(self):void $onStart
      */
     public function __construct(
-        string $name = '',
+        string|null $name = null,
         public readonly string $schedule = '1 minute',
         public readonly int $jitter = 0,
         private string|null $user = null,
         private string|null $group = null,
         \Closure|null $onStart = null,
     ) {
-        $name = \trim($name);
-        if ($name !== '') {
-            $this->name = $name;
+        if ($name !== null && $name !== '') {
+            $this->name = \trim($name);
         }
 
         if ($onStart !== null) {

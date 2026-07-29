@@ -19,7 +19,7 @@ final class SymfonySupervisedCommandWorker extends SupervisedWorker
      */
     public function __construct(
         string $command,
-        string $name = '',
+        string|null $name = null,
         int $count = 1,
         bool $reloadable = true,
         string|null $user = null,
@@ -29,8 +29,12 @@ final class SymfonySupervisedCommandWorker extends SupervisedWorker
         $this->commandInput = $command;
         $this->commandName = \strstr($command, ' ', true) ?: $command;
 
+        if ($name !== null) {
+            $name = \trim($name);
+        }
+
         parent::__construct(
-            name: $name ?: $this->commandName,
+            name: $name ?? $this->commandName,
             count: $count,
             reloadable: $reloadable,
             user: $user,

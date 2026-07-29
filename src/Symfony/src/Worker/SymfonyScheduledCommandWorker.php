@@ -21,7 +21,7 @@ final class SymfonyScheduledCommandWorker extends ScheduledWorker
      */
     public function __construct(
         string $command,
-        string $name = '',
+        string|null $name = null,
         string $schedule = '1 minute',
         int $jitter = 0,
         string|null $user = null,
@@ -30,8 +30,12 @@ final class SymfonyScheduledCommandWorker extends ScheduledWorker
         $this->commandInput = $command;
         $this->commandName = \strstr($command, ' ', true) ?: $command;
 
+        if ($name !== null) {
+            $name = \trim($name);
+        }
+
         parent::__construct(
-            name: $name ?: $this->commandName,
+            name: $name ?? $this->commandName,
             schedule: $schedule,
             jitter: $jitter,
             user: $user,
