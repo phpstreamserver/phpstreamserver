@@ -15,16 +15,24 @@ use PHPStreamServer\Core\ReloadStrategy\ReloadStrategy;
 final class MaxRequestsReloadStrategy implements ReloadStrategy
 {
     private int $requestCount = 0;
-    private readonly int $maxRequests;
+    private readonly int $minRequests;
+    private int|null $requestLimit = null;
 
-    public function __construct(int $maxRequests, int $dispersionPercentage = 0)
+    public function __construct(private readonly int $maxRequests, int $dispersionPercentage = 0)
     {
-        $minRequests = $maxRequests - (int) \round($maxRequests * $dispersionPercentage * 0.01);
-        $this->maxRequests = \random_int($minRequests, $maxRequests);
+        $this->minRequests = $maxRequests - (int) \round($maxRequests * $dispersionPercentage * 0.01);
     }
 
     public function shouldReload(mixed $eventObject = null): bool
     {
-        return $eventObject instanceof Request && ++$this->requestCount >= $this->maxRequests;
+        if (!$eventObject instanceof Request) {
+            return false;
+        }
+
+        if ($this->requestLimit === null) {
+            $this->requestLimit = \random_int($this->minRequests, $this->maxRequests);
+        }
+
+        return ++$this->requestCount >= $this->requestLimit;
     }
 }
