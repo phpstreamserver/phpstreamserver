@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
-use PHPStreamServer\Core\Exception\PHPStreamServerException;
 use PHPStreamServer\Core\Exception\ProcessIdentityException;
 use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Internal\ProcessIdentity;
@@ -17,12 +16,15 @@ use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use Revolt\EventLoop;
 use Revolt\EventLoop\DriverFactory;
 
+use function PHPStreamServer\Core\generateWorkerId;
+
 class ScheduledWorker implements WorkerInterface
 {
     private int $exitCode = 0;
-    public readonly int $id;
-    public readonly int $pid;
-    public readonly string $name;
+    private readonly int $id;
+    private readonly int $pid;
+    private readonly string $name;
+
     public readonly ContainerInterface $container;
     public readonly LoggerInterface $logger;
     public readonly MessageBusInterface $bus;
@@ -64,26 +66,12 @@ class ScheduledWorker implements WorkerInterface
 
     /**
      * @internal
-     * @psalm-suppress RedundantPropertyInitializationCheck
-     */
-    final public function assignId(int $id): void
-    {
-        if (isset($this->id)) {
-            throw new PHPStreamServerException('Worker ID has already been assigned');
-        }
-
-        $this->id = $id;
-        $this->name ??= 'scheduled worker ' . $id;
-    }
-
-    /**
-     * @internal
      */
     final public function run(ContainerInterface $workerContainer): int
     {
         // Some command-line SAPIs (e.g., phpdbg) don't have this function.
         if (\function_exists('cli_set_process_title')) {
-            \cli_set_process_title(\sprintf('%s: %s', Server::NAME, $this->name));
+            \cli_set_process_title(\sprintf('%s: %s', Server::NAME, $this->getName()));
         }
 
         EventLoop::setDriver((new DriverFactory())->create());
@@ -103,7 +91,7 @@ class ScheduledWorker implements WorkerInterface
         try {
             ProcessIdentity::switchTo($this->user, $this->group);
         } catch (ProcessIdentityException $e) {
-            $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->name, $e->getMessage()));
+            $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->getName(), $e->getMessage()));
         }
 
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
@@ -126,7 +114,7 @@ class ScheduledWorker implements WorkerInterface
 
     public function getId(): int
     {
-        return $this->id;
+        return $this->id ??= generateWorkerId();
     }
 
     public function getPid(): int
@@ -136,7 +124,7 @@ class ScheduledWorker implements WorkerInterface
 
     public function getName(): string
     {
-        return $this->name;
+        return $this->name ??= 'scheduled worker ' . $this->getId();
     }
 
     final public function getUser(): string

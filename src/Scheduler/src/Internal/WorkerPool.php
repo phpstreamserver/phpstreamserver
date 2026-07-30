@@ -47,17 +47,17 @@ final class WorkerPool
             throw new \InvalidArgumentException('Next run date is not valid');
         }
 
+        $id = $worker->getId();
         $workerInfo = new WorkerInfo(
-            id: $worker->id,
-            name: $worker->name,
+            id: $id,
+            name: $worker->getName(),
             user: $worker->getUser(),
             schedule: $worker->schedule,
             status: WorkerInfo::STATUS_SCHEDULED,
             nextRunDateTime: $nextRunDate,
         );
-
-        $this->workerInfosById[$worker->id] = $workerInfo;
-        $this->triggersById[$worker->id] = $trigger;
+        $this->workerInfosById[$id] = $workerInfo;
+        $this->triggersById[$id] = $trigger;
 
         return $workerInfo;
     }

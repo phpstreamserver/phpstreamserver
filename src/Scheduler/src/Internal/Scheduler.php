@@ -57,7 +57,7 @@ final class Scheduler
         try {
             $this->pool->addWorker($worker);
         } catch (\InvalidArgumentException) {
-            $this->logger->warning(\sprintf('Scheduled worker "%s" was not registered; schedule "%s" is invalid', $worker->name, $worker->schedule));
+            $this->logger->warning(\sprintf('Scheduled worker "%s" was not registered; schedule "%s" is invalid', $worker->getName(), $worker->schedule));
 
             return;
         }
@@ -85,23 +85,25 @@ final class Scheduler
             return false;
         }
 
-        if (isset($this->scheduledDelaysById[$worker->id])) {
-            EventLoop::cancel($this->scheduledDelaysById[$worker->id]);
+        $id = $worker->getId();
+
+        if (isset($this->scheduledDelaysById[$id])) {
+            EventLoop::cancel($this->scheduledDelaysById[$id]);
         }
 
         $currentDate = new \DateTimeImmutable('now');
-        $nextRunDate = $this->pool->calculateNextRunDate($worker->id, $currentDate);
+        $nextRunDate = $this->pool->calculateNextRunDate($id, $currentDate);
 
         if ($nextRunDate === null) {
-            $this->unregisterWorker($worker->id);
+            $this->unregisterWorker($id);
 
             return false;
         }
 
         $delay = (float) $nextRunDate->format('U.u') - (float) $currentDate->format('U.u');
         $delay = \max(0.0, $delay);
-        $this->scheduledDelaysById[$worker->id] = EventLoop::delay($delay, function () use ($worker): void {
-            unset($this->scheduledDelaysById[$worker->id]);
+        $this->scheduledDelaysById[$id] = EventLoop::delay($delay, function () use ($id, $worker): void {
+            unset($this->scheduledDelaysById[$id]);
             $this->callWorker($worker);
         });
 
@@ -115,10 +117,12 @@ final class Scheduler
             return;
         }
 
+        $id = $worker->getId();
+
         // Reschedule a task without running it if the previous task is still running
-        if ($this->pool->isWorkerRunning($worker->id)) {
+        if ($this->pool->isWorkerRunning($id)) {
             if ($this->scheduleWorker($worker)) {
-                $this->logger->info(\sprintf('Scheduled worker "%s" is already running; scheduling the next run', $worker->name));
+                $this->logger->info(\sprintf('Scheduled worker "%s" is already running; scheduling the next run', $worker->getName()));
             }
 
             return;
@@ -129,12 +133,12 @@ final class Scheduler
             return;
         }
 
-        $this->logger->info(\sprintf('Scheduled worker "%s" [PID:%d] started', $worker->name, $pid));
+        $this->logger->info(\sprintf('Scheduled worker "%s" [PID:%d] started', $worker->getName(), $pid));
         $this->scheduleWorker($worker);
 
         $bus = $this->messageBus;
-        EventLoop::queue(static function () use ($bus, $worker, $pid): void {
-            $bus->dispatch(new ProcessStartedEvent($worker->id, $pid));
+        EventLoop::queue(static function () use ($bus, $id, $pid): void {
+            $bus->dispatch(new ProcessStartedEvent($id, $pid));
         });
     }
 
@@ -143,7 +147,7 @@ final class Scheduler
         $pid = \pcntl_fork();
         if ($pid > 0) {
             // Master process
-            $this->pool->addProcess($worker->id, $pid);
+            $this->pool->addProcess($worker->getId(), $pid);
             return $pid;
         } elseif ($pid === 0) {
             // Child process
