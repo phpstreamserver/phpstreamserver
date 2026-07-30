@@ -150,8 +150,9 @@ final class FileHandler extends AbstractHandler
                 unset($chunk);
             }
 
-            unset($source);
-            unset($destination);
+            $source->close();
+            $destination->end();
+            unset($source, $destination);
             \unlink($logFile);
         }
     }
