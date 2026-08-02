@@ -144,7 +144,18 @@ final class Scheduler
 
     private function spawnWorker(ScheduledWorker $worker): int
     {
-        $pid = \pcntl_fork();
+        $forkError = '';
+        \set_error_handler(error_levels: \E_WARNING, callback: static function (int $code, string $message) use (&$forkError): true {
+            $forkError = \trim(\str_replace('pcntl_fork():', '', $message));
+            return true;
+        });
+
+        try {
+            $pid = \pcntl_fork();
+        } finally {
+            \restore_error_handler();
+        }
+
         if ($pid > 0) {
             // Master process
             $this->pool->addProcess($worker->getId(), $pid);
@@ -154,7 +165,7 @@ final class Scheduler
             $this->suspension->resume($worker);
             return 0;
         } else {
-            throw new PHPStreamServerException('Fork failed');
+            throw new PHPStreamServerException(\sprintf('Fork failed: %s', $forkError));
         }
     }
 
