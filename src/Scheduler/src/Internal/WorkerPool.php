@@ -64,7 +64,6 @@ final class WorkerPool
 
     public function removeWorker(int $workerId): void
     {
-
         if (null === $worker = $this->getWorkerInfoById($workerId)) {
             throw new PHPStreamServerException('Worker is not registered in the pool');
         }

@@ -22,16 +22,16 @@ final class SchedulerCommand extends Command
 
     public static function getDescription(): string
     {
-        return 'Show scheduler status';
+        return 'List scheduled tasks';
     }
 
     public function execute(string $pidFile, string $socketFile): int
     {
         $bus = new ExternalProcessMessageBus($pidFile, $socketFile);
 
-        echo "❯ Scheduler\n";
-
         $workers = $bus->dispatch(new GetWorkersCommand())->await();
+
+        echo "<color;fg=brand;options=bold>❯ Scheduler</>\n";
 
         if (\count($workers) > 0) {
             echo (new Table(indent: 1))
@@ -46,14 +46,15 @@ final class SchedulerCommand extends Command
                     $w->user === 'root' ? $w->user : "<color;fg=gray>{$w->user}</>",
                     $w->name,
                     $w->schedule ?: '-',
-                    $w->nextRunDateTime->format(\DateTimeInterface::RFC7231),
+                    $w->nextRunDateTime->format('Y-m-d H:i:s T'),
                     match ($w->status) {
-                        WorkerInfo::STATUS_SCHEDULED => '[<color;fg=green>SCHEDULED</>]',
-                        default => '[<color;fg=green>RUNNING</>]',
+                        WorkerInfo::STATUS_SCHEDULED => '<color;fg=green>●</> SCHEDULED',
+                        WorkerInfo::STATUS_CANCEL => '<color;fg=yellow>●</> CANCELLING',
+                        default => '<color;fg=green>●</> RUNNING',
                     },
                 ]));
         } else {
-            echo "  <color;bg=yellow> ! </> <color;fg=yellow>There are no scheduled tasks</>\n";
+            echo "  No scheduled tasks configured\n";
         }
 
         return 0;
