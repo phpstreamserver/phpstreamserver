@@ -21,41 +21,39 @@ final readonly class ConsoleFormatter implements Formatter
     private const OBJECT_COLOR = 37;
     private const EXCEPTION_COLOR = 167;
 
-    private const LEVEL_COLOR_MAP = [
-        LogLevel::DEBUG->value => 'fg=15',
-        LogLevel::INFO->value => 'fg=116',
-        LogLevel::NOTICE->value => 'fg=38',
-        LogLevel::WARNING->value => 'fg=yellow',
-        LogLevel::ERROR->value => 'fg=red',
-        LogLevel::CRITICAL->value => 'fg=red',
-        LogLevel::ALERT->value => 'fg=red',
-        LogLevel::EMERGENCY->value => 'bg=red',
+    private const LEVEL_MAP = [
+        LogLevel::DEBUG->value => '<color;fg=245>DEBUG</> ',
+        LogLevel::INFO->value => '<color;fg=77>INFO</>  ',
+        LogLevel::NOTICE->value => '<color;fg=75>NOTICE</>',
+        LogLevel::WARNING->value => '<color;fg=214>WARN</>  ',
+        LogLevel::ERROR->value => '<color;fg=203>ERROR</> ',
+        LogLevel::CRITICAL->value => '<color;fg=203>CRIT</>  ',
+        LogLevel::ALERT->value => '<color;fg=196>ALERT</> ',
+        LogLevel::EMERGENCY->value => '<color;fg=15;bg=196>EMERG</> ',
     ];
 
     public function __construct(
-        private string $dateTimeFormat = \DateTimeInterface::RFC3339,
+        private string $dateTimeFormat = 'Y-m-d H:i:s',
     ) {
     }
 
     public function format(LogEntry $record): string
     {
-        $time = $record->time->format($this->dateTimeFormat);
+        $errorLevel = self::LEVEL_MAP[$record->level->value] ?? $record->level->value;
 
         $body = \sprintf(
-            "[%s] <color;fg=green>%s</>.<color;%s>%s</> %s",
-            $time,
+            "%s %s <color;fg=token>%s</> › %s",
+            $record->time->format($this->dateTimeFormat),
+            $errorLevel,
             $record->channel,
-            self::LEVEL_COLOR_MAP[$record->level->value] ?? 'fg=gray',
-            \strtoupper($record->level->toString()),
             $record->message,
         );
 
-        $context = '';
         if ($record->context !== []) {
-            $context = $this->formatArrayAsString($record->context);
+            $body .= ' ' . $this->formatArrayAsString($record->context);
         }
 
-        return \rtrim($body . ' ' . $context);
+        return $body;
     }
 
     private function formatArrayAsString(array $array): string
