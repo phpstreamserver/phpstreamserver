@@ -92,6 +92,7 @@ class ScheduledWorker implements WorkerInterface
             ProcessIdentity::switchTo($this->user, $this->group);
         } catch (ProcessIdentityException $e) {
             $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->getName(), $e->getMessage()));
+            $this->onStartCallbacks = [];
         }
 
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
