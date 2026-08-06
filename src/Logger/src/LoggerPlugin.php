@@ -14,6 +14,8 @@ use PHPStreamServer\Plugin\Logger\Internal\MasterLogger;
 use PHPStreamServer\Plugin\Logger\Internal\WorkerLogger;
 use Revolt\EventLoop;
 
+use function Amp\Future\await;
+
 /**
  * @extends Plugin<WorkerInterface>
  */
@@ -43,8 +45,9 @@ final class LoggerPlugin extends Plugin
 
         $messageBusHandler = $this->masterContainer->getService(MessageHandlerInterface::class);
 
+        $futures = [];
         foreach ($this->handlers as $loggerHandler) {
-            $loggerHandler
+            $futures[] = $loggerHandler
                 ->start()
                 ->map(static function () use ($masterLogger, $loggerHandler): void {
                     $masterLogger->addHandler($loggerHandler);
@@ -54,6 +57,8 @@ final class LoggerPlugin extends Plugin
                 })
             ;
         }
+        await($futures);
+        unset($futures);
 
         $messageBusHandler->subscribe(LogEntry::class, static function (LogEntry $event) use ($masterLogger): void {
             EventLoop::queue(static function () use ($event, $masterLogger): void {
