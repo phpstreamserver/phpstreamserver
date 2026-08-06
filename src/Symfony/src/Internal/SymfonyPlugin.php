@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal;
 
-use PHPStreamServer\Core\Internal\ErrorHandler;
 use PHPStreamServer\Core\Plugin\Plugin;
+use PHPStreamServer\Core\Runtime\ErrorHandler;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Symfony\ConsoleCommand\StartCommand;
 use PHPStreamServer\Symfony\SymfonyEvent\WorkerReloadEvent;

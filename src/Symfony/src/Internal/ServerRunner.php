@@ -6,8 +6,8 @@ namespace PHPStreamServer\Symfony\Internal;
 
 use Amp\Http\Server\Driver\HttpDriver;
 use Amp\Http\Server\Middleware\CompressionMiddleware;
+use PHPStreamServer\Core\Console\OptionDefinition;
 use PHPStreamServer\Core\Console\Options;
-use PHPStreamServer\Core\Internal\Console\OptionDefinition;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Plugin\HttpServer\HttpServerPlugin;
 use Symfony\Component\HttpFoundation\File\UploadedFile;

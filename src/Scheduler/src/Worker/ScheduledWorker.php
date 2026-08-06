@@ -6,10 +6,10 @@ namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\ProcessIdentityException;
-use PHPStreamServer\Core\Internal\ErrorHandler;
-use PHPStreamServer\Core\Internal\ProcessIdentity;
 use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
+use PHPStreamServer\Core\Runtime\ErrorHandler;
+use PHPStreamServer\Core\Runtime\ProcessIdentity;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;

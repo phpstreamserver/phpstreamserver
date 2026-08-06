@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger\Handler;
 
 use Amp\Future;
-use PHPStreamServer\Core\Internal\Console\StdoutHandler;
+use PHPStreamServer\Core\Console\StdoutHandler;
 use PHPStreamServer\Plugin\Logger\AbstractHandler;
 use PHPStreamServer\Plugin\Logger\Formatter;
 use PHPStreamServer\Plugin\Logger\Formatter\ConsoleFormatter;
