@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler;
 
-use Amp\Future;
 use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
@@ -64,9 +63,9 @@ final class SchedulerPlugin extends Plugin
         $this->scheduler->unregisterWorker($workerId);
     }
 
-    public function onStop(): Future
+    public function onStop(): void
     {
-        return $this->scheduler->stop();
+        $this->scheduler->stop()->await();
     }
 
     public function registerCommands(): iterable
