@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
+use PHPStreamServer\Core\Exception\ConfigurationException;
 use PHPStreamServer\Core\Exception\ProcessIdentityException;
 use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
@@ -13,6 +14,8 @@ use PHPStreamServer\Core\Runtime\ProcessIdentity;
 use PHPStreamServer\Core\Server;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
+use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
+use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\DriverFactory;
 
@@ -34,6 +37,8 @@ class ScheduledWorker implements WorkerInterface
      */
     private array $onStartCallbacks = [];
 
+    public readonly TriggerInterface $trigger;
+
     /**
      * $schedule can be one of the following formats:
      *
@@ -50,7 +55,7 @@ class ScheduledWorker implements WorkerInterface
     public function __construct(
         string|null $name = null,
         public readonly string $schedule = '1 minute',
-        public readonly int $jitter = 0,
+        int $jitter = 0,
         private string|null $user = null,
         private string|null $group = null,
         \Closure|null $onStart = null,
@@ -62,6 +67,14 @@ class ScheduledWorker implements WorkerInterface
         if ($onStart !== null) {
             $this->onStart($onStart);
         }
+
+        try {
+            $this->trigger = TriggerFactory::create($schedule, $jitter);
+        } catch (\InvalidArgumentException $e) {
+            throw new ConfigurationException('schedule', $e->getMessage());
+        }
+
+        $this->id = generateWorkerId();
     }
 
     /**
@@ -115,7 +128,7 @@ class ScheduledWorker implements WorkerInterface
 
     public function getId(): int
     {
-        return $this->id ??= generateWorkerId();
+        return $this->id;
     }
 
     public function getPid(): int
@@ -160,10 +173,5 @@ class ScheduledWorker implements WorkerInterface
     public function setExitCode(int $exitCode): void
     {
         $this->exitCode = $exitCode;
-    }
-
-    public function isSerializable(): bool
-    {
-        return true;
     }
 }

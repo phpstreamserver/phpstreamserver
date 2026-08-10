@@ -52,16 +52,9 @@ final class Scheduler
         });
     }
 
-    public function registerWorker(ScheduledWorker $worker): void
+    public function registerWorker(ScheduledWorker $worker, string|null $factoryId): void
     {
-        try {
-            $this->pool->addWorker($worker);
-        } catch (\InvalidArgumentException) {
-            $this->logger->warning(\sprintf('Scheduled worker "%s" was not registered; schedule "%s" is invalid', $worker->getName(), $worker->schedule));
-
-            return;
-        }
-
+        $this->pool->addWorker($worker, $factoryId);
         $this->scheduleWorker($worker);
     }
 

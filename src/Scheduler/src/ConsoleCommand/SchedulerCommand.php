@@ -49,7 +49,7 @@ final class SchedulerCommand extends Command
                     $w->nextRunDateTime->format('Y-m-d H:i:s T'),
                     match ($w->status) {
                         WorkerInfo::STATUS_SCHEDULED => '<color;fg=green>●</> SCHEDULED',
-                        WorkerInfo::STATUS_CANCEL => '<color;fg=yellow>●</> CANCELLING',
+                        WorkerInfo::STATUS_CANCELLING => '<color;fg=yellow>●</> CANCELLING',
                         default => '<color;fg=green>●</> RUNNING',
                     },
                 ]));

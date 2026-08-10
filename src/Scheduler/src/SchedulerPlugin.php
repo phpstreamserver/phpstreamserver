@@ -55,7 +55,8 @@ final class SchedulerPlugin extends Plugin
 
     public function registerWorker(WorkerInterface $worker): void
     {
-        $this->scheduler->registerWorker($worker);
+        $factoryId = $this->masterContainer->getService('worker_factory_id_resolver')->__invoke($worker->getId());
+        $this->scheduler->registerWorker($worker, $factoryId);
     }
 
     public function unregisterWorker(int $workerId): void

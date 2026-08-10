@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Internal;
 
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
-use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
@@ -37,27 +36,25 @@ final class WorkerPool
     /**
      * @throws \InvalidArgumentException
      */
-    public function addWorker(ScheduledWorker $worker): WorkerInfo
+    public function addWorker(ScheduledWorker $worker, string|null $factoryId): WorkerInfo
     {
         $now = new \DateTimeImmutable('now');
-        $trigger = TriggerFactory::create($worker->schedule, $worker->jitter);
-        $nextRunDate = $trigger->getNextRunDate($now);
-
-        if ($nextRunDate === null) {
-            throw new \InvalidArgumentException('Next run date is not valid');
-        }
+        $nextRunDate = $worker->trigger->getNextRunDate($now) ?? new \DateTimeImmutable('@0');
 
         $id = $worker->getId();
         $workerInfo = new WorkerInfo(
             id: $id,
             name: $worker->getName(),
             user: $worker->getUser(),
+            group: $worker->getGroup(),
             schedule: $worker->schedule,
             status: WorkerInfo::STATUS_SCHEDULED,
+            factoryId: $factoryId,
+            startedAt: new \DateTimeImmutable('now'),
             nextRunDateTime: $nextRunDate,
         );
         $this->workerInfosById[$id] = $workerInfo;
-        $this->triggersById[$id] = $trigger;
+        $this->triggersById[$id] = $worker->trigger;
 
         return $workerInfo;
     }
@@ -68,8 +65,8 @@ final class WorkerPool
             throw new PHPStreamServerException('Worker is not registered in the pool');
         }
 
-        if ($worker->status === WorkerInfo::STATUS_RUNNING || $worker->status === WorkerInfo::STATUS_CANCEL) {
-            $worker->status = WorkerInfo::STATUS_CANCEL;
+        if ($worker->status === WorkerInfo::STATUS_RUNNING || $worker->status === WorkerInfo::STATUS_CANCELLING) {
+            $worker->status = WorkerInfo::STATUS_CANCELLING;
             return;
         }
 
@@ -96,7 +93,7 @@ final class WorkerPool
 
         unset($this->pids[$worker->id]);
 
-        if ($worker->status === WorkerInfo::STATUS_CANCEL) {
+        if ($worker->status === WorkerInfo::STATUS_CANCELLING) {
             unset($this->workerInfosById[$worker->id]);
             unset($this->triggersById[$worker->id]);
         } else {
