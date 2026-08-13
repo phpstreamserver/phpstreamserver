@@ -24,8 +24,8 @@ use function PHPStreamServer\Core\generateWorkerId;
 class ScheduledWorker implements WorkerInterface
 {
     private int $exitCode = 0;
-    private readonly int $id;
-    private readonly int $pid;
+    protected readonly int $id;
+    protected readonly int $pid;
     private readonly string $name;
 
     public readonly ContainerInterface $container;
@@ -75,6 +75,8 @@ class ScheduledWorker implements WorkerInterface
         }
 
         $this->id = generateWorkerId();
+        /** @psalm-suppress DocblockTypeContradiction */
+        $this->name ??= 'scheduled worker ' . $this->id;
     }
 
     /**
@@ -131,14 +133,9 @@ class ScheduledWorker implements WorkerInterface
         return $this->id;
     }
 
-    public function getPid(): int
-    {
-        return $this->pid;
-    }
-
     public function getName(): string
     {
-        return $this->name ??= 'scheduled worker ' . $this->getId();
+        return $this->name;
     }
 
     final public function getUser(): string

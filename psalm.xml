@@ -62,11 +62,6 @@
                 <directory name="src" />
             </errorLevel>
         </ClassMustBeFinal>
-        <RedundantPropertyInitializationCheck>
-            <errorLevel type="suppress">
-                <directory name="src" />
-            </errorLevel>
-        </RedundantPropertyInitializationCheck>
         <DeprecatedInterface>
             <errorLevel type="suppress">
                 <file name="src/Symfony/src/PHPStreamServerBundle.php" />
