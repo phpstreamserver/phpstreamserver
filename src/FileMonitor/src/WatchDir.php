@@ -7,15 +7,11 @@ namespace PHPStreamServer\Plugin\FileMonitor;
 final readonly class WatchDir
 {
     /**
-     * @param string $sourceDir directory to watch
-     * @param array<string> $filePatterns glob patterns for filenames to watch
-     * @param bool $recursive whether to watch subdirectories
+     * @param string $glob absolute glob of files to watch; use a globstar directory segment to watch files recursively
      * @param bool $invalidateOpcache whether to invalidate cached scripts on reload
      */
     public function __construct(
-        public string $sourceDir,
-        public array $filePatterns = ['*'],
-        public bool $recursive = false,
+        public string $glob,
         public bool $invalidateOpcache = false,
     ) {
     }

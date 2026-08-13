@@ -8,7 +8,8 @@ use PHPStreamServer\Core\Command\ReloadServerCommand;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
-use PHPStreamServer\Plugin\FileMonitor\Internal\InotifyMonitorWatcher;
+use PHPStreamServer\Plugin\FileMonitor\Internal\AbstractFileWatcher;
+use PHPStreamServer\Plugin\FileMonitor\Internal\FileWatcherFactory;
 
 /**
  * @extends Plugin<WorkerInterface>
@@ -17,6 +18,11 @@ final class FileMonitorPlugin extends Plugin
 {
     private MessageBusInterface $messageBus;
     private array $watchDirs;
+
+    /**
+     * @var array<AbstractFileWatcher>
+     */
+    private array $fileWatchers = [];
 
     public function __construct(WatchDir ...$watch)
     {
@@ -28,17 +34,19 @@ final class FileMonitorPlugin extends Plugin
         $this->messageBus = $this->masterContainer->getService(MessageBusInterface::class);
 
         foreach ($this->watchDirs as $watchDir) {
-            $fileMonitor = new InotifyMonitorWatcher(
-                sourceDir: $watchDir->sourceDir,
-                filePatterns: $watchDir->filePatterns,
-                recursive: $watchDir->recursive,
-                reloadCallback: $watchDir->invalidateOpcache
-                    ? $this->triggerReloadWithOpcacheReset(...)
-                    : $this->triggerReloadWithoutOpcacheReset(...),
-            );
-
-            $fileMonitor->start();
+            $callback = $watchDir->invalidateOpcache ? $this->triggerReloadWithOpcacheReset(...) : $this->triggerReloadWithoutOpcacheReset(...);
+            $fileWatcher = FileWatcherFactory::create($watchDir->glob, $callback);
+            $fileWatcher->start();
+            $this->fileWatchers[] = $fileWatcher;
         }
+    }
+
+    public function onStop(): void
+    {
+        foreach ($this->fileWatchers as $fileWatchers) {
+            $fileWatchers->stop();
+        }
+        $this->fileWatchers = [];
     }
 
     private function triggerReloadWithoutOpcacheReset(): void
@@ -51,12 +59,12 @@ final class FileMonitorPlugin extends Plugin
      */
     private function triggerReloadWithOpcacheReset(): void
     {
-        $this->messageBus->dispatch(new ReloadServerCommand());
-
         if (\function_exists('opcache_get_status') && false !== $status = \opcache_get_status()) {
             foreach (\array_keys($status['scripts'] ?? []) as $file) {
                 \opcache_invalidate($file, true);
             }
         }
+
+        $this->messageBus->dispatch(new ReloadServerCommand());
     }
 }

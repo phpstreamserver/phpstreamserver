@@ -35,7 +35,8 @@
         "symfony/dependency-injection": "^7.0|^8.0",
         "symfony/dotenv": "^7.0|^8.0",
         "symfony/http-kernel": "^7.0|^8.0",
-        "symfony/runtime": "^7.0|^8.0"
+        "symfony/runtime": "^7.0|^8.0",
+        "webmozart/glob": "^4.7"
     },
     "require-dev": {
         "amphp/http-client": "^5.3.6",

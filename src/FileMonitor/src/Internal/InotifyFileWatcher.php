@@ -9,44 +9,37 @@ use Revolt\EventLoop;
 /**
  * @internal
  */
-final class InotifyMonitorWatcher
+final class InotifyFileWatcher extends AbstractFileWatcher
 {
-    private const RELOAD_DELAY = 0.25;
-
     /**
      * @var resource
      */
     private mixed $fd;
+
+    private string $fdCallbackId = '';
 
     /**
      * @var array<int, string>
      */
     private array $pathByWd = [];
 
-    private \Closure $reloadCallback;
-    private string $delayedReloadCallbackId = '';
-
-    public function __construct(
-        private readonly string $sourceDir,
-        private readonly array $filePatterns,
-        private readonly bool $recursive,
-        \Closure $reloadCallback,
-    ) {
-        $delayedReloadCallbackId = &$this->delayedReloadCallbackId;
-        $this->reloadCallback = static function () use ($reloadCallback, &$delayedReloadCallbackId): void {
-            $delayedReloadCallbackId = '';
-            ($reloadCallback)();
-        };
-    }
-
     public function start(): void
     {
-        $this->fd = \inotify_init();
+        if (false === $fd = \inotify_init()) {
+            throw new \RuntimeException('Unable to initialize inotify');
+        }
+
+        $this->fd = $fd;
         \stream_set_blocking($this->fd, false);
 
         $this->watchDir($this->sourceDir, $this->recursive);
+        $this->fdCallbackId = EventLoop::onReadable($this->fd, fn(string $id, mixed $fd) => $this->onNotify($fd));
+    }
 
-        EventLoop::onReadable($this->fd, fn(string $id, mixed $fd) => $this->onNotify($fd));
+    public function stop(): void
+    {
+        EventLoop::cancel($this->fdCallbackId);
+        \fclose($this->fd);
     }
 
     /**
@@ -92,16 +85,9 @@ final class InotifyMonitorWatcher
                 }
             }
 
-            if ($this->isPatternMatches($event['name'])) {
+            if ($this->isPatternMatches($this->pathByWd[$event['wd']] . '/' . $event['name'])) {
                 $this->scheduleReload();
             }
-        }
-    }
-
-    private function scheduleReload(): void
-    {
-        if ($this->delayedReloadCallbackId === '') {
-            $this->delayedReloadCallbackId = EventLoop::delay(self::RELOAD_DELAY, $this->reloadCallback);
         }
     }
 
@@ -111,7 +97,10 @@ final class InotifyMonitorWatcher
             return false;
         }
 
-        $wd = \inotify_add_watch($this->fd, $path, IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO);
+        if (false === $wd = \inotify_add_watch($this->fd, $path, IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO)) {
+            throw new \RuntimeException(\sprintf('Unable to watch directory "%s"', $path));
+        }
+
         $this->pathByWd[$wd] = $path;
 
         if (!$recursive) {
@@ -120,7 +109,7 @@ final class InotifyMonitorWatcher
 
         $matchingFileFound = false;
         $dirIterator = new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS);
-        $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST);
+        $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST, \RecursiveIteratorIterator::CATCH_GET_CHILD);
 
         foreach ($iterator as $file) {
             /** @var \SplFileInfo $file */
@@ -129,7 +118,7 @@ final class InotifyMonitorWatcher
                 continue;
             }
 
-            if ($this->isPatternMatches($file->getFilename())) {
+            if ($this->isPatternMatches($file->getPathname())) {
                 $matchingFileFound = true;
             }
         }
@@ -147,16 +136,5 @@ final class InotifyMonitorWatcher
             \inotify_rm_watch($this->fd, $wd);
             unset($this->pathByWd[$wd]);
         }
-    }
-
-    private function isPatternMatches(string $filename): bool
-    {
-        foreach ($this->filePatterns as $pattern) {
-            if (\fnmatch($pattern, $filename)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }
