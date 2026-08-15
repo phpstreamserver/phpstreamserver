@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\FileMonitor\Internal\FFIBindings;
 
+use FFI\CData;
+
 /**
  * @internal
  *
@@ -104,7 +106,7 @@ final class Inotify
             throw new \LogicException('The inotify descriptor is closed');
         }
 
-        $watchDescriptor = $this->ffi->inotify_add_watch($this->fd, $pathname, $mask);
+        $watchDescriptor = (int) $this->ffi->inotify_add_watch($this->fd, $pathname, $mask);
 
         if ($watchDescriptor === -1) {
             throw new \RuntimeException(\sprintf('Unable to watch directory "%s": %s', $pathname, \posix_strerror($this->ffi->errno)));
@@ -149,14 +151,18 @@ final class Inotify
         $events = [];
         for ($offset = 0; $offset < $bytesRead;) {
             $eventPointer = $ffi->cast($eventPointerType, \FFI::addr($buffer[$offset]));
-            $event = $eventPointer[0];
+
+            $wd = $eventPointer->wd instanceof CData ? $eventPointer->wd->cdata : (int) $eventPointer->wd;
+            $mask = $eventPointer->mask instanceof CData ? $eventPointer->mask->cdata : (int) $eventPointer->mask;
+            $len = $eventPointer->len instanceof CData ? $eventPointer->len->cdata : (int) $eventPointer->len;
 
             $events[] = [
-                'wd' => $event->wd,
-                'mask' => $event->mask,
-                'name' => $event->len === 0 ? '' : \FFI::string($event->name),
+                'wd' => $wd,
+                'mask' => $mask,
+                'name' => $len === 0 ? '' : \FFI::string($eventPointer->name),
             ];
-            $offset += $eventSize + $event->len;
+
+            $offset += $eventSize + $len;
         }
 
         return $events;

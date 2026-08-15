@@ -21,6 +21,7 @@ use PHPStreamServer\Core\Server;
  * @psalm-suppress PossiblyNullReference
  * @psalm-suppress UndefinedMethod
  * @psalm-suppress UndefinedPropertyAssignment
+ * @psalm-suppress UndefinedPropertyFetch
  */
 final class FSEvents
 {
@@ -139,9 +140,10 @@ final class FSEvents
             $events = &$this->events;
             $this->callback = static function (mixed $streamRef, mixed $clientCallBackInfo, int $numEvents, mixed $eventPaths, mixed $eventFlags, mixed $eventIds) use (&$events): void {
                 for ($index = 0; $index < $numEvents; ++$index) {
+                    $flags = $eventFlags[$index];
                     $events[] = [
                         'path' => \FFI::string($eventPaths[$index]),
-                        'flags' => $eventFlags[$index],
+                        'flags' => $flags instanceof CData ? $flags->cdata : (int) $flags,
                     ];
                 }
             };
