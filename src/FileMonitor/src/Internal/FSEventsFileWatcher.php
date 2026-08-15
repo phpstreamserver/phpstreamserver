@@ -54,13 +54,13 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
     private function processEvent(string $path, int $flags): void
     {
         $path = \rtrim($path, '/');
-        $isDirRemovedOrRenamed = ($flags & FSEvents::EVENT_FLAG_ITEM_IS_DIR) !== 0 && ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED)) !== 0;
-        $isSourceDirReplaced = ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED | FSEvents::EVENT_FLAG_ROOT_CHANGED)) !== 0;
+        $isDirChange = ($flags & (FSEvents::EVENT_FLAG_ITEM_IS_DIR | FSEvents::EVENT_FLAG_ITEM_IS_SYMLINK)) !== 0 && ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED)) !== 0;
+        $isSourceDirChange = ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED | FSEvents::EVENT_FLAG_ROOT_CHANGED)) !== 0;
 
         foreach ($this->rules as $rule) {
             $sourceDir = \rtrim($rule->sourceDir, '/');
 
-            if ($isSourceDirReplaced && $path === $sourceDir) {
+            if ($isSourceDirChange && $path === $sourceDir) {
                 $this->scheduleReload($rule->invalidateOpcache);
                 continue;
             }
@@ -70,11 +70,9 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
                 continue;
             }
 
-            if (!$isDirRemovedOrRenamed || !$rule->recursive || !\str_starts_with($path, $sourceDir . '/')) {
-                continue;
+            if ($isDirChange && $rule->recursive && \str_starts_with($path, $sourceDir . '/')) {
+                $this->scheduleReload($rule->invalidateOpcache);
             }
-
-            $this->scheduleReload($rule->invalidateOpcache);
         }
     }
 

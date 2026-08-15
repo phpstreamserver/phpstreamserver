@@ -31,6 +31,7 @@ final class FSEvents
     public const EVENT_FLAG_ITEM_REMOVED = 0x00000200;
     public const EVENT_FLAG_ITEM_RENAMED = 0x00000800;
     public const EVENT_FLAG_ITEM_IS_DIR = 0x00020000;
+    public const EVENT_FLAG_ITEM_IS_SYMLINK = 0x00040000;
 
     private const CORE_SERVICES = '/System/Library/Frameworks/CoreServices.framework/CoreServices';
     private const CREATE_FLAG_NO_DEFER = 0x00000002;
