@@ -11,66 +11,78 @@ use Revolt\EventLoop;
  */
 final class PollingFileWatcher extends AbstractFileWatcher
 {
-    private const POLLING_INTERVAL = 2.0;
+    public static float $pollingInterval = 2.0;
 
     private string $repeatCallbackId = '';
     private string $snapshotHash = '';
+    private string $opcacheSnapshotHash = '';
 
     public function start(): void
     {
-        $this->snapshotHash = $this->createSnapshotHash();
-        $this->repeatCallbackId = EventLoop::repeat(self::POLLING_INTERVAL, $this->poll(...));
+        [$this->snapshotHash, $this->opcacheSnapshotHash] = $this->createSnapshotHashes();
+
+        EventLoop::defer($this->poll(...));
+        $this->repeatCallbackId = EventLoop::repeat(self::$pollingInterval, $this->poll(...));
     }
 
     public function stop(): void
     {
+        parent::stop();
         EventLoop::cancel($this->repeatCallbackId);
     }
 
     private function poll(): void
     {
-        $snapshotHash = $this->createSnapshotHash();
+        [$snapshotHash, $opcacheSnapshotHash] = $this->createSnapshotHashes();
 
-        if ($snapshotHash !== $this->snapshotHash) {
-            $this->snapshotHash = $snapshotHash;
-            $this->scheduleReload();
+        if ($snapshotHash === $this->snapshotHash) {
+            return;
         }
+
+        $invalidateOpcache = $opcacheSnapshotHash !== $this->opcacheSnapshotHash;
+        $this->snapshotHash = $snapshotHash;
+        $this->opcacheSnapshotHash = $opcacheSnapshotHash;
+        $this->scheduleReload($invalidateOpcache);
     }
 
-    private function createSnapshotHash(): string
+    /**
+     * @return array{string, string}
+     */
+    private function createSnapshotHashes(): array
     {
         \clearstatcache();
 
-        if (!\is_dir($this->sourceDir)) {
-            return \hash('xxh128', '');
-        }
-
-        if ($this->recursive) {
-            $dirIterator = new \RecursiveDirectoryIterator($this->sourceDir, \FilesystemIterator::SKIP_DOTS);
-            $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST, \RecursiveIteratorIterator::CATCH_GET_CHILD);
-        } else {
-            $iterator = new \FilesystemIterator($this->sourceDir, \FilesystemIterator::SKIP_DOTS);
-        }
-
-        $files = [];
-        foreach ($iterator as $file) {
-            /** @var \SplFileInfo $file */
-            if ($file->isFile() && $this->isPatternMatches($file->getPathname())) {
-                $files[] = $file->getPathname();
-            }
-        }
-
-        \sort($files);
-
         $context = \hash_init('xxh128');
-        foreach ($files as $file) {
-            if (false === $stat = \stat($file)) {
+        $opcacheContext = \hash_init('xxh128');
+
+        foreach ($this->rules as $rule) {
+            if (!\is_dir($rule->sourceDir)) {
                 continue;
             }
 
-            \hash_update($context, $file . $stat['mtime'] . $stat['size'] . $stat['ino']);
+            if ($rule->recursive) {
+                $dirIterator = new \RecursiveDirectoryIterator($rule->sourceDir, \FilesystemIterator::SKIP_DOTS);
+                $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST, \RecursiveIteratorIterator::CATCH_GET_CHILD);
+            } else {
+                $iterator = new \FilesystemIterator($rule->sourceDir, \FilesystemIterator::SKIP_DOTS);
+            }
+
+            foreach ($iterator as $file) {
+                /** @var \SplFileInfo $file */
+                $path = $file->getPathname();
+                if (!$file->isFile() || !$this->isPatternMatches($rule, $path) || false === $stat = \stat($path)) {
+                    continue;
+                }
+
+                $signature = $path . $stat['mtime'] . $stat['size'] . $stat['ino'];
+                \hash_update($context, $signature);
+
+                if ($rule->invalidateOpcache) {
+                    \hash_update($opcacheContext, $signature);
+                }
+            }
         }
 
-        return \hash_final($context);
+        return [\hash_final($context), \hash_final($opcacheContext)];
     }
 }

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\FileMonitor\Internal;
 
+use PHPStreamServer\Plugin\FileMonitor\Internal\FFIBindings\Inotify;
+use PHPStreamServer\Plugin\FileMonitor\WatchRule;
 use Revolt\EventLoop;
 
 /**
@@ -11,10 +13,7 @@ use Revolt\EventLoop;
  */
 final class InotifyFileWatcher extends AbstractFileWatcher
 {
-    /**
-     * @var resource
-     */
-    private mixed $fd;
+    private Inotify $inotify;
 
     private string $fdCallbackId = '';
 
@@ -23,40 +22,53 @@ final class InotifyFileWatcher extends AbstractFileWatcher
      */
     private array $pathByWd = [];
 
+    /**
+     * @var array<string, list<WatchRule>>
+     */
+    private array $rulesBySourceDir = [];
+
     public function start(): void
     {
-        if (false === $fd = \inotify_init()) {
-            throw new \RuntimeException('Unable to initialize inotify');
+        $this->inotify = new Inotify();
+
+        foreach ($this->rules as $rule) {
+            $this->rulesBySourceDir[$rule->sourceDir][] = $rule;
         }
 
-        $this->fd = $fd;
-        \stream_set_blocking($this->fd, false);
+        foreach ($this->rulesBySourceDir as $sourceDir => $rules) {
+            if (!\is_dir($sourceDir)) {
+                continue;
+            }
 
-        $this->watchDir($this->sourceDir, $this->recursive);
-        $this->fdCallbackId = EventLoop::onReadable($this->fd, fn(string $id, mixed $fd) => $this->onNotify($fd));
+            $this->watchDir(\dirname($sourceDir));
+            $this->watchSource($sourceDir, $rules);
+        }
+
+        $this->fdCallbackId = EventLoop::onReadable($this->inotify->getStream(), fn() => $this->onNotify());
     }
 
     public function stop(): void
     {
-        EventLoop::cancel($this->fdCallbackId);
-        \fclose($this->fd);
+        parent::stop();
+        if ($this->fdCallbackId !== '') {
+            EventLoop::cancel($this->fdCallbackId);
+            $this->fdCallbackId = '';
+        }
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        if (isset($this->inotify)) {
+            $this->inotify->close();
+            unset($this->inotify);
+        }
     }
 
-    /**
-     * @param resource $inotifyFd
-     */
-    private function onNotify(mixed $inotifyFd): void
+    private function onNotify(): void
     {
-        if (false === $events = \inotify_read($inotifyFd)) {
-            $events = [];
-        }
-
-        foreach ($events as $event) {
-            $isIgnored = ($event['mask'] & IN_IGNORED) !== 0;
-            $isDirectory = ($event['mask'] & IN_ISDIR) !== 0;
-            $isCreatedDirectory = $isDirectory && ($event['mask'] & IN_CREATE) !== 0;
-            $isMovedFromDirectory = $isDirectory && ($event['mask'] & IN_MOVED_FROM) !== 0;
-            $isMovedToDirectory = $isDirectory && ($event['mask'] & IN_MOVED_TO) !== 0;
+        foreach ($this->inotify->read() as $event) {
+            $isIgnored = ($event['mask'] & Inotify::IN_IGNORED) !== 0;
+            $isDirectory = ($event['mask'] & Inotify::IN_ISDIR) !== 0;
+            $isCreatedDirectory = $isDirectory && ($event['mask'] & Inotify::IN_CREATE) !== 0;
+            $isMovedFromDirectory = $isDirectory && ($event['mask'] & Inotify::IN_MOVED_FROM) !== 0;
+            $isMovedToDirectory = $isDirectory && ($event['mask'] & Inotify::IN_MOVED_TO) !== 0;
 
             if ($isIgnored) {
                 unset($this->pathByWd[$event['wd']]);
@@ -67,17 +79,41 @@ final class InotifyFileWatcher extends AbstractFileWatcher
                 continue;
             }
 
-            if ($isMovedFromDirectory) {
-                $this->unwatchDir($this->pathByWd[$event['wd']] . '/' . $event['name']);
+            $parentPath = $this->pathByWd[$event['wd']];
+            $path = \rtrim($parentPath, '/') . '/' . $event['name'];
+            $recursiveRules = $isDirectory ? $this->getRecursiveRules($parentPath) : [];
+            $sourceRules = $this->rulesBySourceDir[$path] ?? [];
 
-                if ($this->recursive) {
-                    $this->scheduleReload();
+            if ($sourceRules !== [] && ($event['mask'] & (Inotify::IN_DELETE | Inotify::IN_MOVED_FROM)) !== 0) {
+                $this->unwatchDir($path);
+
+                foreach ($sourceRules as $rule) {
+                    $this->scheduleReload($rule->invalidateOpcache);
+                }
+            }
+
+            if ($sourceRules !== [] && ($event['mask'] & (Inotify::IN_CREATE | Inotify::IN_MOVED_TO)) !== 0 && \is_dir($path)) {
+                $this->unwatchDir($path);
+                $this->watchSource($path, $sourceRules);
+
+                foreach ($sourceRules as $rule) {
+                    $this->scheduleReload($rule->invalidateOpcache);
+                }
+            }
+
+            if ($isMovedFromDirectory) {
+                $this->unwatchDir($path);
+
+                foreach ($recursiveRules as $rule) {
+                    $this->scheduleReload($rule->invalidateOpcache);
                 }
             }
 
             if ($isCreatedDirectory || $isMovedToDirectory) {
-                if ($this->recursive && $this->watchDir($this->pathByWd[$event['wd']] . '/' . $event['name'], true)) {
-                    $this->scheduleReload();
+                $matchingRules = $recursiveRules === [] ? [] : $this->watchTree($path, $recursiveRules);
+
+                foreach ($matchingRules as $rule) {
+                    $this->scheduleReload($rule->invalidateOpcache);
                 }
 
                 if ($isCreatedDirectory) {
@@ -85,45 +121,81 @@ final class InotifyFileWatcher extends AbstractFileWatcher
                 }
             }
 
-            if ($this->isPatternMatches($this->pathByWd[$event['wd']] . '/' . $event['name'])) {
-                $this->scheduleReload();
+            foreach ($this->rules as $rule) {
+                if ($this->isPatternMatches($rule, $path)) {
+                    $this->scheduleReload($rule->invalidateOpcache);
+                }
             }
         }
     }
 
-    private function watchDir(string $path, bool $recursive): bool
+    /**
+     * @param list<WatchRule> $rules
+     */
+    private function watchSource(string $path, array $rules): void
     {
-        if (!\is_dir($path)) {
-            return false;
+        foreach ($rules as $rule) {
+            if ($rule->recursive) {
+                $this->watchTree($path);
+                return;
+            }
         }
 
-        if (false === $wd = \inotify_add_watch($this->fd, $path, IN_MODIFY | IN_CREATE | IN_DELETE | IN_MOVED_FROM | IN_MOVED_TO)) {
-            throw new \RuntimeException(\sprintf('Unable to watch directory "%s"', $path));
+        $this->watchDir($path);
+    }
+
+    /**
+     * @param list<WatchRule> $rules
+     * @return list<WatchRule>
+     */
+    private function watchTree(string $path, array $rules = []): array
+    {
+        if (!$this->watchDir($path)) {
+            return [];
         }
 
-        $this->pathByWd[$wd] = $path;
-
-        if (!$recursive) {
-            return false;
+        $remainingRules = [];
+        foreach ($rules as $rule) {
+            $remainingRules[\spl_object_id($rule)] = $rule;
         }
+        $matchingRules = [];
 
-        $matchingFileFound = false;
         $dirIterator = new \RecursiveDirectoryIterator($path, \FilesystemIterator::SKIP_DOTS);
         $iterator = new \RecursiveIteratorIterator($dirIterator, \RecursiveIteratorIterator::SELF_FIRST, \RecursiveIteratorIterator::CATCH_GET_CHILD);
 
         foreach ($iterator as $file) {
             /** @var \SplFileInfo $file */
             if ($file->isDir()) {
-                $this->watchDir($file->getPathname(), false);
+                $this->watchDir($file->getPathname());
                 continue;
             }
 
-            if ($this->isPatternMatches($file->getPathname())) {
-                $matchingFileFound = true;
+            if ($remainingRules === [] || !$file->isFile()) {
+                continue;
+            }
+
+            $filePath = $file->getPathname();
+            foreach ($remainingRules as $ruleId => $rule) {
+                if ($this->isPatternMatches($rule, $filePath)) {
+                    $matchingRules[] = $rule;
+                    unset($remainingRules[$ruleId]);
+                }
             }
         }
 
-        return $matchingFileFound;
+        return $matchingRules;
+    }
+
+    private function watchDir(string $path): bool
+    {
+        if (!\is_dir($path)) {
+            return false;
+        }
+
+        $wd = $this->inotify->addWatch($path, Inotify::IN_MODIFY | Inotify::IN_CREATE | Inotify::IN_DELETE | Inotify::IN_MOVED_FROM | Inotify::IN_MOVED_TO);
+        $this->pathByWd[$wd] = $path;
+
+        return true;
     }
 
     private function unwatchDir(string $path): void
@@ -133,8 +205,24 @@ final class InotifyFileWatcher extends AbstractFileWatcher
                 continue;
             }
 
-            \inotify_rm_watch($this->fd, $wd);
+            $this->inotify->removeWatch($wd);
             unset($this->pathByWd[$wd]);
         }
+    }
+
+    /**
+     * @return list<WatchRule>
+     */
+    private function getRecursiveRules(string $path): array
+    {
+        $rules = [];
+
+        foreach ($this->rules as $rule) {
+            if ($rule->recursive && ($path === $rule->sourceDir || \str_starts_with($path, \rtrim($rule->sourceDir, '/') . '/'))) {
+                $rules[] = $rule;
+            }
+        }
+
+        return $rules;
     }
 }

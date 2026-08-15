@@ -4,50 +4,61 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\FileMonitor\Internal;
 
+use PHPStreamServer\Plugin\FileMonitor\WatchRule;
 use Revolt\EventLoop;
-use Webmozart\Glob\Glob;
 
 /**
  * @internal
  */
 abstract class AbstractFileWatcher
 {
-    protected const RELOAD_DELAY = 0.25;
+    protected const RELOAD_DELAY = 0.15;
 
-    protected readonly string $sourceDir;
-    private readonly string $globRegex;
-    protected readonly bool $recursive;
     private string $delayedReloadCallbackId = '';
+    private bool $pendingInvalidateOpcache = false;
 
-    public function __construct(string $glob, private readonly \Closure $reloadCallback)
-    {
-        $this->sourceDir = Glob::getBasePath($glob);
-        $this->globRegex = Glob::toRegEx($glob);
-        $this->recursive = \dirname($glob) !== $this->sourceDir;
+    /**
+     * @param list<WatchRule> $rules
+     * @param \Closure(bool): void $reloadCallback
+     */
+    public function __construct(
+        protected readonly array $rules,
+        private readonly \Closure $reloadCallback,
+    ) {
     }
 
-    protected function isPatternMatches(string $path): bool
+    protected function isPatternMatches(WatchRule $rule, string $path): bool
     {
         /** @psalm-suppress ArgumentTypeCoercion */
-        return \preg_match($this->globRegex, $path) === 1;
+        return \preg_match($rule->globRegex, $path) === 1;
     }
 
-    protected function scheduleReload(): void
+    protected function scheduleReload(bool $invalidateOpcache): void
     {
+        $this->pendingInvalidateOpcache = $this->pendingInvalidateOpcache || $invalidateOpcache;
+
         if ($this->delayedReloadCallbackId !== '') {
             return;
         }
 
-        $reloadCallback = $this->reloadCallback;
-        $delayedReloadCallbackId = &$this->delayedReloadCallbackId;
-        $this->delayedReloadCallbackId = EventLoop::delay(self::RELOAD_DELAY, static function () use ($reloadCallback, &$delayedReloadCallbackId): void {
-            $delayedReloadCallbackId = '';
-            ($reloadCallback)();
+        $this->delayedReloadCallbackId = EventLoop::delay(self::RELOAD_DELAY, function (): void {
+            $invalidateOpcache = $this->pendingInvalidateOpcache;
+            $this->delayedReloadCallbackId = '';
+            $this->pendingInvalidateOpcache = false;
+            ($this->reloadCallback)($invalidateOpcache);
         });
-        EventLoop::unreference($this->delayedReloadCallbackId);
     }
 
-    abstract public function start(): void;
+    public function start(): void
+    {
+    }
 
-    abstract public function stop(): void;
+    public function stop(): void
+    {
+        if ($this->delayedReloadCallbackId !== '') {
+            EventLoop::cancel($this->delayedReloadCallbackId);
+            $this->delayedReloadCallbackId = '';
+            $this->pendingInvalidateOpcache = false;
+        }
+    }
 }

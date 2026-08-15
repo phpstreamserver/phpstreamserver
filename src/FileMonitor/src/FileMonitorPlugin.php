@@ -17,54 +17,39 @@ use PHPStreamServer\Plugin\FileMonitor\Internal\FileWatcherFactory;
 final class FileMonitorPlugin extends Plugin
 {
     private MessageBusInterface $messageBus;
-    private array $watchDirs;
 
     /**
-     * @var array<AbstractFileWatcher>
+     * @var list<WatchRule>
      */
-    private array $fileWatchers = [];
+    private array $watchRules;
 
-    public function __construct(WatchDir ...$watch)
+    private AbstractFileWatcher|null $fileWatcher = null;
+
+    public function __construct(WatchRule ...$watchRules)
     {
-        $this->watchDirs = $watch;
+        $this->watchRules = \array_values($watchRules);
     }
 
     public function onStart(): void
     {
         $this->messageBus = $this->masterContainer->getService(MessageBusInterface::class);
 
-        foreach ($this->watchDirs as $watchDir) {
-            $callback = $watchDir->invalidateOpcache ? $this->triggerReloadWithOpcacheReset(...) : $this->triggerReloadWithoutOpcacheReset(...);
-            $fileWatcher = FileWatcherFactory::create($watchDir->glob, $callback);
-            $fileWatcher->start();
-            $this->fileWatchers[] = $fileWatcher;
+        if ($this->watchRules === []) {
+            return;
         }
+
+        $messageBus = $this->messageBus;
+        $reloadCallback = static function (bool $invalidateOpcache) use ($messageBus): void {
+            $messageBus->dispatch(new ReloadServerCommand($invalidateOpcache));
+        };
+
+        $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback);
+        $this->fileWatcher->start();
     }
 
     public function onStop(): void
     {
-        foreach ($this->fileWatchers as $fileWatchers) {
-            $fileWatchers->stop();
-        }
-        $this->fileWatchers = [];
-    }
-
-    private function triggerReloadWithoutOpcacheReset(): void
-    {
-        $this->messageBus->dispatch(new ReloadServerCommand());
-    }
-
-    /**
-     * @psalm-suppress NoValue
-     */
-    private function triggerReloadWithOpcacheReset(): void
-    {
-        if (\function_exists('opcache_get_status') && false !== $status = \opcache_get_status()) {
-            foreach (\array_keys($status['scripts'] ?? []) as $file) {
-                \opcache_invalidate($file, true);
-            }
-        }
-
-        $this->messageBus->dispatch(new ReloadServerCommand());
+        $this->fileWatcher?->stop();
+        $this->fileWatcher = null;
     }
 }

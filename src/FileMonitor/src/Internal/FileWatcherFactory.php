@@ -4,14 +4,24 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\FileMonitor\Internal;
 
+use PHPStreamServer\Plugin\FileMonitor\WatchRule;
+
 final readonly class FileWatcherFactory
 {
-    public static function create(string $glob, \Closure $reloadCallback): AbstractFileWatcher
+    /**
+     * @param list<WatchRule> $rules
+     * @param \Closure(bool): void $reloadCallback
+     */
+    public static function create(array $rules, \Closure $reloadCallback): AbstractFileWatcher
     {
-        if (PHP_OS_FAMILY === 'Linux' && \function_exists('inotify_init')) {
-            return new InotifyFileWatcher($glob, $reloadCallback);
+        if (PHP_OS_FAMILY === 'Linux') {
+            return new InotifyFileWatcher($rules, $reloadCallback);
         }
 
-        return new PollingFileWatcher($glob, $reloadCallback);
+        if (PHP_OS_FAMILY === 'Darwin') {
+            return new FSEventsFileWatcher($rules, $reloadCallback);
+        }
+
+        return new PollingFileWatcher($rules, $reloadCallback);
     }
 }
