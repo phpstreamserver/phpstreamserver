@@ -15,13 +15,13 @@ final readonly class FileWatcherFactory
     public static function create(array $rules, \Closure $reloadCallback): AbstractFileWatcher
     {
         if (PHP_OS_FAMILY === 'Linux') {
-            return new InotifyFileWatcher($rules, $reloadCallback);
+            return new InotifyFileWatcher($rules, $reloadCallback, 0.15);
         }
 
         if (PHP_OS_FAMILY === 'Darwin') {
-            return new FSEventsFileWatcher($rules, $reloadCallback);
+            return new FSEventsFileWatcher($rules, $reloadCallback, 0.05);
         }
 
-        return new PollingFileWatcher($rules, $reloadCallback);
+        return new PollingFileWatcher($rules, $reloadCallback, 0.05);
     }
 }

@@ -18,19 +18,7 @@ final readonly class WatchRule
      */
     public function __construct(string $glob, public bool $invalidateOpcache = false)
     {
-        $basePath = Glob::getBasePath($glob);
-        if (\is_link($basePath)) {
-            $realParent = \realpath(\dirname($basePath));
-            $realBasePath = $realParent !== false ? $realParent . '/' . \basename($basePath) : false;
-        } else {
-            $realBasePath = \realpath($basePath);
-        }
-
-        if ($realBasePath !== false) {
-            $glob = $realBasePath . \substr($glob, \strlen($basePath));
-            $basePath = $realBasePath;
-        }
-        $this->sourceDir = $basePath;
+        $this->sourceDir = Glob::getBasePath($glob);
         /** @psalm-suppress ArgumentTypeCoercion */
         $this->globRegex = Glob::toRegEx($glob);
         $this->recursive = \dirname($glob) !== $this->sourceDir;

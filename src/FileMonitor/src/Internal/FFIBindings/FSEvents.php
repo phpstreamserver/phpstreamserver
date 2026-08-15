@@ -25,9 +25,7 @@ use PHPStreamServer\Core\Server;
  */
 final class FSEvents
 {
-    public const EVENT_FLAG_MUST_SCAN_SUB_DIRS = 0x00000001;
     public const EVENT_FLAG_ROOT_CHANGED = 0x00000020;
-    public const EVENT_FLAG_ITEM_CREATED = 0x00000100;
     public const EVENT_FLAG_ITEM_REMOVED = 0x00000200;
     public const EVENT_FLAG_ITEM_RENAMED = 0x00000800;
     public const EVENT_FLAG_ITEM_IS_DIR = 0x00020000;

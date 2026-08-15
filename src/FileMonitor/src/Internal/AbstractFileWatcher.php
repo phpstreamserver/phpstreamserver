@@ -12,8 +12,6 @@ use Revolt\EventLoop;
  */
 abstract class AbstractFileWatcher
 {
-    protected const RELOAD_DELAY = 0.15;
-
     private string $delayedReloadCallbackId = '';
     private bool $pendingInvalidateOpcache = false;
 
@@ -24,6 +22,7 @@ abstract class AbstractFileWatcher
     public function __construct(
         protected readonly array $rules,
         private readonly \Closure $reloadCallback,
+        private readonly float $reloadDelay = 0.15,
     ) {
     }
 
@@ -41,7 +40,7 @@ abstract class AbstractFileWatcher
             return;
         }
 
-        $this->delayedReloadCallbackId = EventLoop::delay(self::RELOAD_DELAY, function (): void {
+        $this->delayedReloadCallbackId = EventLoop::delay($this->reloadDelay, function (): void {
             $invalidateOpcache = $this->pendingInvalidateOpcache;
             $this->delayedReloadCallbackId = '';
             $this->pendingInvalidateOpcache = false;
