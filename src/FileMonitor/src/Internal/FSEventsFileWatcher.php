@@ -65,11 +65,6 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
         $isChangedDirectory = ($flags & FSEvents::EVENT_FLAG_ITEM_IS_DIR) !== 0 && $isStructuralChange;
 
         foreach ($this->rules as $rule) {
-            if ($isStructuralChange && $path === \rtrim($rule->sourceDir, '/')) {
-                $this->scheduleReload($rule->invalidateOpcache);
-                continue;
-            }
-
             if ($this->isPatternMatches($rule, $path)) {
                 $this->scheduleReload($rule->invalidateOpcache);
                 continue;
