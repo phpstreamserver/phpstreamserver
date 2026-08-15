@@ -149,7 +149,7 @@ final class FSEvents
                 }
             };
 
-            $stream = $this->ffi->FSEventStreamCreate(null, $this->callback, null, $paths, self::EVENT_ID_SINCE_NOW, 0.0, self::CREATE_FLAG_NO_DEFER | self::CREATE_FLAG_WATCH_ROOT | self::CREATE_FLAG_FILE_EVENTS);
+            $stream = $this->ffi->FSEventStreamCreate(null, $this->callback, null, $paths, self::EVENT_ID_SINCE_NOW, 0.0, self::CREATE_FLAG_NO_DEFER | self::CREATE_FLAG_FILE_EVENTS);
             if (self::isNull($stream)) {
                 throw new \RuntimeException('Unable to create FSEvents stream');
             }

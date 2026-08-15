@@ -19,7 +19,13 @@ final readonly class WatchRule
     public function __construct(string $glob, public bool $invalidateOpcache = false)
     {
         $basePath = Glob::getBasePath($glob);
-        $realBasePath = \realpath($basePath);
+        if (\is_link($basePath)) {
+            $realParent = \realpath(\dirname($basePath));
+            $realBasePath = $realParent !== false ? $realParent . '/' . \basename($basePath) : false;
+        } else {
+            $realBasePath = \realpath($basePath);
+        }
+
         if ($realBasePath !== false) {
             $glob = $realBasePath . \substr($glob, \strlen($basePath));
             $basePath = $realBasePath;
