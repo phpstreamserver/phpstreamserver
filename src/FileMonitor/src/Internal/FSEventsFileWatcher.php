@@ -85,6 +85,11 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
 
         foreach ($this->rules as $rule) {
             $paths[$rule->sourceDir] = $rule->sourceDir;
+
+            if (\is_link($rule->sourceDir)) {
+                $parentDir = \dirname($rule->sourceDir);
+                $paths[$parentDir] = $parentDir;
+            }
         }
 
         return \array_values($paths);

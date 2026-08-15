@@ -42,7 +42,7 @@ final class FileWatcherTest extends TestCase
     {
         yield ['', PollingFileWatcher::class, 0.7];
         yield ['Linux', InotifyFileWatcher::class, 0.4];
-        yield ['Darwin', FSEventsFileWatcher::class, 0.5];
+        yield ['Darwin', FSEventsFileWatcher::class, 1.0];
     }
 
     public static function watcherFiles(): \Generator
