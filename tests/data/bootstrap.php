@@ -9,7 +9,7 @@ include __DIR__ . '/../../vendor/autoload.php';
 
 function phpss_create_command(string $command): string
 {
-    return \sprintf('exec %s %s/server.php %s', PHP_BINARY, __DIR__, $command);
+    return \sprintf('exec %s -d ffi.enable=true %s/server.php %s', PHP_BINARY, __DIR__, $command);
 }
 
 function phpss_start(): void

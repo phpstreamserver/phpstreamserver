@@ -18,6 +18,7 @@ use FFI\CData;
  * @psalm-suppress UndefinedMethod
  * @psalm-suppress UndefinedPropertyAssignment
  * @psalm-suppress UndefinedPropertyFetch
+ * @psalm-suppress PossiblyInvalidArgument
  */
 final class Inotify
 {

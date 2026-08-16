@@ -17,6 +17,7 @@
     ],
     "require": {
         "php": ">=8.2",
+        "ext-ffi": "*",
         "ext-pcntl": "*",
         "ext-posix": "*",
         "amphp/amp": "^3.0",
