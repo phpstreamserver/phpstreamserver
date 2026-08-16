@@ -54,7 +54,7 @@ final class FileMonitorPlugin extends Plugin
             $initialWatcherClass = $this->fileWatcher::class;
             $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback, PollingFileWatcher::class);
             $this->fileWatcher->start();
-            EventLoop::defer(static function () use($initialWatcherClass, $e, &$logger): void {
+            EventLoop::defer(static function () use ($initialWatcherClass, $e, &$logger): void {
                 $logger->error(\sprintf('Failed to start %s, falling back to %s: %s', $initialWatcherClass, PollingFileWatcher::class, $e->getMessage()));
             });
         }

@@ -29,23 +29,20 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
 
     public function start(): void
     {
-        $this->realPathToSourceDir = [];
-        foreach ($this->rules as $rule) {
-            $sourceDir = \rtrim($rule->sourceDir, '/');
-            $realParentDir = \realpath(\dirname($sourceDir));
-            if ($realParentDir !== false) {
-                $this->realPathToSourceDir[$realParentDir . '/' . \basename($sourceDir)] = $sourceDir;
-            }
-
-            $realSourceDir = \realpath($sourceDir);
-            if ($realSourceDir !== false) {
-                $this->realPathToSourceDir[\rtrim($realSourceDir, '/')] = $sourceDir;
-            }
-        }
-
         $watchPaths = $this->getWatchPaths();
         if ($watchPaths === []) {
             return;
+        }
+
+        $this->realPathToSourceDir = [];
+        foreach ($this->rules as $rule) {
+            $sourceDir = \rtrim($rule->sourceDir, '/');
+            if (false !== $parent = \realpath(\dirname($sourceDir))) {
+                $this->realPathToSourceDir[$parent . '/' . \basename($sourceDir)] = $sourceDir;
+            }
+            if (false !== $real = \realpath($sourceDir)) {
+                $this->realPathToSourceDir[\rtrim($real, '/')] = $sourceDir;
+            }
         }
 
         $this->fsevents = new FSEvents($watchPaths);
@@ -85,8 +82,9 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
             }
         }
 
-        $isDirChange = ($flags & (FSEvents::EVENT_FLAG_ITEM_IS_DIR | FSEvents::EVENT_FLAG_ITEM_IS_SYMLINK)) !== 0 && ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED)) !== 0;
-        $isSourceDirChange = ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED | FSEvents::EVENT_FLAG_ROOT_CHANGED)) !== 0;
+        $isRemovedOrRenamed = ($flags & (FSEvents::EVENT_FLAG_ITEM_REMOVED | FSEvents::EVENT_FLAG_ITEM_RENAMED)) !== 0;
+        $isDirOrSymlink = ($flags & (FSEvents::EVENT_FLAG_ITEM_IS_DIR | FSEvents::EVENT_FLAG_ITEM_IS_SYMLINK)) !== 0;
+        $isSourceDirChange = $isRemovedOrRenamed || ($flags & FSEvents::EVENT_FLAG_ROOT_CHANGED) !== 0;
 
         foreach ($this->rules as $rule) {
             $sourceDir = \rtrim($rule->sourceDir, '/');
@@ -101,7 +99,7 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
                 continue;
             }
 
-            if ($isDirChange && $rule->recursive && \str_starts_with($path, $sourceDir . '/')) {
+            if ($isDirOrSymlink && $isRemovedOrRenamed && $rule->recursive && \str_starts_with($path, $sourceDir . '/')) {
                 $this->scheduleReload($rule->invalidateOpcache);
             }
         }
