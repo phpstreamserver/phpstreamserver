@@ -5,11 +5,14 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\FileMonitor;
 
 use PHPStreamServer\Core\Command\ReloadServerCommand;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\FileMonitor\Internal\AbstractFileWatcher;
 use PHPStreamServer\Plugin\FileMonitor\Internal\FileWatcherFactory;
+use PHPStreamServer\Plugin\FileMonitor\Internal\PollingFileWatcher;
+use Revolt\EventLoop;
 
 /**
  * @extends Plugin<WorkerInterface>
@@ -43,8 +46,18 @@ final class FileMonitorPlugin extends Plugin
             $messageBus->dispatch(new ReloadServerCommand($invalidateOpcache));
         };
 
-        $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback);
-        $this->fileWatcher->start();
+        try {
+            $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback);
+            $this->fileWatcher->start();
+        } catch (\Throwable $e) {
+            $logger = &$this->masterContainer->getService(LoggerInterface::class);
+            $initialWatcherClass = $this->fileWatcher::class;
+            $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback, PollingFileWatcher::class);
+            $this->fileWatcher->start();
+            EventLoop::defer(static function () use($initialWatcherClass, $e, &$logger): void {
+                $logger->error(\sprintf('Failed to start %s, falling back to %s: %s', $initialWatcherClass, PollingFileWatcher::class, $e->getMessage()));
+            });
+        }
     }
 
     public function onStop(): void
