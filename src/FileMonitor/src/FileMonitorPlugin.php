@@ -5,10 +5,14 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\FileMonitor;
 
 use PHPStreamServer\Core\Command\ReloadServerCommand;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
-use PHPStreamServer\Plugin\FileMonitor\Internal\InotifyMonitorWatcher;
+use PHPStreamServer\Plugin\FileMonitor\Internal\AbstractFileWatcher;
+use PHPStreamServer\Plugin\FileMonitor\Internal\FileWatcherFactory;
+use PHPStreamServer\Plugin\FileMonitor\Internal\PollingFileWatcher;
+use Revolt\EventLoop;
 
 /**
  * @extends Plugin<WorkerInterface>
@@ -16,47 +20,49 @@ use PHPStreamServer\Plugin\FileMonitor\Internal\InotifyMonitorWatcher;
 final class FileMonitorPlugin extends Plugin
 {
     private MessageBusInterface $messageBus;
-    private array $watchDirs;
 
-    public function __construct(WatchDir ...$watch)
+    /**
+     * @var list<WatchRule>
+     */
+    private array $watchRules;
+
+    private AbstractFileWatcher|null $fileWatcher = null;
+
+    public function __construct(WatchRule ...$watchRules)
     {
-        $this->watchDirs = $watch;
+        $this->watchRules = \array_values($watchRules);
     }
 
     public function onStart(): void
     {
         $this->messageBus = $this->masterContainer->getService(MessageBusInterface::class);
 
-        foreach ($this->watchDirs as $watchDir) {
-            $fileMonitor = new InotifyMonitorWatcher(
-                sourceDir: $watchDir->sourceDir,
-                filePatterns: $watchDir->filePatterns,
-                recursive: $watchDir->recursive,
-                reloadCallback: $watchDir->invalidateOpcache
-                    ? $this->triggerReloadWithOpcacheReset(...)
-                    : $this->triggerReloadWithoutOpcacheReset(...),
-            );
+        if ($this->watchRules === []) {
+            return;
+        }
 
-            $fileMonitor->start();
+        $messageBus = $this->messageBus;
+        $reloadCallback = static function (bool $invalidateOpcache) use ($messageBus): void {
+            $messageBus->dispatch(new ReloadServerCommand($invalidateOpcache));
+        };
+
+        try {
+            $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback);
+            $this->fileWatcher->start();
+        } catch (\Throwable $e) {
+            $logger = &$this->masterContainer->getService(LoggerInterface::class);
+            $initialWatcherClass = $this->fileWatcher::class;
+            $this->fileWatcher = FileWatcherFactory::create($this->watchRules, $reloadCallback, PollingFileWatcher::class);
+            $this->fileWatcher->start();
+            EventLoop::defer(static function () use ($initialWatcherClass, $e, &$logger): void {
+                $logger->error(\sprintf('Failed to start %s, falling back to %s: %s', $initialWatcherClass, PollingFileWatcher::class, $e->getMessage()));
+            });
         }
     }
 
-    private function triggerReloadWithoutOpcacheReset(): void
+    public function onStop(): void
     {
-        $this->messageBus->dispatch(new ReloadServerCommand());
-    }
-
-    /**
-     * @psalm-suppress NoValue
-     */
-    private function triggerReloadWithOpcacheReset(): void
-    {
-        $this->messageBus->dispatch(new ReloadServerCommand());
-
-        if (\function_exists('opcache_get_status') && false !== $status = \opcache_get_status()) {
-            foreach (\array_keys($status['scripts'] ?? []) as $file) {
-                \opcache_invalidate($file, true);
-            }
-        }
+        $this->fileWatcher?->stop();
+        $this->fileWatcher = null;
     }
 }

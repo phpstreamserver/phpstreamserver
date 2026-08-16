@@ -23,7 +23,7 @@
         "amphp/amp": "^3.0",
         "revolt/event-loop": "^1.0",
         "phpstreamserver/core": "^0.8",
-        "luzrain/polyfill-inotify": "^1.0"
+        "webmozart/glob": "^4.7"
     },
     "autoload": {
         "psr-4": {
