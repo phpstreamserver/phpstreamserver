@@ -22,6 +22,11 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
      */
     private array $realPathToSourceDir = [];
 
+    protected static function getReloadDelay(): float
+    {
+        return 0.05;
+    }
+
     public function start(): void
     {
         $this->realPathToSourceDir = [];

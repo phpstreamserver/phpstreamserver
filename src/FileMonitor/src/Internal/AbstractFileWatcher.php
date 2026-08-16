@@ -19,11 +19,8 @@ abstract class AbstractFileWatcher
      * @param list<WatchRule> $rules
      * @param \Closure(bool): void $reloadCallback
      */
-    public function __construct(
-        protected readonly array $rules,
-        private readonly \Closure $reloadCallback,
-        private readonly float $reloadDelay = 0.15,
-    ) {
+    final public function __construct(protected readonly array $rules, private readonly \Closure $reloadCallback)
+    {
     }
 
     protected function isPatternMatches(WatchRule $rule, string $path): bool
@@ -40,17 +37,24 @@ abstract class AbstractFileWatcher
             return;
         }
 
-        $this->delayedReloadCallbackId = EventLoop::delay($this->reloadDelay, function (): void {
+        $callback = function (): void {
             $invalidateOpcache = $this->pendingInvalidateOpcache;
             $this->delayedReloadCallbackId = '';
             $this->pendingInvalidateOpcache = false;
             ($this->reloadCallback)($invalidateOpcache);
-        });
+        };
+
+        $reloadDelay = static::getReloadDelay();
+        if ($reloadDelay <= 0) {
+            $this->delayedReloadCallbackId = EventLoop::defer($callback);
+        } else {
+            $this->delayedReloadCallbackId = EventLoop::delay($reloadDelay, $callback);
+        }
     }
 
-    public function start(): void
-    {
-    }
+    abstract protected static function getReloadDelay(): float;
+
+    abstract public function start(): void;
 
     public function stop(): void
     {

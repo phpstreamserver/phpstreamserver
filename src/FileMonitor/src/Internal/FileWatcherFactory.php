@@ -11,17 +11,20 @@ final readonly class FileWatcherFactory
     /**
      * @param list<WatchRule> $rules
      * @param \Closure(bool): void $reloadCallback
+     * @param class-string<AbstractFileWatcher>|null $watcherClass
      */
-    public static function create(array $rules, \Closure $reloadCallback): AbstractFileWatcher
+    public static function create(array $rules, \Closure $reloadCallback, string|null $watcherClass = null): AbstractFileWatcher
     {
-        if (PHP_OS_FAMILY === 'Linux') {
-            return new InotifyFileWatcher($rules, $reloadCallback, 0.15);
+        $watcherClass ??= match (PHP_OS_FAMILY) {
+            'Linux' => InotifyFileWatcher::class,
+            'Darwin' => FSEventsFileWatcher::class,
+            default => PollingFileWatcher::class,
+        };
+
+        if (!\is_subclass_of($watcherClass, AbstractFileWatcher::class)) {
+            throw new \RuntimeException(\sprintf('FileWatcher implementation "%s" does not exist', $watcherClass));
         }
 
-        if (PHP_OS_FAMILY === 'Darwin') {
-            return new FSEventsFileWatcher($rules, $reloadCallback, 0.05);
-        }
-
-        return new PollingFileWatcher($rules, $reloadCallback, 0.05);
+        return new $watcherClass($rules, $reloadCallback);
     }
 }

@@ -17,6 +17,11 @@ final class PollingFileWatcher extends AbstractFileWatcher
     private string $snapshotHash = '';
     private string $opcacheSnapshotHash = '';
 
+    protected static function getReloadDelay(): float
+    {
+        return 0.0;
+    }
+
     public function start(): void
     {
         [$this->snapshotHash, $this->opcacheSnapshotHash] = $this->createSnapshotHashes();

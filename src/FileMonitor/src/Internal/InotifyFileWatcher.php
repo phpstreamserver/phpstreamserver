@@ -27,6 +27,11 @@ final class InotifyFileWatcher extends AbstractFileWatcher
      */
     private array $rulesBySourceDir = [];
 
+    protected static function getReloadDelay(): float
+    {
+        return 0.15;
+    }
+
     public function start(): void
     {
         $this->inotify = new Inotify();
