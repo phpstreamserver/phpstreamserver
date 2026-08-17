@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use Revolt\EventLoop;
-
 /**
  * @internal
  *
  * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
-final readonly class LinuxPeerCredentials
+final class LinuxPeerCredentials
 {
     private const CDEF = <<<'CDEF'
         typedef int pid_t;
@@ -27,6 +25,20 @@ final readonly class LinuxPeerCredentials
 
         int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
     CDEF;
+
+    private static \FFI $ffi;
+
+    /**
+     * @psalm-suppress RedundantPropertyInitializationCheck
+     */
+    private static function ffi(): \FFI
+    {
+        try {
+            return self::$ffi ??= \FFI::cdef(self::CDEF . "\nint *__errno_location(void);");
+        } catch (\FFI\Exception) {
+            return self::$ffi ??= \FFI::cdef(self::CDEF . "\nint *__errno(void);");
+        }
+    }
 
     /**
      * @return array{0: int, 1: int, 2: int}
@@ -109,19 +121,5 @@ final readonly class LinuxPeerCredentials
             \str_starts_with($arch, 'hppa') => 16401, // 0x4011
             default => 17,
         };
-    }
-
-    private static function ffi(): \FFI
-    {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= (static function (): \FFI {
-            try {
-                return \FFI::cdef(self::CDEF . "\nint *__errno_location(void);");
-            } catch (\FFI\Exception) {
-                return \FFI::cdef(self::CDEF . "\nint *__errno(void);");
-            }
-        })();
     }
 }

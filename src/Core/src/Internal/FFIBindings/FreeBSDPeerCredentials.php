@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use Revolt\EventLoop;
-
 /**
  * @internal
  *
  * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
-final readonly class FreeBSDPeerCredentials
+final class FreeBSDPeerCredentials
 {
     private const SOL_LOCAL = 0;
     private const LOCAL_PEERCRED = 1;
@@ -37,6 +35,14 @@ final readonly class FreeBSDPeerCredentials
         int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
         int *__error(void);
     CDEF;
+
+    private static \FFI $ffi;
+
+    private static function ffi(): \FFI
+    {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
+    }
 
     /**
      * @return array{0: int, 1: int, 2: int}
@@ -80,13 +86,5 @@ final readonly class FreeBSDPeerCredentials
         $gid = (int) $xucred->cr_groups[0];
 
         return [$pid, $uid, $gid];
-    }
-
-    private static function ffi(): \FFI
-    {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= \FFI::cdef(self::CDEF);
     }
 }

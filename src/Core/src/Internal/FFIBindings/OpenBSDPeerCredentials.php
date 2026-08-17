@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use Revolt\EventLoop;
-
 /**
  * @internal
  *
  * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
-final readonly class OpenBSDPeerCredentials
+final class OpenBSDPeerCredentials
 {
     private const SOL_SOCKET = 65535; // 0xffff
     private const SO_PEERCRED = 4130;  // 0x1022
@@ -31,6 +29,14 @@ final readonly class OpenBSDPeerCredentials
         int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
         int *__errno(void);
     CDEF;
+
+    private static \FFI $ffi;
+
+    private static function ffi(): \FFI
+    {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
+    }
 
     /**
      * @return array{0: int, 1: int, 2: int}
@@ -64,13 +70,5 @@ final readonly class OpenBSDPeerCredentials
         $gid = (int) $sockpeercred->gid;
 
         return [$pid, $uid, $gid];
-    }
-
-    private static function ffi(): \FFI
-    {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= \FFI::cdef(self::CDEF);
     }
 }

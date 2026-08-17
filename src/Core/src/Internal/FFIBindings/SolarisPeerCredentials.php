@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use Revolt\EventLoop;
-
 /**
  * @internal
  *
  * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
-final readonly class SolarisPeerCredentials
+final class SolarisPeerCredentials
 {
     private const CDEF = <<<'CDEF'
         typedef int pid_t;
@@ -26,6 +24,14 @@ final readonly class SolarisPeerCredentials
         void ucred_free(ucred_t *uc);
         int *___errno(void);
     CDEF;
+
+    private static \FFI $ffi;
+
+    private static function ffi(): \FFI
+    {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
+    }
 
     /**
      * @return array{0: int, 1: int, 2: int}
@@ -64,13 +70,5 @@ final readonly class SolarisPeerCredentials
         } finally {
             $ffi->ucred_free($ucredPtr);
         }
-    }
-
-    private static function ffi(): \FFI
-    {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= \FFI::cdef(self::CDEF);
     }
 }

@@ -4,14 +4,12 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use Revolt\EventLoop;
-
 /**
  * @internal
  *
  * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
-final readonly class DarwinPeerCredentials
+final class DarwinPeerCredentials
 {
     private const SOL_LOCAL = 0;
     private const LOCAL_PEERPID = 2;
@@ -26,6 +24,14 @@ final readonly class DarwinPeerCredentials
         int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
         int *__error(void);
     CDEF;
+
+    private static \FFI $ffi;
+
+    private static function ffi(): \FFI
+    {
+        /** @psalm-suppress RedundantPropertyInitializationCheck */
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
+    }
 
     /**
      * @return array{0: int, 1: int, 2: int}
@@ -67,13 +73,5 @@ final readonly class DarwinPeerCredentials
         $gidVal = (int) $gid->cdata;
 
         return [$pidVal, $uidVal, $gidVal];
-    }
-
-    private static function ffi(): \FFI
-    {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= \FFI::cdef(self::CDEF);
     }
 }
