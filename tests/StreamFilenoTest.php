@@ -12,9 +12,9 @@ final class StreamFilenoTest extends TestCase
     public function testReturnsValidDescriptorForStandardStreams(): void
     {
         // Assert
-        $this->assertSame(0, StreamFileno::fileno(STDIN));
-        $this->assertSame(1, StreamFileno::fileno(STDOUT));
-        $this->assertSame(2, StreamFileno::fileno(STDERR));
+        $this->assertSame(0, StreamFileno::get(STDIN));
+        $this->assertSame(1, StreamFileno::get(STDOUT));
+        $this->assertSame(2, StreamFileno::get(STDERR));
     }
 
     public function testReturnsValidDescriptorForFileStream(): void
@@ -25,7 +25,7 @@ final class StreamFilenoTest extends TestCase
 
         // Assert
         try {
-            $fd = StreamFileno::fileno($resource);
+            $fd = StreamFileno::get($resource);
             $this->assertIsInt($fd);
             $this->assertGreaterThan(2, $fd);
         } finally {
@@ -36,8 +36,8 @@ final class StreamFilenoTest extends TestCase
     public function testReturnsNullForNonResource(): void
     {
         // Assert
-        $this->assertNull(StreamFileno::fileno('string'));
-        $this->assertNull(StreamFileno::fileno(123));
+        $this->assertNull(StreamFileno::get('string'));
+        $this->assertNull(StreamFileno::get(123));
     }
 
     public function testReturnsNullForNonFileResource(): void
@@ -47,7 +47,7 @@ final class StreamFilenoTest extends TestCase
 
         // Assert
         try {
-            $this->assertNull(StreamFileno::fileno($resource));
+            $this->assertNull(StreamFileno::get($resource));
         } finally {
             \fclose($resource);
         }

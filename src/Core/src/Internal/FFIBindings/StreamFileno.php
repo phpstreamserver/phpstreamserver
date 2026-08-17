@@ -119,11 +119,11 @@ final class StreamFileno
     CDEF;
 
     /**
-     * @param resource $stream
+     * @param resource $resource
      */
-    public static function fileno(mixed $stream): int|null
+    public static function get(mixed $resource): int|null
     {
-        $zval = self::zval($stream);
+        $zval = self::zval($resource);
         if (!self::isResource($zval)) {
             return null;
         }
