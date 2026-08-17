@@ -46,7 +46,9 @@ final class PeerCredentialsTest extends TestCase
 
         if ($pid === 0) {
             // Forked process
-            \stream_socket_client(address: 'unix://' . $socketPath, timeout: 2);
+            $client = \stream_socket_client(address: 'unix://' . $socketPath, timeout: 2);
+            \fread($client, 1);
+            \fclose($client);
             \posix_kill(\posix_getpid(), SIGKILL); // Do not use exit directly to prevent shutdown callback execute
         }
 
@@ -54,6 +56,7 @@ final class PeerCredentialsTest extends TestCase
         try {
             $conn = \stream_socket_accept(socket: $server, timeout: 2);
             $credentials = PeerCredentials::get($conn);
+            \fwrite($conn, 'a');
             \fclose($conn);
 
             $this->assertInstanceOf(PeerCredentials::class, $credentials);
