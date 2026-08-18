@@ -24,6 +24,11 @@ final class HttpServerPlugin extends Plugin
     ) {
     }
 
+    public static function getDescription(): string
+    {
+        return 'Asynchronous HTTP server';
+    }
+
     public function onStart(): void
     {
         $this->workerContainer->setParameter('httpServerPlugin.http2Enabled', $this->http2Enabled);

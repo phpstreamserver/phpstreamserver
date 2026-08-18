@@ -37,6 +37,11 @@ final class MetricsPlugin extends Plugin
     ) {
     }
 
+    public static function getDescription(): string
+    {
+        return 'Prometheus-compatible metrics collection and export';
+    }
+
     public function onStart(): void
     {
         $listen = \is_string($this->listen) ? new Listen($this->listen) : $this->listen;

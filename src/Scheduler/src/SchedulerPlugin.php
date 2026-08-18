@@ -28,6 +28,11 @@ final class SchedulerPlugin extends Plugin
     {
     }
 
+    public static function getDescription(): string
+    {
+        return 'Periodic task scheduler';
+    }
+
     protected function beforeStart(): void
     {
         /** @var int $stopTimeout */

@@ -159,6 +159,11 @@ final class SymfonyPlugin extends Plugin
         $this->appLoader->loadEnv();
     }
 
+    public static function getDescription(): string
+    {
+        return 'Symfony framework and runtime integration';
+    }
+
     public function registerCommands(): iterable
     {
         return [new StartCommand()];

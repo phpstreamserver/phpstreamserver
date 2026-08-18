@@ -31,6 +31,11 @@ final class LoggerPlugin extends Plugin
         $this->handlers = $handlers;
     }
 
+    public static function getDescription(): string
+    {
+        return 'Logging system';
+    }
+
     public function onStart(): void
     {
         $masterLogger = new MasterLogger();

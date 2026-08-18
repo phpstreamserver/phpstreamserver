@@ -33,6 +33,11 @@ final class FileMonitorPlugin extends Plugin
         $this->watchRules = \array_values($watchRules);
     }
 
+    public static function getDescription(): string
+    {
+        return 'Automatic reload on file changes';
+    }
+
     public function onStart(): void
     {
         $this->messageBus = $this->masterContainer->getService(MessageBusInterface::class);

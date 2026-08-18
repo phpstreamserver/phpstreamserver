@@ -12,6 +12,11 @@ use PHPStreamServer\Core\WorkerInterface;
  */
 final class TestPlugin extends Plugin
 {
+    public static function getDescription(): string
+    {
+        return 'Test plugin';
+    }
+
     public function registerCommands(): array
     {
         return [
