@@ -29,7 +29,11 @@ final readonly class PeerCredentials
      */
     public static function get(mixed $resource): self|null
     {
-        $fd = StreamFileno::get($resource);
+        try {
+            $fd = StreamFileno::get($resource);
+        } catch (\InvalidArgumentException) {
+            return null;
+        }
 
         if ($fd === null || $fd < 0) {
             return null;

@@ -4,9 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
-use FFI\CData;
-use Revolt\EventLoop;
-
 /**
  * Extracts the underlying OS file descriptor number from a PHP stream resource by interfacing with internal Zend Engine and PHP Stream C APIs via FFI
  *
@@ -16,10 +13,11 @@ final class StreamFileno
 {
     private const PHP_STREAM_AS_FD_FOR_SELECT = 3;
     private const PHP_STREAM_AS_FD = 1;
-    private const ZTYPE_RESOURCE = 9;
 
     // https://github.com/chopins/ffi-ext/blob/master/src/php.h
     private const CDEF = <<<'CDEF'
+        typedef int64_t zend_long;
+        typedef uint64_t zend_ulong;
         typedef unsigned char zend_uchar;
 
         typedef struct _zend_refcounted_h {
@@ -28,20 +26,20 @@ final class StreamFileno
                 uint32_t type_info;
             } u;
         } zend_refcounted_h;
-        
+
         typedef struct _zval_struct zval;
         typedef struct _zend_resource zend_resource;
         typedef struct _php_stream php_stream;
         typedef struct _zend_array HashTable;
         typedef void (*dtor_func_t)(zval *pDest);
-        
+
         struct _zend_resource {
             zend_refcounted_h gc;
             int               handle;
             int               type;
             void             *ptr;
         };
-        
+
         struct _zval_struct {
             union {
                 zend_long      lval;
@@ -81,13 +79,13 @@ final class StreamFileno
                 uint32_t fe_iter_idx;
             } u2;
         };
-        
+
         typedef struct _Bucket {
             zval       val;
             zend_ulong h;
             void      *key;
         } Bucket;
-        
+
         struct _zend_array {
             zend_refcounted_h gc;
             union {
@@ -108,7 +106,7 @@ final class StreamFileno
             zend_long   nNextFreeElement;
             dtor_func_t pDestructor;
         };
-        
+
         HashTable *zend_rebuild_symbol_table(void);
         HashTable *zend_array_dup(HashTable *source);
         void zend_array_destroy(HashTable *ht);
@@ -118,66 +116,47 @@ final class StreamFileno
         int _php_stream_cast(php_stream *stream, int castas, void **ret, int show_err);
     CDEF;
 
+    private static \FFI $ffi;
+
     /**
-     * @param resource $resource
+     * @psalm-suppress RedundantPropertyInitializationCheck
      */
-    public static function get(mixed $resource): int|null
-    {
-        $zval = self::zval($resource);
-        if (!self::isResource($zval)) {
-            return null;
-        }
-
-        $zresource = $zval->value->res;
-        $phpStream = self::ffi()->zend_fetch_resource2($zresource, 'stream', self::ffi()->php_file_le_stream(), self::ffi()->php_file_le_pstream());
-
-        if (self::isNull($phpStream)) {
-            return null;
-        }
-
-        $filenoCData = self::ffi()->new('int');
-        $filenoCData->cdata = -1;
-        $castTypeList = [self::PHP_STREAM_AS_FD_FOR_SELECT, self::PHP_STREAM_AS_FD];
-        foreach ($castTypeList as $castType) {
-            self::ffi()->_php_stream_cast($phpStream, $castType, self::ffi()->cast('void *', \FFI::addr($filenoCData)), 0);
-            if ($filenoCData->cdata !== -1) {
-                return $filenoCData->cdata;
-            }
-        }
-
-        return null;
-    }
-
     private static function ffi(): \FFI
     {
-        static $map;
-        $map ??= new \WeakMap();
-
-        return $map[EventLoop::getDriver()] ??= (static function (): \FFI {
-            $bitSize = PHP_INT_SIZE * 8;
-            $header = "typedef int{$bitSize}_t zend_long;typedef uint{$bitSize}_t zend_ulong;typedef int{$bitSize}_t zend_off_t;";
-            $header .= self::CDEF;
-            return \FFI::cdef($header);
-        })();
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
     }
 
-    private static function zval(mixed $var): CData
+    public static function get(mixed $resource): int|null
     {
+        if (!\is_resource($resource)) {
+            throw new \InvalidArgumentException(\sprintf('Expected resource, %s given', \get_debug_type($resource)));
+        }
+
         $symbolTable = self::ffi()->zend_rebuild_symbol_table();
         $symbolHashTable = self::ffi()->zend_array_dup($symbolTable);
         $zval = $symbolHashTable->arData->val;
-        self::ffi()->zend_array_destroy($symbolHashTable);
 
-        return $zval;
-    }
+        try {
+            $zresource = $zval->value->res;
+            $phpStream = self::ffi()->zend_fetch_resource2($zresource, 'stream', self::ffi()->php_file_le_stream(), self::ffi()->php_file_le_pstream());
 
-    private static function isResource(CData $zval): bool
-    {
-        return $zval->u1->v->type === self::ZTYPE_RESOURCE;
-    }
+            if ($phpStream === null || \FFI::isNull($phpStream)) {
+                return null;
+            }
 
-    private static function isNull(CData|null $zval): bool
-    {
-        return $zval === null || \FFI::isNull($zval);
+            $filenoCData = self::ffi()->new('int');
+            $filenoCData->cdata = -1;
+            $castTypeList = [self::PHP_STREAM_AS_FD_FOR_SELECT, self::PHP_STREAM_AS_FD];
+            foreach ($castTypeList as $castType) {
+                self::ffi()->_php_stream_cast($phpStream, $castType, self::ffi()->cast('void *', \FFI::addr($filenoCData)), 0);
+                if ($filenoCData->cdata !== -1) {
+                    return $filenoCData->cdata;
+                }
+            }
+
+            return null;
+        } finally {
+            self::ffi()->zend_array_destroy($symbolHashTable);
+        }
     }
 }
