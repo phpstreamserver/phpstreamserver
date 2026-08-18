@@ -11,8 +11,8 @@ namespace PHPStreamServer\Core\Internal\FFIBindings;
  */
 final class OpenBSDPeerCredentials
 {
-    private const SOL_SOCKET = 65535; // 0xffff
-    private const SO_PEERCRED = 4130;  // 0x1022
+    private const SOL_SOCKET = 0xffff;
+    private const SO_PEERCRED = 0x1022;
 
     private const CDEF = <<<'CDEF'
         typedef int pid_t;
