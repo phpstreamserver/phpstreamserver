@@ -24,6 +24,7 @@ final class LinuxPeerCredentials
         };
 
         int getsockopt(int sockfd, int level, int optname, void *optval, socklen_t *optlen);
+        int *__errno_location(void);
     CDEF;
 
     private static \FFI $ffi;
@@ -33,11 +34,7 @@ final class LinuxPeerCredentials
      */
     private static function ffi(): \FFI
     {
-        try {
-            return self::$ffi ??= \FFI::cdef(self::CDEF . "\nint *__errno_location(void);");
-        } catch (\FFI\Exception) {
-            return self::$ffi ??= \FFI::cdef(self::CDEF . "\nint *__errno(void);");
-        }
+        return self::$ffi ??= \FFI::cdef(self::CDEF);
     }
 
     /**
@@ -55,12 +52,7 @@ final class LinuxPeerCredentials
         $len->cdata = \FFI::sizeof($ucred);
 
         if ($ffi->getsockopt($fd, self::solSocket(), self::soPeercred(), \FFI::addr($ucred), \FFI::addr($len)) !== 0) {
-            try {
-                $errno = (int) $ffi->__errno_location()[0];
-            } catch (\FFI\Exception) {
-                $errno = (int) $ffi->__errno()[0];
-            }
-
+            $errno = (int) $ffi->__errno_location()[0];
             throw new \RuntimeException(\sprintf('Unable to get socket peer credentials: %s', \posix_strerror($errno)));
         }
 
