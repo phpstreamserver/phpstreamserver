@@ -48,7 +48,7 @@ final class Inotify
         int inotify_rm_watch(int fd, int wd);
         int close(int fd);
         ssize_t read(int fd, void *buf, size_t count);
-        extern int errno;
+        int *__errno_location(void);
     CDEF;
 
     private readonly \FFI $ffi;
@@ -70,7 +70,8 @@ final class Inotify
         $this->fd = $this->ffi->inotify_init();
 
         if ($this->fd === -1) {
-            throw new \RuntimeException('Unable to initialize inotify: ' . \posix_strerror($this->ffi->errno));
+            $errno = (int) $this->ffi->__errno_location()[0];
+            throw new \RuntimeException('Unable to initialize inotify: ' . \posix_strerror($errno));
         }
 
         if (false === $stream = \fopen(\sprintf('php://fd/%d', $this->fd), 'r')) {
@@ -110,7 +111,8 @@ final class Inotify
         $watchDescriptor = (int) $this->ffi->inotify_add_watch($this->fd, $pathname, $mask);
 
         if ($watchDescriptor === -1) {
-            throw new \RuntimeException(\sprintf('Unable to watch directory "%s": %s', $pathname, \posix_strerror($this->ffi->errno)));
+            $errno = (int) $this->ffi->__errno_location()[0];
+            throw new \RuntimeException(\sprintf('Unable to watch directory "%s": %s', $pathname, \posix_strerror($errno)));
         }
 
         return $watchDescriptor;
@@ -142,11 +144,12 @@ final class Inotify
         $bytesRead = $ffi->read($this->fd, $buffer, self::READ_BUFFER_SIZE);
 
         if ($bytesRead === -1) {
-            if ($ffi->errno === self::EAGAIN) {
+            $errno = (int) $ffi->__errno_location()[0];
+            if ($errno === self::EAGAIN) {
                 return [];
             }
 
-            throw new \RuntimeException('Unable to read inotify events: ' . \posix_strerror($this->ffi->errno));
+            throw new \RuntimeException('Unable to read inotify events: ' . \posix_strerror($errno));
         }
 
         $events = [];
