@@ -12,10 +12,14 @@ use Amp\Socket\ResourceServerSocket;
 use Amp\Socket\ResourceServerSocketFactory;
 use Amp\Socket\UnixAddress;
 use Amp\TimeoutCancellation;
+use PHPStreamServer\Core\Command\GetProcessesCommand;
 use PHPStreamServer\Core\MessageBus\CompositeMessage;
+use PHPStreamServer\Core\MessageBus\Context;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Core\Plugin\Supervisor\ProcessInfo;
+use PHPStreamServer\Core\Runtime\ProcessIdentity;
 use Revolt\EventLoop;
 
 use function Amp\async;
@@ -28,7 +32,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
     private ResourceServerSocket $socket;
 
     /**
-     * @var array<class-string, array<int, \Closure>>
+     * @var array<class-string<MessageInterface>, array<int, \Closure(MessageInterface, Context): mixed>>
      */
     private array $subscribers = [];
 
@@ -41,13 +45,33 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 
         \chmod($socketFile, 0666);
 
-        $server = &$this->socket;
-        $subscribers = &$this->subscribers;
+        EventLoop::queue(function (): void {
+            while ($socket = $this->socket->accept()) {
 
-        EventLoop::queue(static function () use (&$server, &$subscribers) {
-            while ($socket = $server->accept()) {
-                $ownerPid = \posix_getpid();
-                async(static function () use ($socket, &$subscribers, $ownerPid): void {
+                // @TODO
+                //$cred = PeerCredentials::get($socket->getResource());
+                $pid = \posix_getpid();
+                $uid = 1000;
+                $gid = 1000;
+
+                $processes = $this->dispatch(new GetProcessesCommand())->await();
+                $processPids = \array_map(static fn (ProcessInfo $p): int => $p->pid, $processes);
+                $masterPid = \posix_getpid();
+                $context = new Context(
+                    source: match (true) {
+                        $pid === $masterPid => Context::SOURCE_MASTER,
+                        \in_array($pid, $processPids, true) => Context::SOURCE_CHILD,
+                        default => Context::SOURCE_EXTERNAL,
+                    },
+                    pid: $pid,
+                    uid: $uid,
+                    gid: $gid,
+                    user: ProcessIdentity::getUserBuUid($uid),
+                    group: ProcessIdentity::getGroupBuGid($gid),
+                );
+
+                $subscribers = &$this->subscribers;
+                async(static function () use ($socket, &$subscribers, $masterPid, $context): void {
                     try {
                         $handshake = self::readExactly($socket, \strlen(self::HANDSHAKE), new TimeoutCancellation(self::PROTOCOL_READ_TIMEOUT, 'Message bus handshake timed out'));
                         if ($handshake !== self::HANDSHAKE) {
@@ -78,7 +102,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                             $return = null;
 
                             foreach ($subscribers[$message::class] ?? [] as $subscriber) {
-                                if (null !== $subscriberReturn = $subscriber($message)) {
+                                if (null !== $subscriberReturn = $subscriber($message, $context)) {
                                     $return = $subscriberReturn;
                                     break;
                                 }
@@ -98,7 +122,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                     } catch (CancelledException|StreamException) {
                         // The socket was closed
                     } finally {
-                        if (\posix_getpid() === $ownerPid) {
+                        if (\posix_getpid() === $masterPid) {
                             $socket->end();
                         }
                     }
@@ -148,9 +172,21 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
     {
         $subscribers = &$this->subscribers;
 
-        return async(static function () use (&$subscribers, &$message): mixed {
+        $pid = \posix_getpid();
+        $uid = \posix_geteuid();
+        $gid = \posix_getegid();
+        $context = new Context(
+            source: Context::SOURCE_MASTER,
+            pid: $pid,
+            uid: $uid,
+            gid: $gid,
+            user: ProcessIdentity::getUserBuUid($uid),
+            group: ProcessIdentity::getGroupBuGid($gid),
+        );
+
+        return async(static function () use (&$subscribers, &$message, $context): mixed {
             foreach ($subscribers[$message::class] ?? [] as $subscriber) {
-                if (null !== $subscriberReturn = $subscriber($message)) {
+                if (null !== $subscriberReturn = $subscriber($message, $context)) {
                     return $subscriberReturn;
                 }
             }
