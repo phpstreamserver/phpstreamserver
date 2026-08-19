@@ -13,6 +13,7 @@ use Amp\Socket\ResourceServerSocketFactory;
 use Amp\Socket\UnixAddress;
 use Amp\TimeoutCancellation;
 use PHPStreamServer\Core\Command\GetProcessesCommand;
+use PHPStreamServer\Core\MessageBus\AllowedClassesProviderInterface;
 use PHPStreamServer\Core\MessageBus\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\Context;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
@@ -29,12 +30,24 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 {
     use MessageBusTrait;
 
+    private const DEFAULT_ALLOWED_CLASSES = [
+        \DateTimeImmutable::class,
+        \DateTime::class,
+        \DateTimeZone::class,
+        \DateInterval::class,
+        \DatePeriod::class,
+        \stdClass::class,
+    ];
+
     private ResourceServerSocket $socket;
 
     /**
      * @var array<class-string<MessageInterface>, array<int, \Closure(MessageInterface, Context): mixed>>
      */
     private array $subscribers = [];
+
+    private array $allowedClasses = self::DEFAULT_ALLOWED_CLASSES;
+    private string $recomputeClassesCallbackId = '';
 
     public function __construct(string $socketFile)
     {
@@ -45,7 +58,10 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 
         \chmod($socketFile, 0666);
 
-        EventLoop::queue(function (): void {
+        $subscribers = &$this->subscribers;
+        $allowedClasses = &$this->allowedClasses;
+
+        EventLoop::queue(function () use (&$subscribers, &$allowedClasses): void {
             while ($socket = $this->socket->accept()) {
 
                 // @TODO
@@ -55,7 +71,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                 $gid = 1000;
 
                 $processes = $this->dispatch(new GetProcessesCommand())->await();
-                $processPids = \array_map(static fn (ProcessInfo $p): int => $p->pid, $processes);
+                $processPids = \array_map(static fn(ProcessInfo $p): int => $p->pid, $processes);
                 $masterPid = \posix_getpid();
                 $context = new Context(
                     source: match (true) {
@@ -70,8 +86,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                     group: ProcessIdentity::getGroupBuGid($gid),
                 );
 
-                $subscribers = &$this->subscribers;
-                async(static function () use ($socket, &$subscribers, $masterPid, $context): void {
+                async(static function () use ($socket, &$subscribers, $masterPid, $context, &$allowedClasses): void {
                     try {
                         $handshake = self::readExactly($socket, \strlen(self::HANDSHAKE), new TimeoutCancellation(self::PROTOCOL_READ_TIMEOUT, 'Message bus handshake timed out'));
                         if ($handshake !== self::HANDSHAKE) {
@@ -94,7 +109,13 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                                 $data = \gzinflate($data);
                             }
 
-                            $message = \unserialize($data);
+                            $message = \unserialize($data, ['allowed_classes' => $allowedClasses]);
+
+                            if ($message instanceof \__PHP_Incomplete_Class) {
+                                $className = ((array) $message)['__PHP_Incomplete_Class_Name'] ?? 'unknown';
+                                throw new \RuntimeException(\sprintf('Received untrusted message class "%s"', $className));
+                            }
+
                             if (!$message instanceof MessageInterface) {
                                 break;
                             }
@@ -139,28 +160,39 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 
     public function stop(): void
     {
+        if ($this->recomputeClassesCallbackId !== '') {
+            EventLoop::cancel($this->recomputeClassesCallbackId);
+            $this->recomputeClassesCallbackId = '';
+        }
         $this->subscribers = [];
+        $this->allowedClasses = self::DEFAULT_ALLOWED_CLASSES;
         $this->socket->close();
     }
 
     /**
      * @template T of MessageInterface
      * @param class-string<T> $class
-     * @param \Closure(T): mixed $closure
+     * @param \Closure(T, Context): mixed $closure
      */
     public function subscribe(string $class, \Closure $closure): void
     {
+        /** @psalm-suppress InvalidPropertyAssignmentValue */
         $this->subscribers[$class][\spl_object_id($closure)] = $closure;
+        $this->recomputeAllowedClasses();
     }
 
     /**
      * @template T of MessageInterface
      * @param class-string<T> $class
-     * @param \Closure(T): mixed $closure
+     * @param \Closure(T, Context): mixed $closure
      */
     public function unsubscribe(string $class, \Closure $closure): void
     {
         unset($this->subscribers[$class][\spl_object_id($closure)]);
+        if ($this->subscribers[$class] === []) {
+            unset($this->subscribers[$class]);
+            $this->recomputeAllowedClasses();
+        }
     }
 
     /**
@@ -192,6 +224,27 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
             }
 
             return null;
+        });
+    }
+
+    private function recomputeAllowedClasses(): void
+    {
+        if ($this->recomputeClassesCallbackId !== '') {
+            return;
+        }
+
+        $this->recomputeClassesCallbackId = EventLoop::defer(function () {
+            $allowed = self::DEFAULT_ALLOWED_CLASSES;
+            foreach ($this->subscribers as $class => $_) {
+                $allowed[] = $class;
+                if (\is_subclass_of($class, AllowedClassesProviderInterface::class)) {
+                    foreach ($class::getAllowedClasses() as $nestedClass) {
+                        $allowed[] = $nestedClass;
+                    }
+                }
+            }
+            $this->allowedClasses = \array_unique($allowed);
+            $this->recomputeClassesCallbackId = '';
         });
     }
 }
