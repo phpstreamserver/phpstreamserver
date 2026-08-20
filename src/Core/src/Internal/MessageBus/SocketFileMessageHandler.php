@@ -20,6 +20,7 @@ use PHPStreamServer\Core\MessageBus\Context;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Core\MessageBus\MessageSource;
 use PHPStreamServer\Core\Plugin\Supervisor\ProcessInfo;
 use PHPStreamServer\Core\Runtime\ProcessIdentity;
 use Revolt\EventLoop;
@@ -70,9 +71,9 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
                 $masterPid = \posix_getpid();
                 $context = new Context(
                     source: match (true) {
-                        $cred->pid === $masterPid => Context::SOURCE_MASTER,
-                        \in_array( $cred->pid, $processPids, true) => Context::SOURCE_CHILD,
-                        default => Context::SOURCE_EXTERNAL,
+                        $cred->pid === $masterPid => MessageSource::MASTER,
+                        \in_array( $cred->pid, $processPids, true) => MessageSource::CHILD,
+                        default => MessageSource::EXTERNAL,
                     },
                     pid: $cred->pid,
                     uid: $cred->uid,
@@ -203,7 +204,7 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
         $uid = \posix_geteuid();
         $gid = \posix_getegid();
         $context = new Context(
-            source: Context::SOURCE_MASTER,
+            source: MessageSource::MASTER,
             pid: $pid,
             uid: $uid,
             gid: $gid,
