@@ -21,7 +21,7 @@ function phpss_create_command(string $command): string
 
 function phpss_start(): void
 {
-    \exec(\phpss_create_command('start -d') . ' > /dev/null 2>&1', $output, $exitCode);
+    \exec(\phpss_create_command('start -d'), $output, $exitCode);
     if ($exitCode !== 0) {
         throw new \RuntimeException('Failed to start server');
     }
@@ -29,5 +29,5 @@ function phpss_start(): void
 
 function phpss_stop(): void
 {
-    \exec(\phpss_create_command('stop') . ' > /dev/null 2>&1');
+    \exec(\phpss_create_command('stop'));
 }
