@@ -24,7 +24,6 @@ use PHPStreamServer\Core\Runtime\ProcessIdentity;
 use Revolt\EventLoop;
 
 use function Amp\async;
-use function Amp\weakClosure;
 
 final class SocketFileMessageHandler implements MessageHandlerInterface, MessageBusInterface
 {
@@ -151,11 +150,11 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
             }
         });
 
-        $this->subscribe(CompositeMessage::class, weakClosure(function (CompositeMessage $event) {
+        $this->subscribe(CompositeMessage::class, function (CompositeMessage $event): void {
             foreach ($event->messages as $message) {
                 $this->dispatch($message)->await();
             }
-        }));
+        });
     }
 
     public function stop(): void
