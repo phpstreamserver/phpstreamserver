@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Scheduler;
 
-use PHPStreamServer\Core\LoggerInterface;
-use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
 use PHPStreamServer\Core\Plugin\Plugin;
 use PHPStreamServer\Core\WorkerInterface;
@@ -14,7 +12,6 @@ use PHPStreamServer\Plugin\Scheduler\ConsoleCommand\SchedulerCommand;
 use PHPStreamServer\Plugin\Scheduler\Internal\MetricsHandler;
 use PHPStreamServer\Plugin\Scheduler\Internal\Scheduler;
 use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
-use Revolt\EventLoop\Suspension;
 
 /**
  * @extends Plugin<ScheduledWorker>
@@ -42,12 +39,8 @@ final class SchedulerPlugin extends Plugin
 
     public function onStart(): void
     {
-        $suspension = $this->masterContainer->getService(Suspension::class);
-        $logger = &$this->masterContainer->getService(LoggerInterface::class);
-        $bus = $this->masterContainer->getService(MessageBusInterface::class);
         $this->handler = $this->masterContainer->getService(MessageHandlerInterface::class);
-
-        $this->scheduler->start($suspension, $logger, $bus, $this->handler);
+        $this->scheduler->start($this->masterContainer);
     }
 
     public function afterStart(): void

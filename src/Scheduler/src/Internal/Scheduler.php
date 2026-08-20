@@ -6,14 +6,16 @@ namespace PHPStreamServer\Plugin\Scheduler\Internal;
 
 use Amp\DeferredFuture;
 use Amp\Future;
+use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
+use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
+use PHPStreamServer\Core\Runtime\ChildProcessRegistry;
 use PHPStreamServer\Core\Runtime\SIGCHLDHandler;
 use PHPStreamServer\Plugin\Scheduler\Command\GetWorkersCommand;
 use PHPStreamServer\Plugin\Scheduler\Event\ProcessStartedEvent;
 use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
-use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
 
@@ -27,6 +29,7 @@ final class Scheduler
     private LoggerInterface $logger;
     public MessageBusInterface $messageBus;
     public MessageHandlerInterface $messageHandler;
+    public ChildProcessRegistry $childProcessRegistry;
     public readonly WorkerPool $pool;
     private Suspension $suspension;
     private DeferredFuture|null $stopFuture = null;
@@ -37,12 +40,13 @@ final class Scheduler
         $this->pool = new WorkerPool();
     }
 
-    public function start(Suspension $suspension, LoggerInterface &$logger, MessageBusInterface &$messageBus, MessageHandlerInterface &$messageHandler): void
+    public function start(ContainerInterface $container): void
     {
-        $this->suspension = $suspension;
-        $this->logger = &$logger;
-        $this->messageBus = &$messageBus;
-        $this->messageHandler = &$messageHandler;
+        $this->suspension = $container->getService(Suspension::class);
+        $this->logger = &$container->getService(LoggerInterface::class);
+        $this->messageBus = &$container->getService(MessageBusInterface::class);
+        $this->messageHandler = &$container->getService(MessageHandlerInterface::class);
+        $this->childProcessRegistry = $container->getService(ChildProcessRegistry::class);
 
         SIGCHLDHandler::onChildProcessExit($this->onChildStop(...));
 
@@ -152,6 +156,7 @@ final class Scheduler
         if ($pid > 0) {
             // Master process
             $this->pool->addProcess($worker->getId(), $pid);
+            $this->childProcessRegistry->register($pid);
             return $pid;
         } elseif ($pid === 0) {
             // Child process
@@ -169,6 +174,7 @@ final class Scheduler
         }
 
         $this->pool->removeProcess($pid);
+        $this->childProcessRegistry->unregister($pid);
 
         if ($terminationSignal !== null) {
             $this->logger->warning(\sprintf('Scheduled worker "%s" [PID:%d] terminated with signal %s (%d)', $workerInfo->name, $pid, strSignal($terminationSignal), $terminationSignal));
