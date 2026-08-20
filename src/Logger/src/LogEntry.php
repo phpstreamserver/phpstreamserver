@@ -4,12 +4,18 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Logger;
 
+use PHPStreamServer\Core\MessageBus\AllowedClassesProviderInterface;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenDateTime;
+use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenEnum;
+use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenException;
+use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenObject;
+use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
 
 /**
  * @implements MessageInterface<null>
  */
-final readonly class LogEntry implements MessageInterface
+final readonly class LogEntry implements MessageInterface, AllowedClassesProviderInterface
 {
     public function __construct(
         public \DateTimeImmutable $time,
@@ -42,5 +48,16 @@ final readonly class LogEntry implements MessageInterface
         $this->channel = $data[3];
         $this->message = $data[4];
         $this->context = $data[5];
+    }
+
+    public static function getAllowedClasses(): array
+    {
+        return [
+            FlattenDateTime::class,
+            FlattenEnum::class,
+            FlattenException::class,
+            FlattenObject::class,
+            FlattenResource::class,
+        ];
     }
 }
