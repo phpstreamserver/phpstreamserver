@@ -12,7 +12,6 @@ use Amp\Socket\ResourceServerSocket;
 use Amp\Socket\ResourceServerSocketFactory;
 use Amp\Socket\UnixAddress;
 use Amp\TimeoutCancellation;
-use PHPStreamServer\Core\Internal\FFIBindings\StreamFileno;
 use PHPStreamServer\Core\MessageBus\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
 use PHPStreamServer\Core\MessageBus\MessageHandlerInterface;
@@ -47,12 +46,6 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 
         EventLoop::queue(static function () use (&$server, &$subscribers) {
             while ($socket = $server->accept()) {
-
-
-                $fd = StreamFileno::get($socket->getResource());
-                dump('fd: ' . $fd);
-
-
                 $ownerPid = \posix_getpid();
                 async(static function () use ($socket, &$subscribers, $ownerPid): void {
                     try {

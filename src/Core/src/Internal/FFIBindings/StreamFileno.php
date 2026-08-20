@@ -6,6 +6,8 @@ namespace PHPStreamServer\Core\Internal\FFIBindings;
 
 /**
  * Extracts the OS file descriptor exposed by a PHP stream resource using internal Zend Engine and PHP Stream APIs via FFI.
+ *
+ * @internal
  */
 final class StreamFileno
 {

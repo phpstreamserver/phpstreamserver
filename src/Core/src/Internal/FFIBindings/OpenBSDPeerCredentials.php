@@ -6,8 +6,6 @@ namespace PHPStreamServer\Core\Internal\FFIBindings;
 
 /**
  * @internal
- *
- * @psalm-suppress InvalidPassByReference, UndefinedPropertyFetch, UndefinedPropertyAssignment, MixedPropertyFetch, MixedArgument, PossiblyInvalidArgument
  */
 final class OpenBSDPeerCredentials
 {
