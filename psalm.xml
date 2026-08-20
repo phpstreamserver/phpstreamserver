@@ -16,6 +16,7 @@
         <directory name="src" />
         <ignoreFiles>
             <directory name="vendor" />
+            <file name="src/Core/src/Internal/FFIBindings/StreamFileno.php" />
         </ignoreFiles>
     </projectFiles>
 

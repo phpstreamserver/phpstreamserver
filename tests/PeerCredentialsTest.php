@@ -74,5 +74,6 @@ final class PeerCredentialsTest extends TestCase
     {
         // Assert
         $this->assertNull(PeerCredentials::get(\fopen('php://memory', 'r')));
+        $this->assertNull(PeerCredentials::get(\stream_context_create()));
     }
 }

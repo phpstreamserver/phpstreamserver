@@ -30,6 +30,7 @@ final class StreamFilenoTest extends TestCase
             $this->assertIsInt($fd);
             $this->assertGreaterThan(2, $fd);
         } finally {
+            \fclose($resource);
             \unlink($tempPath);
         }
     }
@@ -66,6 +67,15 @@ final class StreamFilenoTest extends TestCase
         } finally {
             \fclose($resource);
         }
+    }
+
+    public function testReturnsNullForNonStreamResource(): void
+    {
+        // Arrange
+        $resource = \stream_context_create();
+
+        // Assert
+        $this->assertNull(StreamFileno::get($resource));
     }
 
     public function testThrowsExceptionForNonResource(): void

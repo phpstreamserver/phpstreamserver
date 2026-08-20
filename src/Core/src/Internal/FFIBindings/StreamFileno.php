@@ -5,20 +5,16 @@ declare(strict_types=1);
 namespace PHPStreamServer\Core\Internal\FFIBindings;
 
 /**
- * Extracts the underlying OS file descriptor number from a PHP stream resource by interfacing with internal Zend Engine and PHP Stream C APIs via FFI
- *
- * @psalm-suppress UndefinedPropertyFetch, UndefinedPropertyAssignment, InvalidArgument, InvalidPassByReference, TypeDoesNotContainType, NoValue, MixedPropertyFetch, MixedArgument
+ * Extracts the OS file descriptor exposed by a PHP stream resource using internal Zend Engine and PHP Stream APIs via FFI.
  */
 final class StreamFileno
 {
-    private const PHP_STREAM_AS_FD_FOR_SELECT = 3;
     private const PHP_STREAM_AS_FD = 1;
+    private const PHP_STREAM_AS_FD_FOR_SELECT = 3;
 
     // https://github.com/chopins/ffi-ext/blob/master/src/php.h
     private const CDEF = <<<'CDEF'
-        typedef int64_t zend_long;
         typedef uint64_t zend_ulong;
-        typedef unsigned char zend_uchar;
 
         typedef struct _zend_refcounted_h {
             uint32_t refcount;
@@ -31,52 +27,16 @@ final class StreamFileno
         typedef struct _zend_resource zend_resource;
         typedef struct _php_stream php_stream;
         typedef struct _zend_array HashTable;
-        typedef void (*dtor_func_t)(zval *pDest);
-
-        struct _zend_resource {
-            zend_refcounted_h gc;
-            int               handle;
-            int               type;
-            void             *ptr;
-        };
 
         struct _zval_struct {
             union {
-                zend_long      lval;
-                double         dval;
-                void          *counted;
-                void          *str;
-                HashTable     *arr;
-                void          *obj;
                 zend_resource *res;
-                void          *ref;
-                void          *ast;
-                zval          *zv;
-                void          *ptr;
-                void          *ce;
-                void          *func;
-                struct {
-                    uint32_t w1;
-                    uint32_t w2;
-                } ww;
             } value;
             union {
-                struct {
-                    zend_uchar type;
-                    zend_uchar type_flags;
-                    zend_uchar const_flags;
-                    zend_uchar reserved;
-                } v;
                 uint32_t type_info;
             } u1;
             union {
-                uint32_t var_flags;
                 uint32_t next;
-                uint32_t cache_slot;
-                uint32_t lineno;
-                uint32_t num_args;
-                uint32_t fe_pos;
-                uint32_t fe_iter_idx;
             } u2;
         };
 
@@ -89,22 +49,10 @@ final class StreamFileno
         struct _zend_array {
             zend_refcounted_h gc;
             union {
-                struct {
-                    zend_uchar flags;
-                    zend_uchar _unused;
-                    zend_uchar nIteratorsCount;
-                    zend_uchar _unused2;
-                } v;
                 uint32_t flags;
             } u;
             uint32_t    nTableMask;
             Bucket     *arData;
-            uint32_t    nNumUsed;
-            uint32_t    nNumOfElements;
-            uint32_t    nTableSize;
-            uint32_t    nInternalPointer;
-            zend_long   nNextFreeElement;
-            dtor_func_t pDestructor;
         };
 
         HashTable *zend_rebuild_symbol_table(void);
@@ -118,9 +66,6 @@ final class StreamFileno
 
     private static \FFI $ffi;
 
-    /**
-     * @psalm-suppress RedundantPropertyInitializationCheck
-     */
     private static function ffi(): \FFI
     {
         return self::$ffi ??= \FFI::cdef(self::CDEF);
@@ -134,22 +79,22 @@ final class StreamFileno
 
         $symbolTable = self::ffi()->zend_rebuild_symbol_table();
         $symbolHashTable = self::ffi()->zend_array_dup($symbolTable);
-        $zval = $symbolHashTable->arData->val;
 
         try {
+            $zval = $symbolHashTable->arData->val;
             $zresource = $zval->value->res;
-            $phpStream = self::ffi()->zend_fetch_resource2($zresource, 'stream', self::ffi()->php_file_le_stream(), self::ffi()->php_file_le_pstream());
+            $phpStream = self::ffi()->zend_fetch_resource2($zresource, null, self::ffi()->php_file_le_stream(), self::ffi()->php_file_le_pstream());
 
             if ($phpStream === null || \FFI::isNull($phpStream)) {
                 return null;
             }
 
             $filenoCData = self::ffi()->new('int');
-            $filenoCData->cdata = -1;
-            $castTypeList = [self::PHP_STREAM_AS_FD_FOR_SELECT, self::PHP_STREAM_AS_FD];
+            $castTypeList = [self::PHP_STREAM_AS_FD, self::PHP_STREAM_AS_FD_FOR_SELECT];
             foreach ($castTypeList as $castType) {
-                self::ffi()->_php_stream_cast($phpStream, $castType, self::ffi()->cast('void *', \FFI::addr($filenoCData)), 0);
-                if ($filenoCData->cdata !== -1) {
+                $filenoCData->cdata = -1;
+                $status = self::ffi()->_php_stream_cast($phpStream, $castType, self::ffi()->cast('void *', \FFI::addr($filenoCData)), 0);
+                if ($status === 0 && $filenoCData->cdata >= 0) {
                     return $filenoCData->cdata;
                 }
             }
