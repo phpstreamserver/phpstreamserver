@@ -13,6 +13,7 @@ use Amp\Socket\ResourceServerSocketFactory;
 use Amp\Socket\UnixAddress;
 use Amp\TimeoutCancellation;
 use PHPStreamServer\Core\Command\GetProcessesCommand;
+use PHPStreamServer\Core\Internal\PeerCredentials;
 use PHPStreamServer\Core\MessageBus\AllowedClassesProviderInterface;
 use PHPStreamServer\Core\MessageBus\CompositeMessage;
 use PHPStreamServer\Core\MessageBus\Context;
@@ -62,27 +63,22 @@ final class SocketFileMessageHandler implements MessageHandlerInterface, Message
 
         EventLoop::queue(function () use (&$subscribers, &$allowedClasses): void {
             while ($socket = $this->socket->accept()) {
-
-                // @TODO
-                //$cred = PeerCredentials::get($socket->getResource());
-                $pid = \posix_getpid();
-                $uid = 1000;
-                $gid = 1000;
+                $cred = PeerCredentials::get($socket->getResource());
 
                 $processes = $this->dispatch(new GetProcessesCommand())->await();
                 $processPids = \array_map(static fn(ProcessInfo $p): int => $p->pid, $processes);
                 $masterPid = \posix_getpid();
                 $context = new Context(
                     source: match (true) {
-                        $pid === $masterPid => Context::SOURCE_MASTER,
-                        \in_array($pid, $processPids, true) => Context::SOURCE_CHILD,
+                        $cred->pid === $masterPid => Context::SOURCE_MASTER,
+                        \in_array( $cred->pid, $processPids, true) => Context::SOURCE_CHILD,
                         default => Context::SOURCE_EXTERNAL,
                     },
-                    pid: $pid,
-                    uid: $uid,
-                    gid: $gid,
-                    user: ProcessIdentity::getUserBuUid($uid),
-                    group: ProcessIdentity::getGroupBuGid($gid),
+                    pid: $cred->pid,
+                    uid: $cred->uid,
+                    gid: $cred->gid,
+                    user: ProcessIdentity::getUserBuUid($cred->uid),
+                    group: ProcessIdentity::getGroupBuGid($cred->gid),
                 );
 
                 async(static function () use ($socket, &$subscribers, $masterPid, $context, &$allowedClasses): void {
