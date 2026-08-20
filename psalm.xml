@@ -16,6 +16,13 @@
         <directory name="src" />
         <ignoreFiles>
             <directory name="vendor" />
+            <file name="src/Core/src/Internal/FFIBindings/StreamFileno.php" />
+            <file name="src/Core/src/Internal/FFIBindings/DarwinPeerCredentials.php" />
+            <file name="src/Core/src/Internal/FFIBindings/FreeBSDPeerCredentials.php" />
+            <file name="src/Core/src/Internal/FFIBindings/LinuxPeerCredentials.php" />
+            <file name="src/Core/src/Internal/FFIBindings/NetBSDPeerCredentials.php" />
+            <file name="src/Core/src/Internal/FFIBindings/OpenBSDPeerCredentials.php" />
+            <file name="src/Core/src/Internal/FFIBindings/SolarisPeerCredentials.php" />
         </ignoreFiles>
     </projectFiles>
 

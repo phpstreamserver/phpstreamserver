@@ -253,8 +253,8 @@ final class FSEvents
         return $string;
     }
 
-    private static function isNull(CData|null $pointer): bool
+    private static function isNull(CData|null $zval): bool
     {
-        return $pointer === null || \FFI::isNull($pointer);
+        return $zval === null || \FFI::isNull($zval);
     }
 }
