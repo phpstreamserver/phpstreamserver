@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Plugin\Metrics\Internal\Message;
 
+use PHPStreamServer\Core\MessageBus\AuthorizedSources;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Core\MessageBus\MessageSource;
 
 /**
  * @implements MessageInterface<bool>
  * @internal
  */
+#[AuthorizedSources(MessageSource::MASTER, MessageSource::CHILD)]
 final readonly class RegisterMetricMessage implements MessageInterface
 {
     private function __construct(

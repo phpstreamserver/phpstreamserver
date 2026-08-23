@@ -5,7 +5,9 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Logger;
 
 use PHPStreamServer\Core\MessageBus\AllowedClassesProviderInterface;
+use PHPStreamServer\Core\MessageBus\AuthorizedSources;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
+use PHPStreamServer\Core\MessageBus\MessageSource;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenDateTime;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenEnum;
 use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenException;
@@ -15,6 +17,7 @@ use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
 /**
  * @implements MessageInterface<null>
  */
+#[AuthorizedSources(MessageSource::MASTER, MessageSource::CHILD)]
 final readonly class LogEntry implements MessageInterface, AllowedClassesProviderInterface
 {
     public function __construct(
