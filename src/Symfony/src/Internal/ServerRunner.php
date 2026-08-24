@@ -28,14 +28,17 @@ final readonly class ServerRunner implements RunnerInterface
     {
         \set_time_limit(0);
 
-        $inputOptions = new Options(
-            argv: $_SERVER['argv'] ?? [],
-            defaultOptionDefinitions: [new OptionDefinition('env', 'e'), new OptionDefinition('no-debug')],
-        );
-
-        $env = $inputOptions->getOption('env');
-        $noDebug = $inputOptions->getOption('no-debug');
-        unset($inputOptions);
+        try {
+            $inputOptions = new Options(
+                argv: $_SERVER['argv'] ?? [],
+                optionDefinitions: [new OptionDefinition('env', 'e', requiresValue: true), new OptionDefinition('no-debug')],
+            );
+            $env = $inputOptions->getOption('env');
+            $noDebug = $inputOptions->getOption('no-debug');
+            unset($inputOptions);
+        } catch (\InvalidArgumentException) {
+            $env = $noDebug = null;
+        }
 
         if (\is_string($env) && $env !== '') {
             $envVarName = $this->appLoader->options['env_var_name'];

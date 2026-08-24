@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\ConsoleCommand;
 
 use PHPStreamServer\Core\Console\Command;
+use PHPStreamServer\Core\Console\CommandContext;
+use PHPStreamServer\Core\Console\Options;
 use PHPStreamServer\Core\Console\Table;
 use PHPStreamServer\Core\MessageBus\ExternalProcessMessageBus;
 use PHPStreamServer\Plugin\Scheduler\Command\GetWorkersCommand;
@@ -25,9 +27,9 @@ final class SchedulerCommand extends Command
         return 'List scheduled tasks';
     }
 
-    public function execute(string $pidFile, string $socketFile): int
+    public function execute(CommandContext $context, Options $options): int
     {
-        $bus = new ExternalProcessMessageBus($pidFile, $socketFile);
+        $bus = new ExternalProcessMessageBus($context->pidFile, $context->socketFile);
 
         $workers = $bus->dispatch(new GetWorkersCommand())->await();
 

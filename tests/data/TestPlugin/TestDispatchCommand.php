@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace PHPStreamServer\Test\data\TestPlugin;
 
 use PHPStreamServer\Core\Console\Command;
+use PHPStreamServer\Core\Console\CommandContext;
+use PHPStreamServer\Core\Console\OptionDefinition;
+use PHPStreamServer\Core\Console\Options;
 use PHPStreamServer\Core\Internal\MessageBus\SocketFileMessageBus;
 use PHPStreamServer\Core\MessageBus\MessageInterface;
 
@@ -22,15 +25,17 @@ final class TestDispatchCommand extends Command
         return 'Dispatch a message for testing';
     }
 
-    public function configure(): void
+    public function getOptionDefinitions(): array
     {
-        $this->addOptionDefinition('message', null, 'Base64-encoded serialization of a MessageInterface instance');
+        return [
+            new OptionDefinition('message', null, 'Base64-encoded serialization of a MessageInterface instance', requiresValue: true),
+        ];
     }
 
-    public function execute(string $pidFile, string $socketFile): int
+    public function execute(CommandContext $context, Options $options): int
     {
-        $isRunning = isRunning($pidFile);
-        $message = (string) $this->getOption('message');
+        $isRunning = isRunning($context->pidFile);
+        $message = (string) $options->getOption('message');
         $message = \base64_decode($message, true);
 
         \set_error_handler(static fn(): true => true);
@@ -47,7 +52,7 @@ final class TestDispatchCommand extends Command
             return 2;
         }
 
-        $bus = new SocketFileMessageBus($socketFile);
+        $bus = new SocketFileMessageBus($context->socketFile);
         $answer = $bus->dispatch($message)->await();
 
         echo \serialize($answer);
