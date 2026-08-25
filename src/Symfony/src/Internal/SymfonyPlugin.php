@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Symfony\Internal;
 
 use PHPStreamServer\Core\Plugin\Plugin;
-use PHPStreamServer\Core\Runtime\ErrorHandler;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Symfony\ConsoleCommand\StartCommand;
 use PHPStreamServer\Symfony\SymfonyEvent\WorkerReloadEvent;
@@ -47,24 +46,18 @@ final class SymfonyPlugin extends Plugin
     private function initializeSymfonyHttpServerWorker(SymfonyHttpServerWorker $worker): void
     {
         $appLoader = $this->appLoader;
-        $workerContainer = $this->workerContainer;
         $isBooted = false;
 
-        $worker->onStart(priority: -1, onStart: static function (SymfonyHttpServerWorker $worker) use ($appLoader, $workerContainer, &$isBooted): void {
+        $worker->onStart(priority: -1, onStart: static function (SymfonyHttpServerWorker $worker) use ($appLoader, &$isBooted): void {
             $_SERVER['APP_RUNTIME_MODE'] = 'worker=1&web=1';
 
-            try {
-                $kernel = $appLoader->loadApp();
-                $kernel->boot();
+            $kernel = $appLoader->loadApp();
+            $kernel->boot();
 
-                /** @var EventDispatcherInterface $eventDispatcher */
-                $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
-                $eventDispatcher->dispatch(new WorkerStartEvent($worker));
-                $isBooted = true;
-            } catch (\Throwable $e) {
-                ErrorHandler::handleException($e);
-                $workerContainer->setService('request_handler', static fn(): never => throw $e);
-            }
+            /** @var EventDispatcherInterface $eventDispatcher */
+            $eventDispatcher = $kernel->getContainer()->get('event_dispatcher');
+            $eventDispatcher->dispatch(new WorkerStartEvent($worker));
+            $isBooted = true;
         });
 
         $worker->onStop(priority: 1000, onStop: static function (SymfonyHttpServerWorker $worker) use (&$isBooted): void {

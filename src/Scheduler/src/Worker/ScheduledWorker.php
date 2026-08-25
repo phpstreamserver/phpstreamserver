@@ -6,20 +6,17 @@ namespace PHPStreamServer\Plugin\Scheduler\Worker;
 
 use PHPStreamServer\Core\ContainerInterface;
 use PHPStreamServer\Core\Exception\ConfigurationException;
-use PHPStreamServer\Core\Exception\ProcessIdentityException;
 use PHPStreamServer\Core\LoggerInterface;
 use PHPStreamServer\Core\MessageBus\MessageBusInterface;
-use PHPStreamServer\Core\Runtime\ErrorHandler;
-use PHPStreamServer\Core\Runtime\ProcessIdentity;
-use PHPStreamServer\Core\Server;
 use PHPStreamServer\Core\WorkerInterface;
 use PHPStreamServer\Plugin\Scheduler\SchedulerPlugin;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerFactory;
 use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use Revolt\EventLoop;
-use Revolt\EventLoop\DriverFactory;
 
 use function PHPStreamServer\Core\generateWorkerId;
+use function PHPStreamServer\Core\getEffectiveGroup;
+use function PHPStreamServer\Core\getEffectiveUser;
 
 class ScheduledWorker implements WorkerInterface
 {
@@ -56,8 +53,8 @@ class ScheduledWorker implements WorkerInterface
         string|null $name = null,
         public readonly string $schedule = '1 minute',
         int $jitter = 0,
-        private string|null $user = null,
-        private string|null $group = null,
+        private readonly string|null $user = null,
+        private readonly string|null $group = null,
         \Closure|null $onStart = null,
     ) {
         if ($name !== null && $name !== '') {
@@ -84,31 +81,17 @@ class ScheduledWorker implements WorkerInterface
      */
     final public function run(ContainerInterface $workerContainer): int
     {
-        // Some command-line SAPIs (e.g., phpdbg) don't have this function.
-        if (\function_exists('cli_set_process_title')) {
-            \cli_set_process_title(\sprintf('%s: %s', Server::NAME, $this->getName()));
-        }
-
-        EventLoop::setDriver((new DriverFactory())->create());
-
         $this->pid = \posix_getpid();
         $this->container = $workerContainer;
         $this->logger = $workerContainer->getService(LoggerInterface::class);
         $this->bus = $workerContainer->getService(MessageBusInterface::class);
 
         $exitCode = &$this->exitCode;
-        ErrorHandler::register($this->logger);
-        EventLoop::setErrorHandler(static function (\Throwable $exception) use (&$exitCode): void {
-            ErrorHandler::handleException($exception);
+        $defaultHandler = EventLoop::getErrorHandler();
+        EventLoop::setErrorHandler(static function (\Throwable $exception) use ($defaultHandler, &$exitCode): void {
+            $defaultHandler?->__invoke($exception);
             $exitCode = 1;
         });
-
-        try {
-            ProcessIdentity::switchTo($this->user, $this->group);
-        } catch (ProcessIdentityException $e) {
-            $this->logger->error(\sprintf('Worker "%s" failed to change process identity: %s', $this->getName(), $e->getMessage()));
-            $this->onStartCallbacks = [];
-        }
 
         EventLoop::unreference(EventLoop::onSignal(SIGINT, static fn() => null));
 
@@ -140,12 +123,12 @@ class ScheduledWorker implements WorkerInterface
 
     final public function getUser(): string
     {
-        return $this->user ?? ProcessIdentity::getEffectiveUser();
+        return $this->user ?? getEffectiveUser();
     }
 
     final public function getGroup(): string
     {
-        return $this->group ?? ProcessIdentity::getEffectiveGroup();
+        return $this->group ?? getEffectiveGroup();
     }
 
     public function getContainer(): ContainerInterface
