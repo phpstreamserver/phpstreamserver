@@ -19,8 +19,6 @@ use Prometheus\Exception\MetricsRegistrationException as PrometheusMetricRegistr
 use Prometheus\RegistryInterface as PrometheusRegistryInterface;
 use Prometheus\RenderTextFormat;
 
-use function Amp\weakClosure;
-
 /**
  * @internal
  */
@@ -34,13 +32,13 @@ final class MessageBusRegistryHandler
         $this->adapter = new InMemory();
         $this->registry = new CollectorRegistry($this->adapter, false);
 
-        $messageHandler->subscribe(RegisterMetricMessage::class, weakClosure($this->registerMetric(...)));
-        $messageHandler->subscribe(GetMetricMessage::class, weakClosure($this->getMetric(...)));
-        $messageHandler->subscribe(IncreaseCounterMessage::class, weakClosure($this->increaseCounter(...)));
-        $messageHandler->subscribe(SetGaugeMessage::class, weakClosure($this->setGauge(...)));
-        $messageHandler->subscribe(ObserveHistogramMessage::class, weakClosure($this->observeHistogram(...)));
-        $messageHandler->subscribe(ObserveSummaryMessage::class, weakClosure($this->observeSummary(...)));
-        $messageHandler->subscribe(RemoveMetricMessage::class, weakClosure($this->removeMetric(...)));
+        $messageHandler->subscribe(RegisterMetricMessage::class, $this->registerMetric(...));
+        $messageHandler->subscribe(GetMetricMessage::class, $this->getMetric(...));
+        $messageHandler->subscribe(IncreaseCounterMessage::class, $this->increaseCounter(...));
+        $messageHandler->subscribe(SetGaugeMessage::class, $this->setGauge(...));
+        $messageHandler->subscribe(ObserveHistogramMessage::class, $this->observeHistogram(...));
+        $messageHandler->subscribe(ObserveSummaryMessage::class, $this->observeSummary(...));
+        $messageHandler->subscribe(RemoveMetricMessage::class, $this->removeMetric(...));
     }
 
     private function registerMetric(RegisterMetricMessage $message): bool
