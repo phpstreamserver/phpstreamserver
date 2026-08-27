@@ -25,6 +25,8 @@ final class TriggerFactoryTest extends PHPSSTestCase
         yield ['PT10S', '2026-01-01 00:00:10'];
         yield ['10 seconds', '2026-01-01 00:00:10'];
         yield ['*/5 * * * *', '2026-01-01 00:05:00'];
+        yield ['0 0 * * MON', '2026-01-05 00:00:00'];
+        yield ['0 0 1 JUN *', '2026-06-01 00:00:00'];
         yield ['@daily', '2026-01-02 00:00:00'];
     }
 
