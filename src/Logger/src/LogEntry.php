@@ -17,7 +17,7 @@ use PHPStreamServer\Plugin\Logger\Internal\FlattenNormalizer\FlattenResource;
 /**
  * @implements MessageInterface<null>
  */
-#[AuthorizedSources(MessageSource::MASTER, MessageSource::CHILD)]
+#[AuthorizedSources(MessageSource::MASTER, MessageSource::CHILD, MessageSource::MANAGER)]
 final readonly class LogEntry implements MessageInterface, AllowedClassesProviderInterface
 {
     public function __construct(
