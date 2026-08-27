@@ -34,6 +34,7 @@
         "symfony/config": "^7.0|^8.0",
         "symfony/dependency-injection": "^7.0|^8.0",
         "symfony/dotenv": "^7.0|^8.0",
+        "symfony/framework-bundle": "^7.0|^8.0",
         "symfony/http-kernel": "^7.0|^8.0",
         "symfony/runtime": "^7.0|^8.0",
         "webmozart/glob": "^4.7"
@@ -43,7 +44,6 @@
         "friendsofphp/php-cs-fixer": "^3.95.11",
         "monolog/monolog": "^3.10.0",
         "phpunit/phpunit": "^11.5.56",
-        "symfony/framework-bundle": "^7.0|^8.0",
         "symfony/var-dumper": "^7.0|^8.0",
         "symplify/monorepo-builder": "^12.7.1",
         "vimeo/psalm": "^6.16.1"
