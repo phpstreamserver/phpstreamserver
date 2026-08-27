@@ -16,9 +16,11 @@ use PHPStreamServer\Plugin\HttpServer\Internal\MimeTypeMapper;
  */
 final readonly class StaticMiddleware implements Middleware
 {
-    public function __construct(
-        private string $dir,
-    ) {
+    private string $dir;
+
+    public function __construct(string $dir)
+    {
+        $this->dir = \rtrim(\realpath($dir) ?: $dir, '/');
     }
 
     public function handleRequest(Request $request, RequestHandler $requestHandler): Response
@@ -42,9 +44,9 @@ final readonly class StaticMiddleware implements Middleware
 
     private function findFileInPublicDirectory(string $requestPath): string|null
     {
-        $path = \realpath($this->dir . $requestPath);
+        $path = \realpath($this->dir . '/' . \ltrim($requestPath, '/'));
 
-        if ($path === false || !\file_exists($path) || \is_dir($path) || !\str_starts_with($path, $this->dir . '/')) {
+        if ($path === false || \is_dir($path) || !\str_starts_with($path, $this->dir . '/')) {
             return null;
         }
 
