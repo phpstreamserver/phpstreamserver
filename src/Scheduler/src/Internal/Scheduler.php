@@ -26,6 +26,8 @@ use function PHPStreamServer\Core\strSignal;
  */
 final class Scheduler
 {
+    private const WALL_CLOCK_RECHECK_INTERVAL = 300.0;
+
     private LoggerInterface $logger;
     public MessageBusInterface $messageBus;
     public MessageHandlerInterface $messageHandler;
@@ -58,8 +60,15 @@ final class Scheduler
 
     public function registerWorker(ScheduledWorker $worker, string|null $factoryId): void
     {
-        $this->pool->addWorker($worker, $factoryId);
-        $this->scheduleWorker($worker);
+        $currentDate = new \DateTimeImmutable('now');
+        $nextRunDate = $worker->trigger->getNextRunDate($currentDate);
+
+        if ($nextRunDate === null) {
+            return;
+        }
+
+        $this->pool->addWorker($worker, $factoryId, $currentDate, $nextRunDate);
+        $this->scheduleWorker(worker: $worker, currentDate: $currentDate, runAt: $nextRunDate);
     }
 
     public function unregisterWorker(int $workerId): void
@@ -76,7 +85,7 @@ final class Scheduler
         }
     }
 
-    private function scheduleWorker(ScheduledWorker $worker): bool
+    private function scheduleWorker(ScheduledWorker $worker, \DateTimeImmutable|null $currentDate = null, \DateTimeImmutable|null $runAt = null): bool
     {
         if ($this->stopFuture !== null) {
             return false;
@@ -88,20 +97,32 @@ final class Scheduler
             EventLoop::cancel($this->scheduledDelaysById[$id]);
         }
 
-        $currentDate = new \DateTimeImmutable('now');
-        $nextRunDate = $this->pool->calculateNextRunDate($id, $currentDate);
+        $currentDate ??= new \DateTimeImmutable('now');
 
-        if ($nextRunDate === null) {
-            $this->unregisterWorker($id);
+        if ($runAt === null) {
+            $runAt = $worker->trigger->getNextRunDate($currentDate);
 
-            return false;
+            if ($runAt === null) {
+                $this->unregisterWorker($id);
+
+                return false;
+            }
+
+            $this->pool->updateNextRunDate($id, $runAt);
         }
 
-        $delay = (float) $nextRunDate->format('U.u') - (float) $currentDate->format('U.u');
-        $delay = \max(0.0, $delay);
-        $this->scheduledDelaysById[$id] = EventLoop::delay($delay, function () use ($id, $worker): void {
-            unset($this->scheduledDelaysById[$id]);
+        $microsecondsDelay = ($runAt->getTimestamp() - $currentDate->getTimestamp()) * 1_000_000 + (int) $runAt->format('u') - (int) $currentDate->format('u');
+        $delay = \min($microsecondsDelay * 1e-6, self::WALL_CLOCK_RECHECK_INTERVAL);
+
+        if ($delay <= 0.0) {
             $this->callWorker($worker);
+
+            return true;
+        }
+
+        $this->scheduledDelaysById[$id] = EventLoop::delay($delay, function () use ($id, $worker, $runAt): void {
+            unset($this->scheduledDelaysById[$id]);
+            $this->scheduleWorker(worker: $worker, runAt: $runAt);
         });
 
         return true;
@@ -118,7 +139,7 @@ final class Scheduler
 
         // Reschedule a task without running it if the previous task is still running
         if ($this->pool->isWorkerRunning($id)) {
-            if ($this->scheduleWorker($worker)) {
+            if ($this->scheduleWorker(worker: $worker)) {
                 $this->logger->info(\sprintf('Scheduled worker "%s" is already running; scheduling the next run', $worker->getName()));
             }
 
@@ -131,7 +152,7 @@ final class Scheduler
         }
 
         $this->logger->info(\sprintf('Scheduled worker "%s" [PID:%d] started', $worker->getName(), $pid));
-        $this->scheduleWorker($worker);
+        $this->scheduleWorker(worker: $worker);
 
         $bus = $this->messageBus;
         EventLoop::queue(static function () use ($bus, $id, $pid): void {

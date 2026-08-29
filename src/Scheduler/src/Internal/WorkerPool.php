@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace PHPStreamServer\Plugin\Scheduler\Internal;
 
 use PHPStreamServer\Core\Exception\PHPStreamServerException;
-use PHPStreamServer\Plugin\Scheduler\Trigger\TriggerInterface;
 use PHPStreamServer\Plugin\Scheduler\Worker\ScheduledWorker;
 use PHPStreamServer\Plugin\Scheduler\WorkerInfo;
 
@@ -20,11 +19,6 @@ final class WorkerPool
     private array $workerInfosById = [];
 
     /**
-     * @var array<int, TriggerInterface>
-     */
-    private array $triggersById = [];
-
-    /**
      * @var array<int, int>
      */
     private array $pids = [];
@@ -33,14 +27,8 @@ final class WorkerPool
     {
     }
 
-    /**
-     * @throws \InvalidArgumentException
-     */
-    public function addWorker(ScheduledWorker $worker, string|null $factoryId): WorkerInfo
+    public function addWorker(ScheduledWorker $worker, string|null $factoryId, \DateTimeImmutable $currentDate, \DateTimeImmutable $nextRunDate): WorkerInfo
     {
-        $now = new \DateTimeImmutable('now');
-        $nextRunDate = $worker->trigger->getNextRunDate($now) ?? new \DateTimeImmutable('@0');
-
         $id = $worker->getId();
         $workerInfo = new WorkerInfo(
             id: $id,
@@ -50,20 +38,17 @@ final class WorkerPool
             schedule: $worker->schedule,
             status: WorkerInfo::STATUS_SCHEDULED,
             factoryId: $factoryId,
-            startedAt: new \DateTimeImmutable('now'),
+            startedAt: $currentDate,
             nextRunDateTime: $nextRunDate,
         );
         $this->workerInfosById[$id] = $workerInfo;
-        $this->triggersById[$id] = $worker->trigger;
 
         return $workerInfo;
     }
 
     public function removeWorker(int $workerId): void
     {
-        if (null === $worker = $this->getWorkerInfoById($workerId)) {
-            throw new PHPStreamServerException('Worker is not registered in the pool');
-        }
+        $worker = $this->getWorkerInfoById($workerId) ?? throw new PHPStreamServerException('Worker is not registered in the pool');
 
         if ($worker->status === WorkerInfo::STATUS_RUNNING || $worker->status === WorkerInfo::STATUS_CANCELLING) {
             $worker->status = WorkerInfo::STATUS_CANCELLING;
@@ -71,16 +56,12 @@ final class WorkerPool
         }
 
         unset($this->workerInfosById[$worker->id]);
-        unset($this->triggersById[$worker->id]);
         unset($this->pids[$worker->id]);
     }
 
     public function addProcess(int $workerId, int $pid): void
     {
-        if (null === $worker = $this->getWorkerInfoById($workerId)) {
-            throw new PHPStreamServerException('Worker is not registered in the pool');
-        }
-
+        $worker = $this->getWorkerInfoById($workerId) ?? throw new PHPStreamServerException('Worker is not registered in the pool');
         $worker->status = WorkerInfo::STATUS_RUNNING;
         $this->pids[$workerId] = $pid;
     }
@@ -95,25 +76,15 @@ final class WorkerPool
 
         if ($worker->status === WorkerInfo::STATUS_CANCELLING) {
             unset($this->workerInfosById[$worker->id]);
-            unset($this->triggersById[$worker->id]);
         } else {
             $worker->status = WorkerInfo::STATUS_SCHEDULED;
         }
     }
 
-    public function calculateNextRunDate(int $workerId, \DateTimeImmutable $now): \DateTimeImmutable|null
+    public function updateNextRunDate(int $workerId, \DateTimeImmutable $nextRunDate): void
     {
-        if (null === $worker = $this->getWorkerInfoById($workerId)) {
-            throw new PHPStreamServerException('Worker is not registered in the pool');
-        }
-
-        $nextRunDate = $this->triggersById[$workerId]->getNextRunDate($now);
-
-        if ($nextRunDate !== null) {
-            $worker->nextRunDateTime = $nextRunDate;
-        }
-
-        return $nextRunDate;
+        $worker = $this->getWorkerInfoById($workerId) ?? throw new PHPStreamServerException('Worker is not registered in the pool');
+        $worker->nextRunDateTime = $nextRunDate;
     }
 
     public function getWorkerInfoById(int $workerId): WorkerInfo|null
