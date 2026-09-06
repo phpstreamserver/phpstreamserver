@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace PHPStreamServer\Core\Internal\FFIBindings;
+namespace PHPStreamServer\Core\Internal\ProcessMemory;
 
 /**
  * @internal

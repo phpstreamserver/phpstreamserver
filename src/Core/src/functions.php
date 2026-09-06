@@ -4,11 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core;
 
-use PHPStreamServer\Core\Internal\FFIBindings\DarwinProcessMemory;
-use PHPStreamServer\Core\Internal\FFIBindings\FreeBSDProcessMemory;
-use PHPStreamServer\Core\Internal\FFIBindings\OpenBSDProcessMemory;
-use PHPStreamServer\Core\Internal\LinuxProcessMemory;
 use PHPStreamServer\Core\Internal\ProcessIdentity;
+use PHPStreamServer\Core\Internal\ProcessMemory\ProcessMemory;
 use Revolt\EventLoop\DriverFactory;
 
 function getStartFile(): string
@@ -107,23 +104,7 @@ function getAbsoluteBinaryPath(string $binary): string
 
 function getMemoryUsageByPid(int $pid): int
 {
-    if (\PHP_OS_FAMILY === 'Linux') {
-        $vmrss = LinuxProcessMemory::get($pid);
-    } elseif (\PHP_OS_FAMILY === 'Darwin') {
-        $vmrss = DarwinProcessMemory::get($pid);
-    } elseif (\PHP_OS === 'FreeBSD') {
-        $vmrss = FreeBSDProcessMemory::get($pid);
-    } elseif (\PHP_OS === 'OpenBSD') {
-        dump('OpenBSD');
-        $vmrss = OpenBSDProcessMemory::get($pid);
-    } else {
-        /** @psalm-suppress ForbiddenCode */
-        //$out = \shell_exec("ps -o rss= -p $pid 2>/dev/null");
-        //$vmrss = ((int) \trim((string) $out)) * 1024;
-        $vmrss = 0;
-    }
-
-    return $vmrss;
+    return ProcessMemory::get($pid);
 }
 
 function getDriverName(): string
