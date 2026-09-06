@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Core;
 
+use PHPStreamServer\Core\Internal\FFIBindings\DarwinProcessMemory;
+use PHPStreamServer\Core\Internal\LinuxProcessMemory;
 use PHPStreamServer\Core\Internal\ProcessIdentity;
 use Revolt\EventLoop\DriverFactory;
 
@@ -103,11 +105,10 @@ function getAbsoluteBinaryPath(string $binary): string
 
 function getMemoryUsageByPid(int $pid): int
 {
-    if (PHP_VERSION_ID >= 80300 && \is_file("/proc/$pid/statm")) {
-        $pagesize = \posix_sysconf(POSIX_SC_PAGESIZE);
-        $statm = \trim(\file_get_contents("/proc/$pid/statm"));
-        $statm = \explode(' ', $statm);
-        $vmrss = (int) ($statm[1] ?? 0) * $pagesize;
+    if (\PHP_OS === 'Linux') {
+        return LinuxProcessMemory::get($pid);
+    } elseif (\PHP_OS === 'Darwin') {
+        return DarwinProcessMemory::get($pid);
     } else {
         /** @psalm-suppress ForbiddenCode */
         $out = \shell_exec("ps -o rss= -p $pid 2>/dev/null");
