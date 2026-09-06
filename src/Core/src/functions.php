@@ -106,13 +106,14 @@ function getAbsoluteBinaryPath(string $binary): string
 function getMemoryUsageByPid(int $pid): int
 {
     if (\PHP_OS === 'Linux') {
-        return LinuxProcessMemory::get($pid);
+        $vmrss = LinuxProcessMemory::get($pid);
     } elseif (\PHP_OS === 'Darwin') {
-        return DarwinProcessMemory::get($pid);
+        $vmrss = DarwinProcessMemory::get($pid);
     } else {
         /** @psalm-suppress ForbiddenCode */
-        $out = \shell_exec("ps -o rss= -p $pid 2>/dev/null");
-        $vmrss = ((int) \trim((string) $out)) * 1024;
+        //$out = \shell_exec("ps -o rss= -p $pid 2>/dev/null");
+        //$vmrss = ((int) \trim((string) $out)) * 1024;
+        $vmrss = 0;
     }
 
     return $vmrss;
