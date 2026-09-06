@@ -23,6 +23,11 @@
             <file name="src/Core/src/Internal/FFIBindings/NetBSDPeerCredentials.php" />
             <file name="src/Core/src/Internal/FFIBindings/OpenBSDPeerCredentials.php" />
             <file name="src/Core/src/Internal/FFIBindings/SolarisPeerCredentials.php" />
+            <file name="src/Core/src/Internal/ProcessMemory/DarwinProcessMemory.php" />
+            <file name="src/Core/src/Internal/ProcessMemory/FreeBSDProcessMemory.php" />
+            <file name="src/Core/src/Internal/ProcessMemory/LinuxProcessMemory.php" />
+            <file name="src/Core/src/Internal/ProcessMemory/NetBSDProcessMemory.php" />
+            <file name="src/Core/src/Internal/FFIBindings/OpenBSDProcessMemory.php" />
         </ignoreFiles>
     </projectFiles>
 
