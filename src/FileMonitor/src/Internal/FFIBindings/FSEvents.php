@@ -9,19 +9,6 @@ use PHPStreamServer\Core\Server;
 
 /**
  * @internal
- *
- * @psalm-suppress InvalidPassByReference FFI C data is not represented accurately by Psalm.
- * @psalm-suppress MixedArgument
- * @psalm-suppress MixedAssignment
- * @psalm-suppress MixedMethodCall
- * @psalm-suppress MixedReturnStatement
- * @psalm-suppress PossiblyNullArgument
- * @psalm-suppress PossiblyNullArrayAccess
- * @psalm-suppress PossiblyNullPropertyAssignment
- * @psalm-suppress PossiblyNullReference
- * @psalm-suppress UndefinedMethod
- * @psalm-suppress UndefinedPropertyAssignment
- * @psalm-suppress UndefinedPropertyFetch
  */
 final class FSEvents
 {

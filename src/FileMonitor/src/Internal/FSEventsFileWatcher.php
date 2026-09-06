@@ -12,7 +12,7 @@ use Revolt\EventLoop;
  */
 final class FSEventsFileWatcher extends AbstractFileWatcher
 {
-    private const POLL_INTERVAL = 0.25;
+    public static float $pollInterval = 0.25;
 
     private FSEvents $fsevents;
     private string $repeatCallbackId = '';
@@ -46,7 +46,7 @@ final class FSEventsFileWatcher extends AbstractFileWatcher
         }
 
         $this->fsevents = new FSEvents($watchPaths);
-        $this->repeatCallbackId = EventLoop::repeat(self::POLL_INTERVAL, $this->poll(...));
+        $this->repeatCallbackId = EventLoop::repeat(self::$pollInterval, $this->poll(...));
     }
 
     public function stop(): void

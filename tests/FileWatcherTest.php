@@ -21,6 +21,7 @@ final class FileWatcherTest extends TestCase
     protected function setUp(): void
     {
         PollingFileWatcher::$pollingInterval = 0.3;
+        FSEventsFileWatcher::$pollInterval = 0.1;
         $this->directory = \sys_get_temp_dir() . '/phpss-file-watcher-' . \uniqid() . '/src';
         \mkdir($this->directory . '/nested1/nested2', recursive: true);
         \mkdir($this->directory . '/nested3/nested4', recursive: true);

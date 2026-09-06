@@ -28,6 +28,7 @@
             <file name="src/Core/src/Internal/ProcessMemory/LinuxProcessMemory.php" />
             <file name="src/Core/src/Internal/ProcessMemory/NetBSDProcessMemory.php" />
             <file name="src/Core/src/Internal/FFIBindings/OpenBSDProcessMemory.php" />
+            <file name="src/FileMonitor/src/Internal/FFIBindings/FSEvents.php" />
         </ignoreFiles>
     </projectFiles>
 
