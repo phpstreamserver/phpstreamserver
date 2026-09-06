@@ -28,7 +28,7 @@ final class CloseOnExecTest extends TestCase
             // Forked process
             $ffi = \FFI::cdef('int fcntl(int fd, int op, ...); void _exit(int status);');
             try {
-                //CloseOnExec::set();
+                CloseOnExec::set();
                 // Exit with 0 if FD_CLOEXEC was set, otherwise exit with 1.
                 $ffi->_exit(($ffi->fcntl($fd, 1) & self::FD_CLOEXEC) === self::FD_CLOEXEC ? 0 : 1);
             } catch (\Throwable) {
