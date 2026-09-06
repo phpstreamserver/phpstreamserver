@@ -6,6 +6,7 @@ namespace PHPStreamServer\Core;
 
 use PHPStreamServer\Core\Internal\FFIBindings\DarwinProcessMemory;
 use PHPStreamServer\Core\Internal\FFIBindings\FreeBSDProcessMemory;
+use PHPStreamServer\Core\Internal\FFIBindings\OpenBSDProcessMemory;
 use PHPStreamServer\Core\Internal\LinuxProcessMemory;
 use PHPStreamServer\Core\Internal\ProcessIdentity;
 use Revolt\EventLoop\DriverFactory;
@@ -106,15 +107,15 @@ function getAbsoluteBinaryPath(string $binary): string
 
 function getMemoryUsageByPid(int $pid): int
 {
-    if (\PHP_OS_FAMILY  === 'Linux') {
-        dump('Linux');
+    if (\PHP_OS_FAMILY === 'Linux') {
         $vmrss = LinuxProcessMemory::get($pid);
-    } elseif (\PHP_OS_FAMILY  === 'Darwin') {
-        dump('Darwin');
+    } elseif (\PHP_OS_FAMILY === 'Darwin') {
         $vmrss = DarwinProcessMemory::get($pid);
-    } elseif (\PHP_OS_FAMILY  === 'FreeBSD') {
-        dump('FreeBSD');
+    } elseif (\PHP_OS === 'FreeBSD') {
         $vmrss = FreeBSDProcessMemory::get($pid);
+    } elseif (\PHP_OS === 'OpenBSD') {
+        dump('OpenBSD');
+        $vmrss = OpenBSDProcessMemory::get($pid);
     } else {
         /** @psalm-suppress ForbiddenCode */
         //$out = \shell_exec("ps -o rss= -p $pid 2>/dev/null");
