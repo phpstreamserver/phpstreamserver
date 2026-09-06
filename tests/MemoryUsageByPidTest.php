@@ -10,7 +10,7 @@ use function PHPStreamServer\Core\getMemoryUsageByPid;
 
 final class MemoryUsageByPidTest extends TestCase
 {
-    public function testDarwinMemoryUsage(): void
+    public function testMemoryUsage(): void
     {
         $this->assertGreaterThan(0, getMemoryUsageByPid(\posix_getpid()));
     }
