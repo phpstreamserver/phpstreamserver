@@ -16,6 +16,9 @@ use PHPStreamServer\Plugin\HttpServer\Internal\MimeTypeMapper;
  */
 final readonly class StaticMiddleware implements Middleware
 {
+    private const S_IFMT = 0170000;
+    private const S_IFREG = 0100000;
+
     private string $dir;
 
     public function __construct(string $dir)
@@ -29,14 +32,28 @@ final readonly class StaticMiddleware implements Middleware
             return $requestHandler->handleRequest($request);
         }
 
-        $fd = \fopen($file, 'r');
-        $size = \fstat($fd)['size'] ?? 0;
+        if (false === $fd = \fopen($file, 'rn')) {
+            return $requestHandler->handleRequest($request);
+        }
+
+        $stat = \fstat($fd);
+
+        // Ensure the opened resource is a regular file and not a directory or pipe
+        if ($stat === false || (($stat['mode'] & self::S_IFMT) !== self::S_IFREG)) {
+            \fclose($fd);
+
+            return $requestHandler->handleRequest($request);
+        }
+
         $headers = [
             'Content-Type' => MimeTypeMapper::lookupMimeTypeFromPath($file),
+            'Content-Length' => (string) $stat['size'],
         ];
 
-        if ($size > 0) {
-            $headers['Content-Length'] = (string) $size;
+        if ($request->getMethod() === 'HEAD') {
+            \fclose($fd);
+
+            return new Response(headers: $headers);
         }
 
         return new Response(body: new ReadableResourceStream($fd), headers: $headers);
@@ -44,9 +61,13 @@ final readonly class StaticMiddleware implements Middleware
 
     private function findFileInPublicDirectory(string $requestPath): string|null
     {
+        if ($requestPath === '/' || $requestPath === '' || \str_ends_with($requestPath, '/')) {
+            return null;
+        }
+
         $path = \realpath($this->dir . '/' . \ltrim($requestPath, '/'));
 
-        if ($path === false || \is_dir($path) || !\str_starts_with($path, $this->dir . '/')) {
+        if ($path === false || !\str_starts_with($path, $this->dir . '/')) {
             return null;
         }
 
