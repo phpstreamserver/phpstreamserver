@@ -27,7 +27,7 @@ use PHPStreamServer\Plugin\HttpServer\Listen;
 
 final readonly class HttpServer
 {
-    private const DEFAULT_TCP_BACKLOG = 65536;
+    private const DEFAULT_TCP_BACKLOG = 2048;
     private const DEFAULT_CHUNK_SIZE = 16384;
 
     private SocketHttpServer $socketHttpServer;
@@ -128,10 +128,10 @@ final readonly class HttpServer
     /**
      * @return array{0: InternetAddress, 1: BindContext}
      */
-    public static function createInternetAddressAndContext(Listen $listen, bool $reusePort = false, int $backlog = 0): array
+    public static function createInternetAddressAndContext(Listen $listen, bool $reusePort = false, int $backlog = 128): array
     {
         $internetAddress = new InternetAddress($listen->host, $listen->port);
-        $context = new BindContext();
+        $context = (new BindContext())->withTcpNoDelay();
 
         if ($reusePort) {
             $context = $context->withReusePort();
