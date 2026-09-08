@@ -56,6 +56,7 @@ $server->addWorker(
         onRequest: static function (Request $request): Response {
             return match ($request->getUri()->getPath()) {
                 '/' => new Response(body: 'Hello world'),
+                '/large' => new Response(body: \str_repeat('x', 3 * 16384)),
                 '/error' => throw new \Exception('test exception'),
                 default => throw new HttpErrorException(404),
             };

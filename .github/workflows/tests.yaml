@@ -16,7 +16,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: 8.5
-          extensions: ffi, posix, pcntl
+          extensions: curl, ffi, posix, pcntl
           tools: composer:v2
 
       - name: Composer install
@@ -46,7 +46,7 @@ jobs:
         uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: ffi, posix, pcntl
+          extensions: curl, ffi, posix, pcntl
           tools: composer:v2
 
       - name: Composer install

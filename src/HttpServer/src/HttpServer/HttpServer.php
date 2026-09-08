@@ -28,7 +28,7 @@ use PHPStreamServer\Plugin\HttpServer\Listen;
 final readonly class HttpServer
 {
     private const DEFAULT_TCP_BACKLOG = 2048;
-    private const DEFAULT_CHUNK_SIZE = 16384;
+    private const DEFAULT_CHUNK_SIZE = 16393;
 
     private SocketHttpServer $socketHttpServer;
     private HttpErrorHandler $errorHandler;

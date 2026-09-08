@@ -35,6 +35,23 @@ final class HttpServerTest extends PHPSSTestCase
         $this->assertSame('Hello world', $response->getBody()->buffer());
     }
 
+    public function testLargeHttp2Response(): void
+    {
+        $curl = \curl_init('https://127.0.0.1:9081/large');
+
+        \curl_setopt_array($curl, [
+            \CURLOPT_HTTP_VERSION => \CURL_HTTP_VERSION_2TLS,
+            \CURLOPT_RETURNTRANSFER => true,
+            \CURLOPT_SSL_VERIFYPEER => false,
+            \CURLOPT_SSL_VERIFYHOST => false,
+        ]);
+
+        $body = \curl_exec($curl);
+
+        $this->assertNotFalse($body, \curl_error($curl));
+        $this->assertSame(\str_repeat('x', 3 * 16384), $body);
+    }
+
     public function testInternalServerErrorIsReturned(): void
     {
         // Arrange

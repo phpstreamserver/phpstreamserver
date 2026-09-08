@@ -41,6 +41,7 @@
     },
     "require-dev": {
         "amphp/http-client": "^5.3.6",
+        "ext-curl": "*",
         "friendsofphp/php-cs-fixer": "^3.95.11",
         "monolog/monolog": "^3.10.0",
         "phpunit/phpunit": "^11.5.56",
