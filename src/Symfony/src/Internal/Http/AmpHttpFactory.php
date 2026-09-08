@@ -41,13 +41,6 @@ final class AmpHttpFactory
          * @var array<non-empty-string, array<array-key, string>|string> $headers
          */
         $headers = $symfonyResponse->headers->all();
-        $cookies = $symfonyResponse->headers->getCookies();
-        if ($cookies !== []) {
-            $headers['Set-Cookie'] = [];
-            foreach ($cookies as $cookie) {
-                $headers['Set-Cookie'][] = $cookie->__toString();
-            }
-        }
 
         return new AmpResponse(
             status: $symfonyResponse->getStatusCode(),
