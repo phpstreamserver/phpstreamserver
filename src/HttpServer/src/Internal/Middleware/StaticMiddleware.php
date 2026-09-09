@@ -16,6 +16,7 @@ use PHPStreamServer\Plugin\HttpServer\Internal\MimeTypeMapper;
  */
 final readonly class StaticMiddleware implements Middleware
 {
+    private const CHUNK_SIZE = 16384;
     private const S_IFMT = 0170000;
     private const S_IFREG = 0100000;
 
@@ -56,7 +57,7 @@ final readonly class StaticMiddleware implements Middleware
             return new Response(headers: $headers);
         }
 
-        return new Response(body: new ReadableResourceStream($fd), headers: $headers);
+        return new Response(body: new ReadableResourceStream($fd, chunkSize: self::CHUNK_SIZE), headers: $headers);
     }
 
     private function findFileInPublicDirectory(string $requestPath): string|null
