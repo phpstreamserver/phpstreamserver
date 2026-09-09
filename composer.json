@@ -17,6 +17,7 @@
     ],
     "require": {
         "php": ">=8.2",
+        "ext-ctype": "*",
         "ext-ffi": "*",
         "ext-pcntl": "*",
         "ext-posix": "*",
