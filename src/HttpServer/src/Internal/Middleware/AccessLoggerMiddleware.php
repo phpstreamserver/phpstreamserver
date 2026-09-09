@@ -8,6 +8,7 @@ use Amp\Http\Server\Middleware;
 use Amp\Http\Server\Request;
 use Amp\Http\Server\RequestHandler;
 use Amp\Http\Server\Response;
+use Amp\Socket\InternetAddress;
 use Psr\Log\LoggerInterface as PsrLogger;
 use Psr\Log\LogLevel;
 
@@ -24,7 +25,10 @@ final readonly class AccessLoggerMiddleware implements Middleware
     {
         $response = $requestHandler->handleRequest($request);
 
-        $remoteAddress = \explode(':', $request->getClient()->getRemoteAddress()->toString())[0];
+        $remoteAddress = $request->getClient()->getRemoteAddress();
+        \assert($remoteAddress instanceof InternetAddress);
+
+        $remoteAddress = $remoteAddress->getAddress();
         $method = $request->getMethod();
         $uri = (string) $request->getUri();
         $version = $request->getProtocolVersion();
