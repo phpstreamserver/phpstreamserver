@@ -44,10 +44,11 @@ final class HttpFoundationFactory
         $server['REMOTE_PORT'] = $remoteAddress->getPort();
         $server['REQUEST_URI'] = $uri->getPath();
         $server['REQUEST_METHOD'] = $request->getMethod();
-        $server['QUERY_STRING'] = $uri->getQuery();
+        $queryString = $uri->getQuery();
+        $server['QUERY_STRING'] = $queryString;
 
-        if ($server['QUERY_STRING'] !== '') {
-            $server['REQUEST_URI'] .= '?' . $server['QUERY_STRING'];
+        if ($queryString !== '') {
+            $server['REQUEST_URI'] .= '?' . $queryString;
         }
 
         if ($uri->getScheme() === 'https') {
@@ -55,7 +56,9 @@ final class HttpFoundationFactory
         }
 
         $query = [];
-        \parse_str($uri->getQuery(), $query);
+        if ($queryString !== '') {
+            \parse_str($queryString, $query);
+        }
 
         $cookies = [];
         foreach ($request->getCookies() as $cookie) {
@@ -94,7 +97,7 @@ final class HttpFoundationFactory
             $content = \trim($request->getBody()->buffer());
             $parsedBody = [];
             $parsedFiles = [];
-            \parse_str(\urldecode($content), $parsedBody);
+            \parse_str($content, $parsedBody);
         } elseif ($contentType === 'application/json') {
             $content = \trim($request->getBody()->buffer());
             $parsedBody = (array) \json_decode($content, true);
