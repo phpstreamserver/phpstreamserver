@@ -6,6 +6,7 @@ namespace PHPStreamServer\Symfony\Internal\Http;
 
 use Amp\ByteStream\StreamException;
 use Amp\Http\Server\Request as AmpRequest;
+use Amp\Socket\InternetAddress;
 use PHPStreamServer\Symfony\Internal\Http\Multipart\InvalidMultipartContentException;
 use PHPStreamServer\Symfony\Internal\Http\Multipart\InvalidMultipartHeaderException;
 use PHPStreamServer\Symfony\Internal\Http\Multipart\Multipart;
@@ -30,20 +31,17 @@ final class HttpFoundationFactory
         $uri = $request->getUri();
         $client = $request->getClient();
 
-        $serverAddress = $client->getLocalAddress()->toString();
-        $serverAddressDelimiterPosition = (int) \strrpos($serverAddress, ':');
-        $serverAddressHost = \substr($serverAddress, 0, $serverAddressDelimiterPosition);
+        $serverAddress = $client->getLocalAddress();
+        $remoteAddress = $client->getRemoteAddress();
 
-        $remoteAddress = $client->getRemoteAddress()->toString();
-        $remoteAddressDelimiterPosition = (int) \strrpos($remoteAddress, ':');
-        $remoteAddressHost = \substr($remoteAddress, 0, $remoteAddressDelimiterPosition);
-        $remoteAddressPort = \substr($remoteAddress, $remoteAddressDelimiterPosition + 1);
+        \assert($serverAddress instanceof InternetAddress);
+        \assert($remoteAddress instanceof InternetAddress);
 
         $server['SERVER_NAME'] = $uri->getHost();
-        $server['SERVER_ADDR'] = $serverAddressHost;
+        $server['SERVER_ADDR'] = $serverAddress->getAddress();
         $server['SERVER_PORT'] = $uri->getPort() ?: ('https' === $uri->getScheme() ? 443 : 80);
-        $server['REMOTE_ADDR'] = $remoteAddressHost;
-        $server['REMOTE_PORT'] = (int) $remoteAddressPort;
+        $server['REMOTE_ADDR'] = $remoteAddress->getAddress();
+        $server['REMOTE_PORT'] = $remoteAddress->getPort();
         $server['REQUEST_URI'] = $uri->getPath();
         $server['REQUEST_METHOD'] = $request->getMethod();
         $server['QUERY_STRING'] = $uri->getQuery();
