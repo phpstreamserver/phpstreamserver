@@ -68,7 +68,7 @@ final readonly class FlattenException implements \Stringable
         $str = $this->formatException('exception');
         if (null !== $previous = $this->previous) {
             do {
-                $str .= ',' . $this->formatException('previous');
+                $str .= ',' . $previous->formatException('previous');
             } while (null !== $previous = $previous->previous);
         }
 
