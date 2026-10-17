@@ -30,6 +30,10 @@ final readonly class FlattenException implements \Stringable
 
         foreach ($trace as &$traceItem) {
             unset($traceItem['args']);
+
+            if (isset($traceItem['class'])) {
+                $traceItem['class'] = self::parseAnonymousClass($traceItem['class']);
+            }
         }
 
         return new self(
@@ -48,7 +52,7 @@ final readonly class FlattenException implements \Stringable
      */
     public function getFullExceptionTextWithTrace(): string
     {
-        $out = \sprintf("%s: %s in %s:%d\nStack trace:\n", self::parseAnonymousClass($this->class), $this->message, $this->file, $this->line);
+        $out = \sprintf("%s: %s in %s:%d\nStack trace:\n", $this->class, $this->message, $this->file, $this->line);
         $i = 0;
         foreach ($this->trace as $trace) {
             $file = $trace['file'] ?? null;
@@ -57,9 +61,10 @@ final readonly class FlattenException implements \Stringable
             $type = $trace['type'] ?? null;
             $function = $trace['function'] ?? '[unknown function]';
             $fileStr = $file !== null && $line !== null ? \sprintf('%s(%d)', $file, $line) : '[internal function]';
-            $functionStr = $class !== null && $type !== null ? self::parseAnonymousClass($class) . $type . $function : $function;
+            $functionStr = $class !== null && $type !== null ? $class . $type . $function : $function;
             $out .= \sprintf("#%d %s: %s()\n", $i++, $fileStr, $functionStr);
         }
+
         return $out . \sprintf("#%d {main}", $i);
     }
 
