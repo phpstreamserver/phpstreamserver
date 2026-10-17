@@ -57,7 +57,7 @@ final readonly class ServerRunner implements RunnerInterface
             pidFile: $this->appLoader->getPidFile(),
             socketFile: $this->appLoader->getSocketFile(),
             stopTimeout: isset($options['stop_timeout']) ? (int) $options['stop_timeout'] : null,
-            restartDelay: isset($options['restart_delay']) ? (int) $options['restart_delay'] : null,
+            restartDelay: isset($options['restart_delay']) ? (float) $options['restart_delay'] : null,
         );
 
         $this->server->addPlugin(new HttpServerPlugin(
