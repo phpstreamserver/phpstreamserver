@@ -154,30 +154,28 @@ final class HttpFoundationFactory
                 if ($part->isFile()) {
                     $filename = $part->getFilename();
                     if ($filename !== null && $filename !== '') {
-                        $fileStructureStr .= "$name&";
+                        $fileStructureStr .= \rawurlencode($name) . '=' . \count($fileStructureList) . '&';
                         $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
                         $tempArtifacts[] = $path;
                         $fileStructureList[] = new UploadedFile($path, $part);
                     }
                 } else {
-                    $payloadStructureStr .= "$name&";
+                    $payloadStructureStr .= \rawurlencode($name) . '=' . \count($payloadStructureList) . '&';
                     $payloadStructureList[] = $part->getContents();
                 }
             }
 
             if ($fileStructureList !== []) {
-                $i = 0;
                 \parse_str($fileStructureStr, $files);
-                \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i): void {
-                    $item = $fileStructureList[$i++];
+                \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList): void {
+                    $item = $fileStructureList[(int) $item];
                 });
             }
 
             if ($payloadStructureList !== []) {
-                $i = 0;
                 \parse_str($payloadStructureStr, $payload);
-                \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i): void {
-                    $item = $payloadStructureList[$i++];
+                \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList): void {
+                    $item = $payloadStructureList[(int) $item];
                 });
             }
 
