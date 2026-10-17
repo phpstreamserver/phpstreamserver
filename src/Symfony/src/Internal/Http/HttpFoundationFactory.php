@@ -128,60 +128,68 @@ final class HttpFoundationFactory
     private function parseMultipartPayload(AmpRequest $request): array
     {
         $resource = \fopen('php://temp', 'r+');
-        while (null !== $chunk = $request->getBody()->read()) {
-            \fwrite($resource, $chunk);
-            unset($chunk);
-        }
-
         $tempArtifacts = [$resource];
-        $multipartParser = new MultipartParser($resource, (string) $request->getHeader('content-type'));
 
-        $payload = [];
-        $payloadStructureStr = '';
-        $payloadStructureList = [];
-
-        $files = [];
-        $fileStructureStr = '';
-        $fileStructureList = [];
-
-        foreach ($multipartParser as $part) {
-            if (null === $name = $part->getName()) {
-                continue;
+        try {
+            while (null !== $chunk = $request->getBody()->read()) {
+                \fwrite($resource, $chunk);
+                unset($chunk);
             }
 
-            if ($part->isFile()) {
-                $filename = $part->getFilename();
-                if ($filename !== null && $filename !== '') {
-                    $fileStructureStr .= "$name&";
-                    $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
-                    $tempArtifacts[] = $path;
-                    $fileStructureList[] = new UploadedFile($path, $part);
+            $multipartParser = new MultipartParser($resource, (string) $request->getHeader('content-type'));
+
+            $payload = [];
+            $payloadStructureStr = '';
+            $payloadStructureList = [];
+
+            $files = [];
+            $fileStructureStr = '';
+            $fileStructureList = [];
+
+            foreach ($multipartParser as $part) {
+                if (null === $name = $part->getName()) {
+                    continue;
                 }
-            } else {
-                $payloadStructureStr .= "$name&";
-                $payloadStructureList[] = $part->getContents();
+
+                if ($part->isFile()) {
+                    $filename = $part->getFilename();
+                    if ($filename !== null && $filename !== '') {
+                        $fileStructureStr .= "$name&";
+                        $path = \sprintf('%s/phpss-upload-%s', \sys_get_temp_dir(), \uniqid());
+                        $tempArtifacts[] = $path;
+                        $fileStructureList[] = new UploadedFile($path, $part);
+                    }
+                } else {
+                    $payloadStructureStr .= "$name&";
+                    $payloadStructureList[] = $part->getContents();
+                }
             }
+
+            if ($fileStructureList !== []) {
+                $i = 0;
+                \parse_str($fileStructureStr, $files);
+                \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i): void {
+                    $item = $fileStructureList[$i++];
+                });
+            }
+
+            if ($payloadStructureList !== []) {
+                $i = 0;
+                \parse_str($payloadStructureStr, $payload);
+                \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i): void {
+                    $item = $payloadStructureList[$i++];
+                });
+            }
+
+            $this->multipartResources->offsetSet($request, $tempArtifacts);
+
+            return [$payload, $files];
+        } catch (\Throwable $e) {
+            $this->multipartResources->offsetSet($request, $tempArtifacts);
+            $this->disposeTempArtifacts($request);
+
+            throw $e;
         }
-
-        if ($fileStructureList !== []) {
-            $i = 0;
-            \parse_str($fileStructureStr, $files);
-            \array_walk_recursive($files, static function (mixed &$item) use ($fileStructureList, &$i): void {
-                $item = $fileStructureList[$i++];
-            });
-        }
-
-        if ($payloadStructureList !== []) {
-            $i = 0;
-            \parse_str($payloadStructureStr, $payload);
-            \array_walk_recursive($payload, static function (mixed &$item) use ($payloadStructureList, &$i): void {
-                $item = $payloadStructureList[$i++];
-            });
-        }
-
-        $this->multipartResources->offsetSet($request, $tempArtifacts);
-
-        return [$payload, $files];
     }
 
     public function disposeTempArtifacts(AmpRequest $request): void
