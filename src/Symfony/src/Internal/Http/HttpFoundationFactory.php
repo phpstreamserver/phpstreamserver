@@ -89,17 +89,17 @@ final class HttpFoundationFactory
     {
         $contentType = Multipart::parseHeaderContent($request->getHeader('content-type'))[0];
 
-        if (!\in_array($request->getMethod(), ['POST', 'PUT', 'PATCH'], true)) {
-            $content = '';
+        if (!\in_array($request->getMethod(), ['POST', 'PUT', 'PATCH', 'DELETE'], true)) {
+            $content = $request->getBody()->buffer();
             $parsedBody = [];
             $parsedFiles = [];
         } elseif ($contentType === 'application/x-www-form-urlencoded') {
-            $content = \trim($request->getBody()->buffer());
+            $content = $request->getBody()->buffer();
             $parsedBody = [];
             $parsedFiles = [];
             \parse_str($content, $parsedBody);
         } elseif ($contentType === 'application/json') {
-            $content = \trim($request->getBody()->buffer());
+            $content = $request->getBody()->buffer();
             $parsedBody = (array) \json_decode($content, true);
             $parsedFiles = [];
         } elseif ($contentType === 'multipart/form-data') {
@@ -111,7 +111,7 @@ final class HttpFoundationFactory
                 $parsedFiles = [];
             }
         } else {
-            $content = '';
+            $content = $request->getBody()->buffer();
             $parsedBody = [];
             $parsedFiles = [];
         }
