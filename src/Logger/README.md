@@ -10,7 +10,7 @@
 ![Version](https://img.shields.io/github/v/tag/phpstreamserver/logger?label=Version&filter=v*.*.*&sort=semver&color=374151)
 ![Downloads](https://img.shields.io/packagist/dt/phpstreamserver/logger?label=Downloads&color=f28d1a)
 
-Flexible logging system supporting multiple outputs, including files, stdout, syslog, and Graylog.
+Flexible logging system supporting multiple outputs, including files, stdout, syslog, Graylog, and VictoriaLogs.
 
 ### Resources
 - [Documentation](https://phpstreamserver.dev/docs/plugins/logger)
