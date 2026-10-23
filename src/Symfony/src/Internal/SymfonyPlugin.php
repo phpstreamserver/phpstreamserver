@@ -142,8 +142,12 @@ final class SymfonyPlugin extends Plugin
             $output = new NullOutput();
 
             $eventDispatcher->dispatch(new WorkerStartEvent($worker));
-            $application->run($input, $output);
+            $exitCode = $application->run($input, $output);
             $eventDispatcher->dispatch(new WorkerStopEvent($worker));
+
+            if ($exitCode !== 0) {
+                $worker->stop($exitCode);
+            }
         });
     }
 
