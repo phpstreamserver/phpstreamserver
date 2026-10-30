@@ -27,6 +27,10 @@ return static function (array $config, ContainerConfigurator $configurator) {
     $services
         ->set('phpss.http_handler', HttpRequestHandler::class)
         ->args([service('kernel')])
+        ->tag('kernel.event_listener', [
+            'event' => WorkerStartEvent::class,
+            'method' => 'onWorkerStart',
+        ])
         ->public()
     ;
 

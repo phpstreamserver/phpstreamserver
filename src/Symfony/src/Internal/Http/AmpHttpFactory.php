@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace PHPStreamServer\Symfony\Internal\Http;
 
-use Amp\ByteStream\ReadableIterableStream;
 use Amp\ByteStream\ReadableResourceStream;
 use Amp\Http\Server\Response as AmpResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+
+use function PHPStreamServer\Core\streamOutput;
 
 /**
  * @internal
@@ -24,15 +25,13 @@ final class AmpHttpFactory
             $chunkSize = (fn(): int => $this->chunkSize)->bindTo($symfonyResponse, $symfonyResponse)();
             $body = new ReadableResourceStream(\fopen($path, 'r'), $chunkSize);
         } elseif ($symfonyResponse instanceof BinaryFileResponse) {
-            $callback = static function () use ($symfonyResponse): void {
+            $body = streamOutput(static function () use ($symfonyResponse): void {
                 $symfonyResponse->sendContent();
-            };
-            $body = new ReadableIterableStream((new OutputStreamIterator($callback))->getIterator());
+            });
         } elseif ($symfonyResponse instanceof StreamedResponse) {
+            $symfonyResponse->headers->remove('Content-Length');
             $callback = $symfonyResponse->getCallback();
-            $body = $callback === null
-                ? ''
-                : new ReadableIterableStream((new OutputStreamIterator($callback))->getIterator());
+            $body = $callback === null ? '' : streamOutput($callback);
         } else {
             $body = (string) $symfonyResponse->getContent();
         }
