@@ -62,7 +62,7 @@ final class HttpFoundationFactory
 
         $cookies = [];
         foreach ($request->getCookies() as $cookie) {
-            $cookies[$cookie->getName()] = $cookie->getValue();
+            $cookies[$cookie->getName()] = \rawurldecode($cookie->getValue());
         }
 
         [$content, $parsedBody, $parsedFiles] = $this->parsePayload($request);
